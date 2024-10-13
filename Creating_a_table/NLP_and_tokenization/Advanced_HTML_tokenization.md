@@ -1,6 +1,6 @@
-# Advanced HTML tokenization
+# 高级 HTML 标记化
 
-## Stripping HTML tags
+## 删除 HTML 标签
 
 ### html_strip
 
@@ -10,20 +10,20 @@
 html_strip = {0|1}
 ```
 
-This option determines whether HTML markup should be stripped from the incoming full-text data. The default value is 0, which disables stripping. To enable stripping, set the value to 1.
+此选项用于确定是否从传入的全文数据中删除 HTML 标记。默认值为 0，表示不删除。如果要启用删除功能，请将该值设置为 1。
 
-HTML tags and entities are considered as markup and will be processed. 
+HTML 标签和实体会被视为标记并进行处理。
 
-HTML tags are removed, while the contents between them (e.g. everything between `<p>` and `</p>`) are left intact. You can choose to keep and index tag attributes (e.g. HREF attribute in an A tag or ALT in an IMG tag). Some well-known inline tags, such as A, B, I, S, U, BASEFONT, BIG, EM, FONT, IMG, LABEL, SMALL, SPAN, STRIKE, STRONG, SUB, SUP, and TT, are completely removed. All other tags are treated as block level and are replaced with whitespace. For example, the text `te<b>st</b>` will be indexed as a single keyword 'test', while `te<p>st</p>` will be indexed as two keywords 'te' and 'st'.
+HTML 标签会被删除，而标签之间的内容（例如 `<p>` 和 `</p>` 之间的内容）将被保留。您可以选择保留并索引标签属性（例如 A 标签中的 HREF 属性或 IMG 标签中的 ALT 属性）。一些常见的内联标签，如 A、B、I、S、U、BASEFONT、BIG、EM、FONT、IMG、LABEL、SMALL、SPAN、STRIKE、STRONG、SUB、SUP 和 TT，会被完全删除。所有其他标签被视为块级标签，并替换为空格。例如，文本 `te<b>st</b>` 将被索引为单个关键字“test”，而 `te<p>st</p>` 将被索引为两个关键字“te”和“st”。
 
-HTML entities are decoded and replaced with their corresponding UTF-8 characters. The stripper supports both numeric forms (e.g. `&#239;`) and text forms (e.g. `&oacute;` or `&nbsp;`) of entities, and supports all entities specified by the HTML4 standard.
+HTML 实体会被解码并替换为其对应的 UTF-8 字符。剥离器支持数字形式（例如 `ï`）和文本形式（例如 `ó` 或 ` `）的实体，并支持 HTML4 标准中规定的所有实体。
 
-The stripper is designed to work with properly formed HTML and XHTML, but may produce unexpected results on malformed input (such as HTML with stray `<'s` or unclosed `>'s`).
+该功能设计用于处理格式正确的 HTML 和 XHTML，但在处理格式不正确的输入时（例如带有多余的 `<` 或未闭合的 `>` 的 HTML），可能会产生意外结果。
 
-Please note that only the tags themselves, as well as HTML comments, are stripped. To strip the contents of the tags, including embedded scripts, see the [html_remove_elements](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_remove_elements) option. There are no restrictions on tag names, meaning that everything that looks like a valid tag start, end, or comment will be stripped.
-
+请注意，只有标签本身以及 HTML 注释会被删除。要删除标签内容，包括嵌入的脚本，请参阅 [html_remove_elements](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_remove_elements) 选项。标签名没有任何限制，这意味着所有看起来像有效标签开始、结束或注释的内容都会被删除。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -104,8 +104,9 @@ table products {
 html_index_attrs = img=alt,title; a=title;
 ```
 
-The html_index_attrs option allows you to specify which HTML markup attributes should be indexed even though other HTML markup is stripped. The default value is empty, meaning no attributes will be indexed. 
-The format of the option is a per-tag enumeration of indexable attributes, as demonstrated in the example above. The contents of the specified attributes will be retained and indexed, providing a way to extract additional information from your full-text data.
+`html_index_attrs` 选项允许您指定即使其他 HTML 标记被删除，哪些 HTML 标记属性仍应被索引。默认值为空，表示不会索引任何属性。
+
+该选项的格式是按标签列举可索引的属性，如上例所示。指定属性的内容将被保留并索引，从而为您的全文数据提取附加信息。
 
 
 <!-- intro -->
@@ -191,14 +192,14 @@ table products {
 html_remove_elements = element1[, element2, ...]
 ```
 
-A list of HTML elements whose contents, along with the elements themselves, will be stripped. Optional, the default is an empty string (do not strip contents of any elements).
+`html_remove_elements` 选项用于指定要删除内容及其元素本身的 HTML 元素列表。该选项是可选的，默认值为空字符串（表示不删除任何元素的内容）。
 
-This option allows you to remove the contents of elements, meaning everything between the opening and closing tags. It is useful for removing embedded scripts, CSS, etc. The short tag form for empty elements (e.g. <br/>) is properly supported, and the text following such a tag will not be removed.
+此选项允许您删除元素的内容，即删除打开和关闭标签之间的所有内容。它在删除嵌入的脚本、CSS 等方面非常有用。对于空元素的短标签形式（如 `<br/>`）也有正确支持，并且该标签之后的文本不会被删除。
 
-The value is a comma-separated list of element (tag) names, the contents of which should be removed. Tag names are case-insensitive.
-
+值是一个以逗号分隔的元素（标签）名称列表，应该删除这些标签的内容。标签名称不区分大小写。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -273,7 +274,7 @@ table products {
 ```
 <!-- end -->
 
-## Extracting important parts from HTML
+## 从 HTML 中提取重要部分
 
 ### index_sp
 
@@ -283,25 +284,25 @@ table products {
 index_sp = {0|1}
 ```
 
-Controls detection and indexing of sentence and paragraph boundaries. Optional, default is 0 (no detection or indexing).
+`index_sp` 选项控制句子和段落边界的检测与索引。该选项是可选的，默认值为 0（不进行检测或索引）。
 
-This directive enables the detection and indexing of sentence and paragraph boundaries, making it possible for the [SENTENCE](../../Searching/Full_text_matching/Operators.md#SENTENCE-and-PARAGRAPH-operators)  and [PARAGRAPH](../../Searching/Full_text_matching/Operators.md#SENTENCE-and-PARAGRAPH-operators)  operators to work. Sentence boundary detection is based on plain text analysis, and only requires setting `index_sp = 1` to enable it. Paragraph detection, however, relies on HTML markup and occurs during the [HTML stripping process](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_strip. As such, to index paragraph boundaries, both the index_sp directive and the html_strip directive must be set to 1.
+此指令启用句子和段落边界的检测与索引，使 [SENTENCE](../../Searching/Full_text_matching/Operators.md#SENTENCE-and-PARAGRAPH-operators) 和 [PARAGRAPH](../../Searching/Full_text_matching/Operators.md#SENTENCE-and-PARAGRAPH-operators) 操作符可以正常工作。句子边界的检测基于纯文本分析，只需设置 `index_sp = 1` 即可启用。段落检测则依赖于 HTML 标记，并在 [HTML 剥离过程](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_strip) 中进行。因此，要索引段落边界，必须将 `index_sp` 和 `html_strip` 两个指令都设置为 1。
 
-The following rules are used to determine sentence boundaries:
+以下规则用于确定句子边界：
 
-* Question marks (?) and exclamation marks (!) always indicate a sentence boundary. 
-* Trailing dots (.) indicate a sentence boundary, except in the following cases:
-    * When followed by a letter. This is considered part of an abbreviation (e.g. "S.T.A.L.K.E.R." or "Goldman Sachs S.p.A.").
-    * When followed by a comma. This is considered an abbreviation followed by a comma (e.g. "Telecom Italia S.p.A., founded in 1994").
-    * When followed by a space and a lowercase letter. This is considered an abbreviation within a sentence (e.g. "News Corp. announced in February").
-    * When preceded by a space and an uppercase letter, and followed by a space. This is considered a middle initial (e.g. "John D. Doe").
-        
-Paragraph boundaries are detected at every block-level HTML tag, including: ADDRESS, BLOCKQUOTE, CAPTION, CENTER, DD, DIV, DL, DT, H1, H2, H3, H4, H5, LI, MENU, OL, P, PRE, TABLE, TBODY, TD, TFOOT, TH, THEAD, TR, and UL.
+- 问号 (?) 和感叹号 (!) 总是表示句子边界。
+- 尾随的句号 (.) 表示句子边界，但在以下情况下除外：
+  - 当句号后跟字母时，视为缩写的一部分（例如 "S.T.A.L.K.E.R." 或 "Goldman Sachs S.p.A."）。
+  - 当句号后跟逗号时，视为缩写后紧跟逗号（例如 "Telecom Italia S.p.A., founded in 1994"）。
+  - 当句号后跟空格和小写字母时，视为句中的缩写（例如 "News Corp. announced in February"）。
+  - 当句号前有空格且后跟大写字母并且后跟空格时，视为名字的中间缩写（例如 "John D. Doe"）。
 
-Both sentences and paragraphs increment the keyword position counter by 1.
+段落边界则在每个块级 HTML 标签处检测，包括：ADDRESS、BLOCKQUOTE、CAPTION、CENTER、DD、DIV、DL、DT、H1、H2、H3、H4、H5、LI、MENU、OL、P、PRE、TABLE、TBODY、TD、TFOOT、TH、THEAD、TR 和 UL。
 
+句子和段落都会将关键词位置计数器递增 1。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -385,13 +386,13 @@ table products {
 index_zones = h*, th, title
 ```
 
-A list of HTML/XML zones within a field to be indexed. The default is an empty string (no zones will be indexed).
+`index_zones` 用于指定需要索引的 HTML/XML 区域列表。默认值为空字符串（即不索引任何区域）。
 
-A "zone" is defined as everything between an opening and a matching closing tag, and all spans sharing the same tag name are referred to as a "zone." For example, everything between `<H1>` and `</H1>` in a document field belongs to the H1 zone.
+“区域”指的是从一个标签的开始到对应关闭标签之间的内容，所有共享同一标签名称的部分都被称为“区域”。例如，在文档字段中的 `<H1>` 和 `</H1>` 之间的所有内容都属于 H1 区域。
 
-The `index_zones` directive enables zone indexing, but the HTML [stripper](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_strip) must also be enabled (by setting `html_strip = 1`). The value of `index_zones` should be a comma-separated list of tag names and wildcards (ending with a star) to be indexed as zones.
+启用区域索引时，还需要同时启用 HTML [剥离器](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#html_strip)（通过设置 `html_strip = 1`）。`index_zones` 的值应为以逗号分隔的标签名称和通配符（以星号结尾），这些标签将作为区域进行索引。
 
-Zones can be nested and overlap, as long as every opening tag has a matching tag. Zones can also be used for matching with the ZONE operator, as described in the [extended_query_syntax](../../Searching/Full_text_matching/Operators.md#ZONE-limit-operator).
+区域可以嵌套或重叠，只要每个起始标签都有匹配的关闭标签即可。区域也可用于 `ZONE` 操作符进行匹配，详见 [扩展查询语法](../../Searching/Full_text_matching/Operators.md#ZONE-limit-operator)。
 
 
 <!-- intro -->

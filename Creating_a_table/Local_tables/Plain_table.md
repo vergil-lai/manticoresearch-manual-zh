@@ -1,17 +1,17 @@
-# Plain table
+# 普通表
 
-**Plain table** is a basic element for non-[percolate](../../Creating_a_table/Local_tables/Percolate_table.md) searching. It can be defined only in a configuration file using the [Plain mode](../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain mode%29), and is not supported in the [RT mode](../../Creating_a_table/Local_tables.md#Online-schema-management-%28RT-mode%29). It is typically used in conjunction with a [source](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#source) to process data [from the external storage](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md) and can later be [attached](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md) to a **real-time table**.
+**普通表**是非[透析](../../Creating_a_table/Local_tables/Percolate_table.md)搜索的基本元素。它只能在配置文件中使用[普通模式](../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain mode%29)进行定义，并且不支持[实时模式](../../Creating_a_table/Local_tables.md#Online-schema-management-(RT-mode))。它通常与[源](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#source)结合使用，从[外部存储](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md)处理数据，并可以后来[附加](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md)到**实时表**。
 
-#### Creating a plain table
+#### 创建普通表
 
-To create a plain table, you'll need to define it in a configuration file. It's not supported by the  `CREATE TABLE` command.
+要创建一个普通表，您需要在配置文件中定义它。`CREATE TABLE`命令不支持此功能。
 
 <!-- example plain -->
 
-Here's an example of a plain table configuration and a source for fetching data from a MySQL database:
+以下是普通表配置及其从MySQL数据库获取数据的源的示例：
 
 <!-- intro -->
-#### How to create a plain table
+#### 如何创建普通表
 
 <!-- request Plain table example -->
 
@@ -35,69 +35,72 @@ table tbl {
 ```
 <!-- end -->
 
-### 👍 What you can do with a plain table:
-  * Build it from an external storage using a [source](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#source) and [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool)
-  * Perform an in-place update of [integer, float, string and MVA attribute](../../Creating_a_table/Data_types.md)
-  * [Update](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#killlist_target) it's `killlist_target`
+### 👍 您可以使用普通表做什么：
+  * 使用[源](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#source)和[索引器](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool)从外部存储构建它
+  * 在[整数、浮点数、字符串和MVA属性](../../Creating_a_table/Data_types.md)上执行就地更新
+  * [更新](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#killlist_target)其`killlist_target`
 
-### ⛔ What you cannot do with a plain table:
-  * Insert additional data into the table once it has been built
-  * Delete data from the table
-  * Create, delete, or alter the table schema online
-  * Use [UUID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID) for automatic ID generation (data from external storage must include a unique identifier)
+### ⛔ 您不能使用普通表做什么：
+  * 在表构建后插入额外数据
+  * 从表中删除数据
+  * 在线创建、删除或更改表架构
+  * 使用[UUID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID)进行自动ID生成（来自外部存储的数据必须包含唯一标识符）
 
-Numeric attributes, including [MVAs](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29), are the only elements that can be updated in a plain table. All other data in the table is immutable. If updates or new records are required, the table must be rebuilt. During the rebuilding process, the existing table remains available to serve requests, and a process called  [rotation](../../Data_creation_and_modification/Adding_data_from_external_storages/Rotating_a_table.md) is performed when the new version is ready, bringing it online and discarding the old version.
+数值属性，包括[MVAs](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA))，是普通表中唯一可以更新的元素。表中的所有其他数据都是不可变的。如果需要更新或添加新记录，则必须重建表。在重建过程中，现有表保持可用以处理请求，并在新版本准备好时执行称为[轮换](../../Data_creation_and_modification/Adding_data_from_external_storages/Rotating_a_table.md)的过程，将其上线并丢弃旧版本。
 
-#### Plain table building performance
-The speed at which a plain table is indexed depends on several factors, including:
-* Data source retrieval speed
-* [Tokenization settings](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md)
-* The hardware specifications (such as CPU, RAM, and disk performance)
+#### 普通表构建性能
 
-#### Plain table building scenarios
-##### Rebuild fully when needed
-For small data sets, the simplest option is to have a single plain table that is fully rebuilt as needed. This approach is acceptable when:
-* The data in the table is not as fresh as the data in the source
-* The time it takes to build the table increases as the data set grows
+普通表的索引速度取决于几个因素，包括：
+* 数据源检索速度
+* [分词设置](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md)
+* 硬件规格（如CPU、RAM和磁盘性能）
 
-##### Main+delta scenario
-For larger data sets, a plain table can be used instead of a [Real-Time](../../Creating_a_table/Local_tables/Real-time_table.md). The main+delta scenario involves:
-* Creating a smaller table for incremental indexing
-* Combining the two tables using a [distributed table](../../Creating_a_table/Creating_a_distributed_table/Creating_a_local_distributed_table.md)
+#### 普通表构建场景
+##### 根据需要完全重建
+对于小型数据集，最简单的选择是拥有一个普通表，根据需要完全重建。此方法在以下情况下可接受：
 
-This approach allows for infrequent rebuilding of the larger table and more frequent processing of updates from the source. The smaller table can be rebuilt more often (e.g. every minute or even every few seconds).
+- 表中的数据不如源中的数据新鲜
+- 构建表所需的时间随着数据集的增长而增加
 
-However, as time goes on, the indexing duration for the smaller table will become too long, requiring a rebuild of the larger table and the emptying of the smaller one.
+##### 主+增量场景
+对于较大的数据集，可以使用普通表代替[实时表](../../Creating_a_table/Local_tables/Real-time_table.md)。主+增量场景涉及：
+* 创建一个较小的表用于增量索引
+* 使用[分布式表](../../Creating_a_table/Creating_a_distributed_table/Creating_a_local_distributed_table.md)合并两个表
 
-The main+delta schema is explained in detail in [this interactive course](https://play.manticoresearch.com/maindelta/).
+这种方法允许较大的表不频繁重建，并更频繁地处理来自源的更新。较小的表可以更频繁地重建（例如，每分钟甚至每几秒）。
 
-The mechanism of **kill list** and [killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target) directive is used to ensure that documents from the current table take precedence over those from the other table.
+但是，随着时间的推移，较小表的索引时间会变得过长，要求重建较大的表并清空较小的表。
 
-For more information on this topic, see [here](../../Data_creation_and_modification/Adding_data_from_external_storages/Main_delta.md).
+主+增量架构在[这个互动课程](https://play.manticoresearch.com/maindelta/)中详细解释。
 
-#### Plain table files structure
-The following table outlines the various file extensions used in a plain table and their respective descriptions:
+**杀死列表**的机制和[killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target)指令用于确保当前表中的文档优先于来自其他表的文档。
 
-| Extension | Description |
-| - | - |
-|`.spa` | stores document attributes in [row-wise mode](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) |
-|`.spb` | stores blob attributes in [row-wise mode](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages): strings, MVA, json |
-|`.spc` | stores document attributes in [columnar mode](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)  |
-|`.spd` | stores matching document ID lists for each word ID |
-|`.sph` | stores table header information |
-|`.sphi` | stores histograms of attribute values |
-|`.spi` | stores word lists (word IDs and pointers to `.spd` file) |
-|`.spidx` | stores secondary indexes data |
-|`.spjidx` | stores data of secondary indexes generated for JSON attributes |
-|`.spk` | stores kill-lists |
-|`.spl` | lock file |
-|`.spm` | stores a bitmap of killed documents |
-|`.spp` | stores hit (aka posting, aka word occurrence) lists for each word ID |
-|`.spt` | stores additional data structures to speed up lookups by document ids |
-|`.spe` | stores skip-lists to speed up doc-list filtering |
-|`.spds` | stores document texts |
-|`.tmp*` |temporary files during index_settings_and_status |
-|`.new.sp*` | new version of a plain table before rotation |
-|`.old.sp*` | old version of a plain table after rotation |
+有关此主题的更多信息，请参见[这里](../../Data_creation_and_modification/Adding_data_from_external_storages/Main_delta.md)。
+
+### 普通表文件结构
+
+以下表格概述了普通表中使用的各种文件扩展名及其各自的描述：
+
+| 扩展名     | 描述                                                         |
+| ---------- | ------------------------------------------------------------ |
+| `.spa`     | 以[行模式](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)存储文档属性 |
+| `.spb`     | 以[行模式](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)存储blob属性：字符串、MVA、json |
+| `.spc`     | 以[列模式](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)存储文档属性 |
+| `.spd`     | 为每个词ID存储匹配的文档ID列表                               |
+| `.sph`     | 存储表头信息                                                 |
+| `.sphi`    | 存储属性值的直方图                                           |
+| `.spi`     | 存储词列表（词ID和指向`.spd`文件的指针）                     |
+| `.spidx`   | 存储二级索引数据                                             |
+| `.spjidx`  | 存储为JSON属性生成的二级索引数据                             |
+| `.spk`     | 存储杀死列表                                                 |
+| `.spl`     | 锁文件                                                       |
+| `.spm`     | 存储已被杀死文档的位图                                       |
+| `.spp`     | 为每个词ID存储命中列表（即发布、即词出现）                   |
+| `.spt`     | 存储附加数据结构以加速按文档ID的查找                         |
+| `.spe`     | 存储跳跃列表以加速文档列表过滤                               |
+| `.spds`    | 存储文档文本                                                 |
+| `.tmp*`    | 在`index_settings_and_status`期间的临时文件                  |
+| `.new.sp*` | 在轮换之前的普通表的新版本                                   |
+| `.old.sp*` | 在轮换之后的普通表的旧版本                                   |
 
 <!-- proofread -->

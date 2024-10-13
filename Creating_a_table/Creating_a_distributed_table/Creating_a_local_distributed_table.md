@@ -1,11 +1,11 @@
-# Creating a local distributed table
+# 创建本地分布式表
 
 <!-- example local_dist -->
 
-A distributed table in Manticore Search acts as a "master node" that proxies the demanded query to other tables and provides merged results from the responses it receives. The table doesn't hold any data on its own. It can connect to both local tables and tables located on other servers. Here's an example of a simple distributed table:
+在 Manticore Search 中，分布式表充当“主节点”，将查询代理到其他表并合并收到的响应结果。分布式表本身不持有任何数据。它可以连接到本地表以及位于其他服务器上的表。以下是一个简单分布式表的示例：
 
 <!-- intro -->
-##### Configuration file:
+##### 配置文件:
 
 <!-- request Configuration file -->
 ```ini

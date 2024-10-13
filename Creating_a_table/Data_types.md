@@ -1,12 +1,12 @@
-# Data types
+# 数据类型
 
-## Full-text fields and attributes
+## 全文字段和属性
 
 Manticore's data types can be split into two categories: full-text fields and attributes.
 
-### Full-text fields
+### 全文字段
 
-Full-text fields:
+全文字段：
 * can be indexed with natural language processing algorithms, therefore can be searched for keywords
 * cannot be used for sorting or grouping
 * original document's content can be retrieved

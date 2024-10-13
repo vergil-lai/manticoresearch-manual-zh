@@ -1,26 +1,26 @@
-# Real-time table
+# 实时表
 
-A **real-time table** is a main type of table in Manticore. It lets you add, update, and delete documents, and you can see these changes right away. You can set up a real-time Table in a configuration file or use commands like `CREATE`, `UPDATE`, `DELETE`, or `ALTER`.
+**实时表** 是 Manticore 中的主要表类型。它允许您添加、更新和删除文档，并且可以立即看到这些更改。您可以通过配置文件设置实时表，或使用 `CREATE`、`UPDATE`、`DELETE` 或 `ALTER` 等命令来操作。
 
-Internally a real-time table consists of one or more [plain tables](../../Creating_a_table/Local_tables/Plain_table.md) called **chunks**. There are two kinds of chunks:
+在内部，实时表由一个或多个称为 **chunk（块）** 的 [普通表](../../Creating_a_table/Local_tables/Plain_table.md) 组成。chunk 分为两种类型：
 
-* multiple **disk chunks** - these are saved on a disk and are structured like a [plain table](../../Creating_a_table/Local_tables/Plain_table.md).
-* single **ram chunk** - this is kept in memory and collects all changes.
+- 多个 **磁盘块** - 这些块保存到磁盘中，其结构类似于 [普通表](../../Creating_a_table/Local_tables/Plain_table.md)。
+- 一个 **内存块** - 存储在内存中，收集所有的更改。
 
-The size of the RAM chunk is controlled by the [rt_mem_limit](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit) setting. Once this limit is reached, the RAM chunk is transferred to disk as a disk chunk. If there are too many disk chunks, Manticore [combines some of them](../../Securing_and_compacting_a_table/Compacting_a_table.md#Number-of-optimized-disk-chunks) to improve performance.
+内存块的大小由 [rt_mem_limit](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit) 设置控制。一旦达到此限制，内存块将被传输到磁盘作为磁盘块。如果磁盘块过多，Manticore 会 [合并部分块](../../Securing_and_compacting_a_table/Compacting_a_table.md#Number-of-optimized-disk-chunks) 以提高性能。
 
-### Creating a real-time table:
+### 创建实时表：
 
-You can create a new real-time table in two ways: by using the `CREATE TABLE` command or through the [_mapping endpoint](../../Creating_a_table/Local_tables/Real-time_table.md#_mapping-API:) of the HTTP JSON API.
+您可以通过两种方式创建新的实时表：使用 `CREATE TABLE` 命令，或通过 HTTP JSON API 的 [_mapping endpoint](../../Creating_a_table/Local_tables/Real-time_table.md#_mapping-API:)。
 
-#### CREATE TABLE command:
+#### CREATE TABLE 命令：
 
 <!-- example rt -->
 
-You can use this command via both SQL and HTTP protocols:
+您可以通过 SQL 和 HTTP 协议使用此命令：
 
 <!-- intro -->
-##### Creating a real-time table via SQL protocol:
+##### 通过 SQL 协议创建实时表：
 <!-- request SQL -->
 
 ```sql
@@ -33,7 +33,7 @@ Query OK, 0 rows affected (0.00 sec)
 ```
 
 <!-- intro -->
-##### Creating a real-time table via JSON over HTTP:
+##### 通过 HTTP 使用 JSON 创建实时表：
 <!-- request JSON -->
 
 ```JSON
@@ -51,7 +51,7 @@ POST /cli -d "CREATE TABLE products(title text, price float)  morphology='stem_e
 ```
 
 <!-- intro -->
-##### Creating a real-time table via PHP client:
+##### 通过PHP客户端创建实时表：
 <!-- request PHP -->
 
 ```php
@@ -93,7 +93,7 @@ utilsApi.Sql("CREATE TABLE forum(title text, price float)");
 ```
 
 <!-- intro -->
-##### Creating a real-time table via a configuration file:
+##### 通过配置文件创建实时表：
 <!-- request CONFIG -->
 
 ```ini
@@ -109,13 +109,13 @@ table products {
 
 #### _mapping API:
 
-> NOTE: The `_mapping` API requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：`_mapping` API 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
 <!-- example rt-mapping -->
 
-Alternatively, you can create a new table via the `_mapping` endpoint. This endpoint allows you to define an Elasticsearch-like table structure to be converted to a Manticore table.
+您还可以通过 `_mapping` 端点创建一个新表。此端点允许您定义类似 Elasticsearch 的表结构，并将其转换为 Manticore 表。
 
-The body of your request must have the following structure:
+请求的主体必须具有以下结构：
 
 ```json
 "properties"
@@ -138,7 +138,7 @@ The body of your request must have the following structure:
 }
 ```
 
-When creating a table, Elasticsearch data types will be mapped to Manticore types according to the following rules:
+创建表时，Elasticsearch 数据类型将根据以下规则映射到 Manticore 类型：
 -    aggregate_metric => json
 -    binary => string
 -    boolean => bool
@@ -176,7 +176,7 @@ When creating a table, Elasticsearch data types will be mapped to Manticore type
 -    version => string
 
 <!-- intro -->
-##### Creating a real-time table via the _mapping endpoint:
+##### 通过 `_mapping` 端点创建一个实时表：
 <!-- request JSON -->
 
 ```JSON
@@ -214,16 +214,16 @@ POST /your_table_name/_mapping -d '
 
 <!-- example create-like -->
 
-You can create a copy of a real-time table, with or without its data. Please note that if the table is large, copying it with data may take some time. Copying works in synchronous mode, but if the connection is dropped, it will continue in the background.
+你可以创建一个实时表的副本，包含或不包含数据。如果表很大，复制数据可能会花费一些时间。复制操作是同步模式的，但如果连接中断，它会在后台继续执行。
 
 ```sql
 CREATE TABLE table_name LIKE old_table_name [WITH DATA]
 ```
 
-> NOTE: Copying a table requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：复制表需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果无法正常工作，请确保 Buddy 已安装。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 <!-- request SQL -->
 
 ```sql
@@ -231,7 +231,7 @@ create table products LIKE old_products;
 ```
 
 <!-- intro -->
-##### Example (WITH DATA):
+##### 示例 (WITH DATA):
 <!-- request Example (WITH DATA) -->
 ```sql
 create table products LIKE old_products WITH DATA;
@@ -239,30 +239,31 @@ create table products LIKE old_products WITH DATA;
 
 <!-- end -->
 
-### 👍 What you can do with a real-time table:
-* [Add documents](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md).
-* Update attributes and full-text fields using the [Update](../../Quick_start_guide.md#Update) process.
-* [Delete documents](../../Quick_start_guide.md#Delete).
-* [Empty the table](../../Emptying_a_table.md).
-* Change the schema online with the `ALTER` command, as explained in [Change schema online](../../Updating_table_schema_and_settings.md#Updating-table-schema-in-RT-mode).
-* Define the table in a configuration file, as detailed in [Define table](../../Creating_a_table/Local_tables/Real-time_table.md).
-* Use the [UUID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID) feature for automatic ID provisioning.
+### 👍 你可以用实时表做的事：
+* [添加文档](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md)。
+* 通过 [更新](../../Quick_start_guide.md#Update) 过程更新属性和全文字段。
+* [删除文档](../../Quick_start_guide.md#Delete)。
+* [清空表](../../Emptying_a_table.md)。
+* 使用 `ALTER` 命令在线更改表结构，如[在线更新表结构](../../Updating_table_schema_and_settings.md#Updating-table-schema-in-RT-mode) 中所述。
+* 按照 [定义表](../../Creating_a_table/Local_tables/Real-time_table.md) 的说明，在配置文件中定义表。
+* 使用 [UUID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID) 功能自动分配ID。
 
-### ⛔ What you cannot do with a real-time table:
-* Ingest data using the [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) feature.
-* Connect it to [sources](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Execution_of_fetch_queries.md) for easy indexing from external storage.
-* Update the [killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target), as it is automatically managed by the real-time table.
+### ⛔ 你不能用实时表做的事：
+* 使用 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 功能导入数据。
+* 连接到 [sources](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Execution_of_fetch_queries.md) 以便从外部存储轻松索引数据。
+* 更新 [killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target)，因为它由实时表自动管理。
 
-#### Real-time table files structure
+#### 实时表文件结构
 
-The following table outlines the different file extensions and their respective descriptions in a real-time table:
+下表列出了实时表中不同文件扩展名及其对应的描述：
 
-| Extension | Description |
-| - | - |
-| `.lock` | A lock file that ensures that only one process can access the table at a time. |
-| `.ram` | The RAM chunk of the table, stored in memory and used as an accumulator of changes. |
-| `.meta` | The headers of the real-time table that define its structure and settings. |
-| `.*.sp*` | Disk chunks that are stored on disk with the same format as plain tables. They are created when the RAM chunk size exceeds the  rt_mem_limit.|
+| 扩展名   | 描述                                                         |
+| -------- | ------------------------------------------------------------ |
+| `.lock`  | 锁文件，确保同一时间内只有一个进程可以访问该表。             |
+| `.ram`   | 表的RAM块，存储在内存中，用作变更的累加器。                  |
+| `.meta`  | 实时表的头文件，定义了表的结构和设置。                       |
+| `.*.sp*` | 磁盘块，存储在磁盘上，格式与普通表相同。当RAM块大小超过 `rt_mem_limit` 时，创建这些文件。 |
 
- For more information on the structure of disk chunks, refer to the [plain table files structure](../../Creating_a_table/Local_tables/Plain_table.md#Plain-table-files-structure).
+有关磁盘块结构的更多信息，请参考 [普通表文件结构](../../Creating_a_table/Local_tables/Plain_table.md#Plain-table-files-structure)。
+
 <!-- proofread -->

@@ -1,12 +1,12 @@
-# Chinese, Japanese and Korean (CJK) and Thai languages
+# 中文、日文、韩文（CJK）和泰语语言
 
-Manticore provides built-in support for indexing languages with [continuous scripts](https://en.wikipedia.org/wiki/Scriptio_continua) (i.e., languages that do not use spaces or other marks between words or sentences). This allows you to process texts in these languages in two different ways:
+Manticore 提供了内置支持，用于索引具有[连续书写](https://en.wikipedia.org/wiki/Scriptio_continua)的语言（即不使用空格或其他标记来区分单词或句子的语言）。这使您能够以两种不同的方式处理这些语言的文本：
 
 <!-- example cont 1 -->
-1. Precise segmentation using the [ICU](https://icu.unicode.org/) library. Currently, only Chinese is supported.
-
+1. 使用 [ICU](https://icu.unicode.org/) 库进行精确分词。目前仅支持中文。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -88,7 +88,7 @@ table products {
 <!-- end -->
 
 <!-- example cont 2 -->
-2. Precise segmentation using the [Jieba](https://github.com/fxsjy/jieba) library. Like ICU, it currently supports only Chinese.
+2. 使用 [Jieba](https://github.com/fxsjy/jieba) 库进行精确分词。与 ICU 类似，目前也仅支持中文。
 
 <!-- intro -->
 ##### SQL:
@@ -172,8 +172,7 @@ table products {
 <!-- end -->
 
 <!-- example cont 3 -->
-3. Basic support using the N-gram options [ngram_len](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#ngram_len) and [ngram_chars](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#ngram_chars)
-For each language using a continuous script, there are separate character set tables (`chinese`, `korean`, `japanese`, `thai`) that can be used. Alternatively, you can use the common `cont` character set table to support all CJK and Thai languages at once, or the `cjk` charset to include all CJK languages only.
+3. 使用 N-gram 选项 [ngram_len](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#ngram_len) 和 [ngram_chars](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#ngram_chars) 进行基本支持。对于使用连续字符的每种语言，Manticore 提供了单独的字符集表（如 `chinese`, `korean`, `japanese`, `thai`）。另外，你也可以使用通用的 `cont` 字符集表来同时支持所有 CJK 和泰语，或者仅使用 `cjk` 字符集来支持所有 CJK 语言。
 
 
 <!-- intro -->
@@ -265,7 +264,7 @@ table products {
 <!-- end -->
 
 <!-- example cont 3_2 -->
-Additionally, there is built-in support for Chinese [stopwords](../../Creating_a_table/NLP_and_tokenization/Ignoring_stop-words.md#stopwords)  with the alias `zh`.
+此外，Manticore 内置支持中文[停用词](../../Creating_a_table/NLP_and_tokenization/Ignoring_stop-words.md#stopwords)，别名为 `zh`。
 
 
 <!-- intro -->

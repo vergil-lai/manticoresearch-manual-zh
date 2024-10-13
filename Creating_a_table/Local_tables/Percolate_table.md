@@ -1,27 +1,26 @@
-# Percolate table
+# 透析表
 
-<!-- example pq -->
-A percolate table is a special table that stores queries rather than documents. It is used for prospective searches, or "search in reverse."
+<!-- example pq -->透析表是一种特殊的表，用于存储查询而非文档。它用于前瞻性搜索或“反向搜索”。
 
-* To learn more about performing a search query against a percolate table, see the section [Percolate query](../../Searching/Percolate_query.md).
-* To learn how to prepare a table for searching, see the section [Adding rules to a percolate table](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_rules_to_a_percolate_table.md).
+- 要了解如何对透析表执行搜索查询，请参见[透析查询](../../Searching/Percolate_query.md)部分。
+- 要了解如何准备表以进行搜索，请参见[向透析表添加规则](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_rules_to_a_percolate_table.md)部分。
 
-The schema of a percolate table is fixed and contains the following fields:
+透析表的模式是固定的，包含以下字段：
 
-| Field | Description |
-| - | - |
-| ID| An unsigned 64-bit integer with auto-increment functionality. It can be omitted when adding a PQ rule, as described in  [add a PQ rule](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_rules_to_a_percolate_table.md) |
-| Query | [Full-text query](../../Searching/Full_text_matching/Basic_usage.md) of the rule, which can be thought of as the value of [MATCH clause](../../Searching/Full_text_matching/Basic_usage.md) or [JSON /search](../../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON). If [per field operators](../../Searching/Full_text_matching/Operators.md) are used inside the query, the full-text fields need to be declared in the percolate table configuration. If the stored query is only for attribute filtering (without full-text querying), the query value can be empty or omitted. The value of this field should correspond to the expected document schema, which is specified when creating the percolate table. |
-| Filters | Optional. Filters are an optional string containing attribute filters and/or expressions, defined the same way as in the [WHERE clause](../../Searching/Filters.md#WHERE) or [JSON filtering](../../Searching/Filters.md#HTTP-JSON). The value of this field should correspond to the expected document schema, which is specified when creating the percolate table. |
-| Tags | Optional. Tags represent a list of string labels separated by commas that can be used for filtering/deleting PQ rules. The tags can also be returned along with matching documents when performing a [Percolate query](../../Searching/Percolate_query.md) |
+| 字段    | 描述                                                         |
+| ------- | ------------------------------------------------------------ |
+| ID      | 一个带有自动递增功能的无符号 64 位整数。添加 PQ 规则时可以省略，如[添加 PQ 规则](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_rules_to_a_percolate_table.md)所述。 |
+| Query   | 规则的[全文查询](../../Searching/Full_text_matching/Basic_usage.md)，可以视为[MATCH 子句](../../Searching/Full_text_matching/Basic_usage.md)或[JSON /search](../../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON)的值。如果在查询中使用了[按字段操作符](../../Searching/Full_text_matching/Operators.md)，则需要在透析表配置中声明全文字段。如果存储的查询仅用于属性过滤（没有全文查询），则查询值可以为空或省略。该字段的值应与创建透析表时指定的预期文档模式相对应。 |
+| Filters | 可选。过滤器是一个可选字符串，包含属性过滤器和/或表达式，定义方式与[WHERE 子句](../../Searching/Filters.md#WHERE)或[JSON 过滤](../../Searching/Filters.md#HTTP-JSON)相同。该字段的值应与创建透析表时指定的预期文档模式相对应。 |
+| Tags    | 可选。标签表示以逗号分隔的字符串标签列表，可用于过滤/删除 PQ 规则。当执行[透析查询](../../Searching/Percolate_query.md)时，标签也可以与匹配的文档一起返回。 |
 
-Note that you do not need to add the above fields when creating a percolate table.
+请注意，在创建透析表时，您不需要添加上述字段。
 
-What you need to keep in mind when creating a new percolate table is to specify the expected schema of a document, which will be checked against the rules you will add later. This is done in the same way as for [any other local table](../../Creating_a_table/Local_tables.md).
+创建新透析表时，需要记住的是指定文档的预期模式，该模式将在您稍后添加的规则中进行检查。此过程与[其他本地表](../../Creating_a_table/Local_tables.md)的创建方式相同。
 
 
 <!-- intro -->
-##### Creating a percolate table via SQL:
+##### 通过 SQL 创建透析表：
 
 <!-- request SQL -->
 
@@ -35,7 +34,7 @@ Query OK, 0 rows affected (0.00 sec)
 ```
 
 <!-- intro -->
-##### Creating a percolate table via JSON over HTTP:
+##### 通过 HTTP 使用 JSON 创建透析表：
 
 <!-- request JSON -->
 
@@ -54,7 +53,7 @@ POST /cli -d "CREATE TABLE products(title text, meta json) type='pq'"
 ```
 
 <!-- intro -->
-##### Creating a percolate table via PHP client:
+##### 通过PHP客户端创建透析表：
 
 <!-- request PHP -->
 
@@ -135,7 +134,7 @@ apiClient.UtilsAPI.Sql(context.Background()).Body("CREATE TABLE products(title t
 ```
 
 <!-- intro -->
-##### Creating a percolate table via config:
+##### 通过配置文件创建透析表
 
 <!-- request CONFIG -->
 

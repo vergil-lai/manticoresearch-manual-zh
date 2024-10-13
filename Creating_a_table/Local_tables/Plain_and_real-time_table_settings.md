@@ -1,7 +1,7 @@
-# Plain and real-time table settings
+# 普通表和实时表设置
 
 <!-- example config -->
-## Defining table schema in a configuration file
+## 在配置文件中定义表架构
 
 ```ini
 table <index_name>[:<parent table name>] {
@@ -10,7 +10,7 @@ table <index_name>[:<parent table name>] {
 ```
 
 <!-- intro -->
-##### Example of a plain table in a configuration file
+##### 配置文件中普通表的示例
 <!-- request Plain -->
 
 ```ini
@@ -23,7 +23,7 @@ table <table name> {
 }
 ```
 <!-- intro -->
-##### Example of a real-time table in a configuration file
+##### 配置文件中实时表的示例
 <!-- request Real-time -->
 
 ```ini
@@ -63,7 +63,7 @@ table <table name> {
 ```
 <!-- end -->
 
-### Common plain and real-time tables settings
+### 通用平面和实时表设置
 
 #### type
 
@@ -73,9 +73,9 @@ type = plain
 type = rt
 ```
 
-Table type: "plain" or "rt" (real-time)
+表类型: "plain" or "rt" (real-time)
 
-Value: **plain** (default), rt
+值: **plain** (默认), rt
 
 #### path
 
@@ -83,9 +83,9 @@ Value: **plain** (default), rt
 path = path/to/table
 ```
 
-The path to where the table will be stored or located, either absolute or relative, without the extension.
+表将被存储或放置的位置路径，可以是绝对路径或相对路径，且不包含扩展名。
 
-Value: The path to the table, **mandatory**
+值：表的路径，**必填**
 
 #### stored_fields
 
@@ -95,15 +95,15 @@ stored_fields = title, content
 
 <!-- example stored_fields -->
 
-By default, the original content of full-text fields is indexed and stored when a table is defined in a configuration file. This setting allows you to specify the fields that should have their original values stored.
+默认情况下，当在配置文件中定义表时，全文字段的原始内容会被索引和存储。此设置允许您指定应存储其原始值的字段。
 
-Value: A comma-separated list of **full-text** fields that should be stored. An empty value (i.e. `stored_fields =` ) disables the storage of original values for all fields.
+值：要存储的**全文**字段的逗号分隔列表。空值（即 `stored_fields =`）会禁用所有字段的原始值存储。
 
-Note: In the case of a real-time table, the fields listed in `stored_fields` should also be declared as [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field).
+注意：在实时表的情况下，`stored_fields` 中列出的字段也应声明为 [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field)。
 
-Also, note that you don't need to list attributes in `stored_fields`, since their original values are stored anyway. `stored_fields` can only be used for full-text fields.
+另外，注意您不需要在 `stored_fields` 中列出属性，因为它们的原始值无论如何都会被存储。`stored_fields` 只能用于全文字段。
 
-See also [docstore_block_size](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#docstore_block_size), [docstore_compression](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#docstore_compression) for document storage compression options.
+另请参见 [docstore_block_size](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#docstore_block_size)、[docstore_compression](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#docstore_compression)，以获取文档存储压缩选项。
 
 
 <!-- intro -->
@@ -190,19 +190,21 @@ table products {
 stored_only_fields = title,content
 ```
 
-List of fields that will be stored in the table, but not indexed. This setting works similarly to [stored_fields](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#stored_fields) except that when a field is specified in `stored_only_fields` t will only be stored, not indexed, and cannot be searched using full-text queries. It can only be retrieved in search results.
+将存储在表中但不被索引的字段列表。此设置的工作方式与 [存储字段](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#stored_fields) 类似，不同之处在于，当字段在 `stored_only_fields` 中指定时，它仅会被存储，而不会被索引，因此无法使用全文查询进行搜索。它只能在搜索结果中检索。
 
-The value is a comma-separated list of fields that should be stored only, not indexed. By default, this value is empty. If a real-time table is being defined, the fields listed in `stored_only_fields` must also be declared as [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field).
+值是一个以逗号分隔的字段列表，这些字段应仅存储而不被索引。默认情况下，此值为空。如果正在定义实时表，则 `stored_only_fields` 中列出的字段必须也声明为 [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field)。
 
-Note also, that you don't need to list attributes in`stored_only_fields`,since their original values are stored anyway. If to compare `stored_only_fields`  to string attributes the former (stored field):
-* is stored on disk and does not take up memory
-* is stored in a compressed format
-* can only be fetched, it cannot be used for sorting, filtering or grouping
+另请注意，您不需要在 `stored_only_fields` 中列出属性，因为它们的原始值无论如何都会被存储。将 `stored_only_fields` 与字符串属性进行比较时，前者（存储字段）：
 
-In contrast, the latter (string attribute):
-* is stored on disk and in memory
-* is stored in an uncompressed format
-* can be used for sorting, grouping, filtering, and any other actions you want to take with attributes.
+- 存储在磁盘上，不占用内存
+- 以压缩格式存储
+- 只能被获取，不能用于排序、过滤或分组
+
+相对而言，后者（字符串属性）：
+
+- 存储在磁盘上和内存中
+- 以未压缩格式存储
+- 可用于排序、分组、过滤及任何您想要对属性进行的其他操作。
 
 #### json_secondary_indexes
 
@@ -212,9 +214,9 @@ json_secondary_indexes = json_attr
 
 <!-- example json_secondary_indexes -->
 
-By default, secondary indexes are generated for all attributes except JSON attributes. However, secondary indexes for JSON attributes can be explicitly generated using the `json_secondary_indexes` setting. When a JSON attribute is included in this option, its contents are flattened into multiple secondary indexes. These indexes can be used by the query optimizer to speed up queries.
+默认情况下，所有属性都会生成二级索引，除了 JSON 属性。然而，可以通过 `json_secondary_indexes` 设置显式生成 JSON 属性的二级索引。当 JSON 属性包含在此选项中时，其内容会被展平为多个二级索引。这些索引可以被查询优化器用于加速查询。
 
-Value: A comma-separated list of JSON attributes for which secondary indexes should be generated.
+值：一个以逗号分隔的 JSON 属性列表，用于生成二级索引。
 
 <!-- intro -->
 ##### SQL:
@@ -290,11 +292,11 @@ table products {
 ```
 <!-- end -->
 
-### Real-time table settings:
+### 实时表设置
 
 #### optimize_cutoff
 
-The maximum number of disk chunks for the RT table. Learn more [here](../../Securing_and_compacting_a_table/Compacting_a_table.md#Number-of-optimized-disk-chunks).
+实时表的最大磁盘块数量。了解更多信息 [这里](../../Securing_and_compacting_a_table/Compacting_a_table.md#Number-of-optimized-disk-chunks)。
 
 #### rt_field
 
@@ -302,9 +304,9 @@ The maximum number of disk chunks for the RT table. Learn more [here](../../Secu
 rt_field = subject
 ```
 
-This field declaration determines the full-text fields that will be indexed. The field names must be unique, and the order is preserved. When inserting data, the field values must be in the same order as specified in the configuration.
+此字段声明确定将被索引的全文本字段。字段名称必须是唯一的，顺序会被保留。在插入数据时，字段值必须与配置中指定的顺序相同。
 
-This is a multi-value, optional field.
+这是一个多值的可选字段。
 
 #### rt_attr_uint
 
@@ -312,9 +314,11 @@ This is a multi-value, optional field.
 rt_attr_uint = gid
 ```
 
-This declaration defines an unsigned integer attribute.
+此声明定义了一个无符号整数属性。
 
-Value: the field name or field_name:N (where N is the maximum number of bits to keep).
+值：字段名称或字段名称
+
+（其中 N 是要保留的最大位数）。
 
 #### rt_attr_bigint
 
@@ -322,9 +326,9 @@ Value: the field name or field_name:N (where N is the maximum number of bits to 
 rt_attr_bigint = gid
 ```
 
-This declaration defines a BIGINT attribute.
+此声明定义了一个 BIGINT 属性。
 
-Value: field name, multiple records allowed.
+值：字段名称，允许多个记录。
 
 #### rt_attr_multi
 
@@ -332,9 +336,9 @@ Value: field name, multiple records allowed.
 rt_attr_multi = tags
 ```
 
-Declares a multi-valued attribute (MVA) with unsigned 32-bit integer values.
+声明一个具有无符号 32 位整数值的多值属性（MVA）。
 
-Value: field name. Multiple records allowed.
+值：字段名称。允许多个记录。
 
 #### rt_attr_multi_64
 
@@ -342,9 +346,9 @@ Value: field name. Multiple records allowed.
 rt_attr_multi_64 = wide_tags
 ```
 
-Declares a multi-valued attribute (MVA) with signed 64-bit BIGINT values.
+声明一个具有有符号 64 位 BIGINT 值的多值属性（MVA）。
 
-Value: field name. Multiple records allowed.
+值：字段名称。允许多个记录。
 
 #### rt_attr_float
 
@@ -353,9 +357,9 @@ rt_attr_float = lat
 rt_attr_float = lon
 ```
 
-Declares floating point attributes with single precision, 32-bit IEEE 754 format.
+声明使用单精度、32 位 IEEE 754 格式的浮点属性。
 
-Value: field name. Multiple records allowed.
+值：字段名称。允许多个记录。
 
 #### rt_attr_float_vector
 
@@ -363,9 +367,9 @@ Value: field name. Multiple records allowed.
 rt_attr_float_vector = image_vector
 ```
 
-Declares a vector of floating-point values.
+声明一个浮点值的向量。
 
-Value: field name. Multiple records allowed.
+值：字段名称。允许多个记录。
 
 #### rt_attr_bool
 
@@ -373,9 +377,9 @@ Value: field name. Multiple records allowed.
 rt_attr_bool = available
 ```
 
-Declares a boolean attribute with 1-bit unsigned integer values.
+声明一个具有 1 位无符号整数值的布尔属性。
 
-Value: field name.
+值：字段名称。
 
 #### rt_attr_string
 
@@ -383,9 +387,9 @@ Value: field name.
 rt_attr_string = title
 ```
 
-String attribute declaration.
+字符串属性声明。
 
-Value: field name.
+值：字段名称。
 
 #### rt_attr_json
 
@@ -393,9 +397,9 @@ Value: field name.
 rt_attr_json = properties
 ```
 
-Declares a JSON attribute.
+声明一个 JSON 属性。
 
-Value: field name.
+值：字段名称。
 
 #### rt_attr_timestamp
 
@@ -403,9 +407,9 @@ Value: field name.
 rt_attr_timestamp = date_added
 ```
 
-Declares a timestamp attribute.
+声明一个时间戳属性。
 
-Value: field name.
+值：字段名称。
 
 #### rt_mem_limit
 
@@ -413,44 +417,45 @@ Value: field name.
 rt_mem_limit = 512M
 ```
 
-Memory limit for a RAM chunk of the table. Optional, default is 128M.
+表的 RAM 块的内存限制。可选，默认值为 128M。
 
-RT tables store some data in memory, known as the "RAM chunk," and also maintain a number of on-disk tables, referred to as "disk chunks." This directive allows you to control the size of the RAM chunk. When there is too much data to keep in memory, RT tables will flush it to disk, activate a newly created disk chunk, and reset the RAM chunk.
+RT 表将一些数据存储在内存中，称为“RAM 块”，并维护多个称为“磁盘块”的磁盘表。此指令允许您控制 RAM 块的大小。当内存中要保留的数据过多时，RT 表将其刷新到磁盘，激活新创建的磁盘块，并重置 RAM 块。
 
-Please note that the limit is strict, and RT tables will never allocate more memory than what is specified in the rt_mem_limit. Additionally, memory is not preallocated, so specifying a 512MB limit and only inserting 3MB of data will result in allocating only 3MB, not 512MB.
+请注意，限制是严格的，RT 表永远不会分配超过 `rt_mem_limit` 指定的内存。此外，内存不会预分配，因此指定 512MB 限制并只插入 3MB 数据将导致只分配 3MB，而不是 512MB。
 
-The `rt_mem_limit` is never exceeded, but the actual RAM chunk size can be significantly lower than the limit. RT tables adapt to the data insertion pace and adjust the actual limit dynamically to minimize memory usage and maximize data write speed. This is how it works:
-* By default, the RAM chunk size is 50% of the  `rt_mem_limit`, referred to as the  "`rt_mem_limit`".
-* As soon as the RAM chunk accumulates data equivalent to `rt_mem_limit * rate` data (50% of `rt_mem_limit`  by default), Manticore starts saving the RAM chunk as a new disk chunk.
-* While a new disk chunk is being saved, Manticore assesses the number of new/updated documents.
-* After saving a new disk chunk, the `rt_mem_limit` rate is updated.
-* The rate is reset to 50% each time you restart the searchd.
+`rt_mem_limit` 从不被超出，但实际的 RAM 块大小可能显著低于限制。RT 表根据数据插入速度进行调整，动态调整实际限制以最小化内存使用并最大化数据写入速度。其工作原理如下：
 
-For instance, if 90MB of data is saved to a disk chunk and an additional 10MB of data arrives while the save is in progress, the rate would be 90%. Next time, the RT table will collect up to 90% of `rt_mem_limit` before flushing the data. The faster the insertion pace, the lower the `rt_mem_limit` rate. The rate varies between 33.3% to 95%. You can view the current rate of a table using the [SHOW TABLE <tbl> STATUS](../../Node_info_and_management/Table_settings_and_status/SHOW_TABLE_STATUS.md) command.
+- 默认情况下，RAM 块大小为 `rt_mem_limit` 的 50%，称为 "`rt_mem_limit`"。
+- 一旦 RAM 块累计的数据达到 `rt_mem_limit * rate`（默认为 `rt_mem_limit` 的 50%），Manticore 开始将 RAM 块保存为新的磁盘块。
+- 在保存新的磁盘块时，Manticore 评估新增/更新的文档数量。
+- 保存新的磁盘块后，更新 `rt_mem_limit` 速率。
+- 每次重启 `searchd` 时，速率都会重置为 50%。
 
-##### How to change rt_mem_limit and optimize_cutoff
+例如，如果 90MB 的数据被保存到磁盘块，并且在保存过程中再到达 10MB 的数据，速率将达到 90%。下次，RT 表将在刷新数据之前收集最多 90% 的 `rt_mem_limit`。插入速度越快，`rt_mem_limit` 速率越低。速率在 33.3% 到 95% 之间变化。您可以使用 [SHOW TABLE  STATUS](../../Node_info_and_management/Table_settings_and_status/SHOW_TABLE_STATUS.md) 命令查看表的当前速率。
 
-In real-time mode, you can adjust the size limit of RAM chunks and the maximum number of disk chunks using the `ALTER TABLE` statement. To set `rt_mem_limit` to 1 gigabyte for the table "t," run the following query: `ALTER TABLE t rt_mem_limit='1G'`. To change the maximum number of disk chunks, run the query: `ALTER TABLE t optimize_cutoff='5'`.
+##### 如何更改 rt_mem_limit 和 optimize_cutoff
 
-In the plain mode, you can change the values of `rt_mem_limit` and `optimize_cutoff` by updating the table configuration or running the command `ALTER TABLE <index_name> RECONFIGURE`
+在实时模式下，您可以使用 `ALTER TABLE` 语句调整 RAM 块的大小限制和最大磁盘块数。要将表“t”的 `rt_mem_limit` 设置为 1GB，请运行以下查询：`ALTER TABLE t rt_mem_limit='1G'`。要更改最大磁盘块数，请运行查询：`ALTER TABLE t optimize_cutoff='5'`。
 
-##### Important notes about RAM chunks
+在普通模式下，您可以通过更新表配置或运行命令 `ALTER TABLE <index_name> RECONFIGURE` 来更改 `rt_mem_limit` 和 `optimize_cutoff` 的值。
 
-* Real-time tables are similar to [distributed](../../Creating_a_table/Creating_a_distributed_table/Creating_a_local_distributed_table.md#Creating-a-local-distributed-table) consisting of multiple local tables, also known as disk chunks.
-* Each RAM chunk is made up of multiple segments, which are special RAM-only tables.
-* While disk chunks are stored on disk, RAM chunks are stored in memory.
-* Each transaction made to a real-time table generates a new segment, and RAM chunk segments are merged after each transaction commit. It is more efficient to perform bulk INSERTs of hundreds or thousands of documents rather than multiple separate INSERTs with one document to reduce the overhead from merging RAM chunk segments.
-* When the number of segments exceeds 32, they will be merged to keep the count below 32.
-* Real-time tables always have one RAM chunk (which may be empty) and one or more disk chunks.
-* Merging larger segments takes longer, so it's best to avoid having a very large RAM chunk (and therefore `rt_mem_limit`).
-* The number of disk chunks depends on the data in the table and the `rt_mem_limit` setting.
-* Searchd flushes the RAM chunk to disk (as a persisted file, not as a disk chunk) on shutdown and periodically according to the [rt_flush_period](../../Server_settings/Searchd.md#rt_flush_period) setting. Flushing several gigabytes to disk may take some time.
-* A large RAM chunk puts more pressure on storage, both when flushing to disk into the `.ram` file and when the RAM chunk is full and dumped to disk as a disk chunk.
-* The RAM chunk is backed up by a [binary log](../../Logging/Binary_logging.md) until it is flushed to disk, and a larger `rt_mem_limit`, setting will increase the time it takes to replay the binary log and recover the RAM chunk.
-* The RAM chunk may be slightly slower than a disk chunk.
-* Although the RAM chunk itself doesn't take up more memory than `rt_mem_limit` Manticore may take up more memory in some cases, such as when you start a transaction to insert data and don't commit it for a while. In this case, the data you have already transmitted within the transaction will remain in memory.
+##### 关于 RAM 块的重要说明
 
-### Plain table settings:
+- 实时表类似于包含多个本地表的 [分布式](../../Creating_a_table/Creating_a_distributed_table/Creating_a_local_distributed_table.md#Creating-a-local-distributed-table)，也称为磁盘块。
+- 每个 RAM 块由多个段组成，这些段是特殊的仅在 RAM 中的表。
+- 磁盘块存储在磁盘上，而 RAM 块存储在内存中。
+- 对实时表进行的每个事务都会生成一个新的段，而 RAM 块段会在每次事务提交后合并。执行数百或数千个文档的批量 INSERT 比多次单独插入一条文档更有效，以减少合并 RAM 块段的开销。
+- 当段的数量超过 32 时，它们将被合并，以保持数量低于 32。
+- 实时表始终有一个 RAM 块（可能为空）和一个或多个磁盘块。
+- 合并较大的段需要更长的时间，因此最好避免具有非常大的 RAM 块（因此 `rt_mem_limit`）。
+- 磁盘块的数量取决于表中的数据和 `rt_mem_limit` 设置。
+- Searchd 根据 [rt_flush_period](../../Server_settings/Searchd.md#rt_flush_period) 设置定期将 RAM 块刷新到磁盘（作为持久文件，而不是磁盘块）。将几 GB 的数据刷新到磁盘可能需要一些时间。
+- 大 RAM 块在将数据刷新到磁盘的 `.ram` 文件时以及当 RAM 块满并转储到磁盘作为磁盘块时，会对存储施加更大压力。
+- RAM 块在刷新到磁盘之前会被 二进制日志 备份，而较大的 `rt_mem_limit` 设置会增加重放二进制日志和恢复 RAM 块所需的时间。
+- RAM 块可能比磁盘块稍慢。
+- 尽管 RAM 块本身不会占用超过 `rt_mem_limit` 的内存，但在某些情况下，Manticore 可能会占用更多内存，例如当您开始一个事务以插入数据并且一段时间内不提交时。在这种情况下，您在事务中已经传输的数据将保留在内存中。
+
+### 普通表设置：
 
 #### source
 
@@ -460,9 +465,9 @@ source = srcpart2
 source = srcpart3
 ```
 
-The source field specifies the source from which documents will be obtained during indexing of the current table. There must be at least one source. The sources can be of different types (e.g. one could be MySQL, another PostgreSQL). For more information on indexing from external storages, [indexing from external storages here](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md)
+source 字段指定在当前表索引过程中获取文档的来源。至少必须有一个来源。这些来源可以是不同类型的（例如，一个可以是 MySQL，另一个可以是 PostgreSQL）。有关从外部存储进行索引的更多信息，请参阅 [从外部存储进行索引](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md)。
 
-Value: The name of the source is **mandatory**. Multiple values are allowed.
+值：源的名称是 **必填**。允许多个值。
 
 #### killlist_target
 
@@ -470,9 +475,13 @@ Value: The name of the source is **mandatory**. Multiple values are allowed.
 killlist_target = main:kl
 ```
 
-This setting determines the table(s) to which the kill-list will be applied. Matches in the targeted table that are updated or deleted in the current table will be suppressed. In `:kl` mode, the documents to suppress are taken from the [kill-list](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md). In `:id` mode, all document IDs from the current table are suppressed in the targeted one. If neither is specified, both modes will take effect. [Learn more about kill-lists here](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)
+此设置确定将应用于 kill-list 的表。如果在当前表中更新或删除的匹配项在目标表中存在，则将被抑制。在 `:kl` 模式下，要抑制的文档取自 [kill-list](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)。在 `:id` 模式下，当前表中的所有文档 ID 在目标表中都将被抑制。如果都不指定，则两种模式均会生效。[了解更多关于 kill-lists 的信息](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)。
 
-Value: **not specified** (default), target_index_name:kl, target_index_name:id, target_index_name. Multiple values are allowed
+值：**未指定**（默认）、target_index_name
+
+、target_index_name
+
+、target_index_name。允许多个值。
 
 #### columnar_attrs
 
@@ -481,11 +490,52 @@ columnar_attrs = *
 columnar_attrs = id, attr1, attr2, attr3
 ```
 
-This configuration setting determines which attributes should be stored in [the columnar storage](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) instead of the row-wise storage.
+### 平面表设置：
 
-You can set `columnar_attrs = *` to store all supported data types in the columnar storage.
+#### source
 
-Additionally, `id` is a supported attribute to store in the columnar storage.
+```
+ini复制代码source = srcpart1
+source = srcpart2
+source = srcpart3
+```
+
+source 字段指定在当前表索引过程中获取文档的来源。至少必须有一个来源。这些来源可以是不同类型的（例如，一个可以是 MySQL，另一个可以是 PostgreSQL）。有关从外部存储进行索引的更多信息，请参阅 [从外部存储进行索引](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md)。
+
+值：源的名称是 **必填**。允许多个值。
+
+#### killlist_target
+
+```
+ini
+
+
+复制代码
+killlist_target = main:kl
+```
+
+此设置确定将应用于 kill-list 的表。如果在当前表中更新或删除的匹配项在目标表中存在，则将被抑制。在 `:kl` 模式下，要抑制的文档取自 [kill-list](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)。在 `:id` 模式下，当前表中的所有文档 ID 在目标表中都将被抑制。如果都不指定，则两种模式均会生效。[了解更多关于 kill-lists 的信息](../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)。
+
+值：**未指定**（默认）、target_index_name
+
+、target_index_name
+
+、target_index_name。允许多个值。
+
+
+
+#### columnar_attrs
+
+```
+ini复制代码columnar_attrs = *
+columnar_attrs = id, attr1, attr2, attr3
+```
+
+此配置设置决定哪些属性应存储在 [列式存储](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) 中，而不是行式存储。
+
+您可以设置 `columnar_attrs = *` 将所有支持的数据类型存储在列式存储中。
+
+此外，`id` 是一个支持存储在列式存储中的属性。
 
 #### columnar_strings_no_hash
 
@@ -493,130 +543,134 @@ Additionally, `id` is a supported attribute to store in the columnar storage.
 columnar_strings_no_hash = attr1, attr2, attr3
 ```
 
-By default, all string attributes stored in columnar storage store pre-calculated hashes. These hashes are used for grouping and filtering. However, they occupy extra space, and if you don't need to group by that attribute, you can save space by disabling hash generation.
+默认情况下，所有存储在列式存储中的字符串属性都会存储预计算的哈希值。这些哈希值用于分组和过滤。然而，它们会占用额外的空间，如果您不需要按该属性进行分组，则可以通过禁用哈希生成来节省空间。
 
-### Creating a real-time table online via CREATE TABLE
+### 通过CREATE TABLE在线创建实时表
 
 <!-- example rt_mode -->
-##### General syntax of CREATE TABLE
+##### CREATE TABLE的通用语法
 
 ```sql
 CREATE TABLE [IF NOT EXISTS] name ( <field name> <field data type> [data type options] [, ...]) [table_options]
 ```
 
-##### Data types:
+##### 数据类型：
 
-For more information on data types, see [more about data types here](../../Creating_a_table/Data_types.md).
+有关数据类型的更多信息，请参阅[有关数据类型的更多信息](../../Creating_a_table/Data_types.md)。
 
-| Type | Equivalent in a configuration file | Notes | Aliases |
-| - | - | - | - |
-| [text](../../Creating_a_table/Data_types.md#Text) | [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field)  | Options: indexed, stored. Default: **both**. To keep text stored, but indexed, specify "stored" only. To keep text indexed only, specify "indexed" only. | string |
-| [integer](../../Creating_a_table/Data_types.md#Integer) | [rt_attr_uint](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_uint)	| integer	 | int, uint |
-| [bigint](../../Creating_a_table/Data_types.md#Big-Integer) | [rt_attr_bigint](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_bigint)	| big integer	 |   |
-| [float](../../Creating_a_table/Data_types.md#Float) | [rt_attr_float](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_float)   | float  |   |
-| [float_vector](../../Creating_a_table/Data_types.md#Float-vector) | [rt_attr_float_vector](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_float_vector) | a vector of float values  |   |
-| [multi](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29) | [rt_attr_multi](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_multi)   | multi-integer |   |
-| [multi64](../../Creating_a_table/Data_types.md#Multi-value-big-integer) | [rt_attr_multi_64](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_multi_64) | multi-bigint  |   |
-| [bool](../../Creating_a_table/Data_types.md#Boolean) | [rt_attr_bool](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_bool) | boolean |   |
-| [json](../../Creating_a_table/Data_types.md#JSON) | [rt_attr_json](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_json) | JSON |   |
-| [string](../../Creating_a_table/Data_types.md#String) | [rt_attr_string](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_string) | string. Option `indexed, attribute` will make the value full-text indexed and filterable, sortable and groupable at the same time  |   |
-| [timestamp](../../Creating_a_table/Data_types.md#Timestamps) |	[rt_attr_timestamp](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_timestamp) | timestamp  |   |
-| [bit(n)](../../Creating_a_table/Data_types.md#Integer) | [rt_attr_uint field_name:N](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_uint) | N is the max number of bits to keep  |   |
+| 类型                                                         | 配置文件中的等效项                                           | 说明                                                         | 别名      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | --------- |
+| [text](../../Creating_a_table/Data_types.md#Text)            | [rt_field](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_field) | 选项：indexed, stored。默认值：**both**。要仅保留文本存储但索引，请仅指定“stored”。要仅保留文本索引，请仅指定“indexed”。 | string    |
+| [integer](../../Creating_a_table/Data_types.md#Integer)      | [rt_attr_uint](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_uint) | integer                                                      | int, uint |
+| [bigint](../../Creating_a_table/Data_types.md#Big-Integer)   | [rt_attr_bigint](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_bigint) | big integer                                                  |           |
+| [float](../../Creating_a_table/Data_types.md#Float)          | [rt_attr_float](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_float) | float                                                        |           |
+| [float_vector](../../Creating_a_table/Data_types.md#Float-vector) | [rt_attr_float_vector](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_float_vector) | 浮点值向量                                                   |           |
+| [multi](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA)) | [rt_attr_multi](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_multi) | 多个整数                                                     |           |
+| [multi64](../../Creating_a_table/Data_types.md#Multi-value-big-integer) | [rt_attr_multi_64](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_multi_64) | 多个大整数                                                   |           |
+| [bool](../../Creating_a_table/Data_types.md#Boolean)         | [rt_attr_bool](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_bool) | 布尔值                                                       |           |
+| [json](../../Creating_a_table/Data_types.md#JSON)            | [rt_attr_json](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_json) | JSON                                                         |           |
+| [string](../../Creating_a_table/Data_types.md#String)        | [rt_attr_string](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_string) | 字符串。选项`indexed, attribute`将使值进行全文索引，并同时可过滤、排序和分组。 |           |
+| [timestamp](../../Creating_a_table/Data_types.md#Timestamps) | [rt_attr_timestamp](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_timestamp) | 时间戳                                                       |           |
+| [bit(n)](../../Creating_a_table/Data_types.md#Integer)       | [rt_attr_uint field_name](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_attr_uint) | N是保留的最大位数                                            |           |
 
 <!-- intro -->
-##### Examples of creating a real-time table via CREATE TABLE
+
+##### 通过CREATE TABLE创建实时表的示例
 <!-- request SQL -->
 
 ```sql
 CREATE TABLE products (title text, price float) morphology='stem_en'
 ```
 
-This creates the "products" table with two fields: "title" (full-text) and "price" (float), and sets the "morphology" to "stem_en".
+这将创建一个名为“products”的表，其中包含两个字段：“title”（全文）和“price”（浮点数），并将“morphology”设置为“stem_en”。
 
 ```sql
 CREATE TABLE products (title text indexed, description text stored, author text, price float)
 ```
-This creates the "products" table with three fields:
-* "title" is indexed, but not stored.
-* "description" is stored, but not indexed.
-* "author" is both stored and indexed.
+这将创建一个名为“products”的表，其中包含三个字段：
+
+- “title”被索引，但未存储。
+- “description”被存储，但未被索引。
+- “author”同时被存储和索引。
+
 <!-- end -->
 
 
-## Engine
+## 引擎
 
 ```ini
 create table ... engine='columnar';
 create table ... engine='rowwise';
 ```
 
-The engine setting changes the default [attribute storage](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) for all attributes in the table. You can also specify `engine` [separately for each attribute](../../Creating_a_table/Data_types.md#How-to-switch-between-the-storages).
+`engine` 设置更改表中所有属性的默认 [属性存储](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)。你还可以为每个属性单独指定 `engine` [设置](../../Creating_a_table/Data_types.md#How-to-switch-between-the-storages)。
 
-For information on how to enable columnar storage for a plain table, see  [columnar_attrs](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#columnar_attrs) .
+有关如何为普通表启用列式存储的信息，请参阅 [columnar_attrs](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#columnar_attrs)。
 
-Values:
-* columnar - Enables columnar storage for all table attributes, except for [json](../../Creating_a_table/Data_types.md#JSON)
-* **rowwise (default)** - Doesn't change anything and uses the traditional row-wise storage for the table.
+值：
 
-
-## Other settings
-The following settings are applicable for both real-time and plain tables, regardless of whether they are specified in a configuration file or set online using the `CREATE` or `ALTER` command.
-
-### Performance related
-
-#### Accessing table files
-Manticore supports two access modes for reading table data: seek+read and mmap.
-
-In seek+read mode, the server uses the `pread` system call to read document lists and keyword positions, represented by the`*.spd` and `*.spp`  files. The server uses internal read buffers to optimize the reading process, and the size of these buffers can be adjusted using the options [read_buffer_docs](../../Server_settings/Searchd.md#read_buffer_docs) and [read_buffer_hits](../../Server_settings/Searchd.md#read_buffer_hits).There is also the option  [preopen](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#preopen) that controls how Manticore opens files at start.
-
-In mmap access mode, the search server maps the table's file into memory using the `mmap` system call, and the OS caches the file contents. The options [read_buffer_docs](../../Server_settings/Searchd.md#read_buffer_docs) and [read_buffer_hits](../../Server_settings/Searchd.md#read_buffer_hits) have no effect for corresponding files in this mode. The mmap reader can also lock the table's data in memory using the`mlock` privileged call, which prevents the OS from swapping the cached data out to disk.
-
-To control which access mode to use, the options **access_plain_attrs**, **access_blob_attrs**, **access_doclists**, **access_hitlists** and **access_dict**  are available, with the following values:
-
-| Value | Description |
-| - | - |
-| file | server reads the table files from disk with seek+read using internal buffers on file access |
-| mmap | server maps the table files into memory and OS caches up its contents on file access |
-| mmap_preread | server maps the table files into memory and a background thread reads it once to warm up the cache |
-| mlock | server maps the table files into memory and then executes the mlock() system call to cache up the file contents and lock it into memory to prevent it being swapped out |
+- `columnar` - 为所有表属性启用列式存储，除了 [json](../../Creating_a_table/Data_types.md#JSON)
+- **rowwise（默认）** - 不做任何更改，并使用传统的行式存储。
 
 
-| Setting | Values | Description |
-| - | - | - |
-| access_plain_attrs  | mmap, **mmap_preread** (default), mlock | controls how `*.spa` (plain attributes) `*.spe` (skip lists) `*.spt` (lookups) `*.spm` (killed docs) will be read |
-| access_blob_attrs   | mmap, **mmap_preread** (default), mlock  | controls how `*.spb` (blob attributes) (string, mva and json attributes) will be read |
-| access_doclists   | **file** (default), mmap, mlock  | controls how `*.spd` (doc lists) data will be read |
-| access_hitlists   | **file** (default), mmap, mlock  | controls how `*.spp` (hit lists) data will be read |
-| access_dict   | mmap, **mmap_preread** (default), mlock  | controls how `*.spi` (dictionary) will be read |
+## 其他设置
+以下设置适用于实时表和普通表，无论是指定在配置文件中，还是通过 `CREATE` 或 `ALTER` 命令在线设置。
 
-Here is a table which can help you select your desired mode:
+### 性能相关
 
-| table part |	keep it on disk |	keep it in memory |	cached in memory on server start | lock it in memory |
-| - | - | - | - | - |
-| plain attributes in [row-wise](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) (non-columnar) storage, skip lists, word lists, lookups, killed docs | 	mmap | mmap |	**mmap_preread** (default) | mlock |
-| row-wise string, multi-value attributes (MVA) and json attributes | mmap | mmap | **mmap_preread** (default) | mlock |
-| [columnar](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) numeric, string and multi-value attributes | always  | only by means of OS  | no  | not supported |
-| doc lists | **file** (default) | mmap | no	| mlock |
-| hit lists | **file** (default) | mmap | no	| mlock |
-| dictionary | mmap | mmap | **mmap_preread** (default) | mlock |
+#### 访问表文件
+Manticore 支持两种读取表数据的访问模式：seek+read 和 mmap。
 
-##### The recommendations are:
+在 seek+read 模式下，服务器使用 `pread` 系统调用读取文档列表和关键字位置，这些位置由 `*.spd` 和 `*.spp` 文件表示。服务器使用内部读取缓冲区来优化读取过程，这些缓冲区的大小可以通过选项 [read_buffer_docs](../../Server_settings/Searchd.md#read_buffer_docs) 和 [read_buffer_hits](../../Server_settings/Searchd.md#read_buffer_hits) 调整。还有一个选项 [preopen](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#preopen) 控制 Manticore 启动时如何打开文件。
 
-* For the **fastest search response time** and ample memory availability, use [row-wise](../../Creating_a_table/Data_types.md#JSON) attributes and lock them in memory using `mlock`. Additionally, use mlock for doclists/hitlists.
-* If you prioritize **can't afford lower performance after start** and are willing to sacrifice longer startup time, use the [--force-preread](../../Starting_the_server/Manually.md#searchd-command-line-options). option. If you desire faster searchd restart, stick to the default  `mmap_preread` option.
-* If you are looking to **conserve memory**, while still having enough memory for all attributes, skip the use of `mlock`. The operating system will determine what should be kept in memory based on frequent disk reads.
-* If row-wise attributes  **do not fit into memory**, opt for [columnar attributes](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)
-* If full-text search **performance is not a concern**, and you wish to save memory, use `access_doclists/access_hitlists=file`
+在 mmap 访问模式下，搜索服务器使用 `mmap` 系统调用将表文件映射到内存中，操作系统缓存文件内容。选项 [read_buffer_docs](../../Server_settings/Searchd.md#read_buffer_docs) 和 [read_buffer_hits](../../Server_settings/Searchd.md#read_buffer_hits) 对该模式下的相应文件无效。mmap 读取器还可以使用 `mlock` 特权调用锁定表的数据在内存中，防止操作系统将缓存的数据换出到磁盘。
 
-The default mode offers a balance of:
-* mmap,
-* Prereading non-columnar attributes,
-* Seeking and reading columnar attributes with no preread,
-* Seeking and reading doclists/hitlists with no preread.
+要控制使用哪种访问模式，可以使用以下选项 **access_plain_attrs**、**access_blob_attrs**、**access_doclists**、**access_hitlists** 和 **access_dict**，其值如下：
 
-This provides a decent search performance, optimal memory utilization, and faster searchd restart in most scenarios.
+| 值           | 描述                                                         |
+| ------------ | ------------------------------------------------------------ |
+| file         | 服务器使用 seek+read 从磁盘读取表文件，使用内部缓冲区进行文件访问 |
+| mmap         | 服务器将表文件映射到内存，操作系统在文件访问时缓存其内容     |
+| mmap_preread | 服务器将表文件映射到内存，后台线程先读取一次以预热缓存       |
+| mlock        | 服务器将表文件映射到内存，然后执行 mlock() 系统调用以缓存文件内容并将其锁定在内存中，防止其被换出 |
 
-### Other performance related settings
+| 设置               | 值                                    | 描述                                                         |
+| ------------------ | ------------------------------------- | ------------------------------------------------------------ |
+| access_plain_attrs | mmap、**mmap_preread**（默认）、mlock | 控制 `*.spa`（普通属性）`*.spe`（跳过列表）`*.spt`（查找）`*.spm`（已删除文档）的读取方式 |
+| access_blob_attrs  | mmap、**mmap_preread**（默认）、mlock | 控制 `*.spb`（Blob 属性）（字符串、MVA 和 JSON 属性）的读取方式 |
+| access_doclists    | **file**（默认）、mmap、mlock         | 控制 `*.spd`（文档列表）数据的读取方式                       |
+| access_hitlists    | **file**（默认）、mmap、mlock         | 控制 `*.spp`（命中列表）数据的读取方式                       |
+| access_dict        | mmap、**mmap_preread**（默认）、mlock | 控制 `*.spi`（字典）的读取方式                               |
+
+以下表格可帮助你选择所需的模式：
+
+| 表部分                                                       | 保持在磁盘上     | 保持在内存中   | 服务器启动时缓存         | 锁定在内存中 |
+| ------------------------------------------------------------ | ---------------- | -------------- | ------------------------ | ------------ |
+| 普通属性在 [行式](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) 存储（非列式）中，跳过列表、字词列表、查找、已删除文档 | mmap             | mmap           | **mmap_preread**（默认） | mlock        |
+| 行式字符串、多值属性（MVA）和 JSON 属性                      | mmap             | mmap           | **mmap_preread**（默认） | mlock        |
+| [列式](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages) 数值、字符串和多值属性 | 始终             | 仅通过操作系统 | 无                       | 不支持       |
+| 文档列表                                                     | **file**（默认） | mmap           | 无                       | mlock        |
+| 命中列表                                                     | **file**（默认） | mmap           | 无                       | mlock        |
+| 字典                                                         | mmap             | mmap           | **mmap_preread**（默认） | mlock        |
+
+##### 建议如下：
+
+- 为了获得**最快的搜索响应时间**并有足够的内存，使用 [行式](../../Creating_a_table/Data_types.md#JSON) 属性，并通过 `mlock` 将其锁定在内存中。此外，还应对文档列表/命中列表使用 `mlock`。
+- 如果你优先考虑**启动后无法承受较低的性能**，并愿意牺牲更长的启动时间，请使用 [--force-preread](../../Starting_the_server/Manually.md#searchd-command-line-options) 选项。如果你希望更快的 searchd 重启，请坚持使用默认的 `mmap_preread` 选项。
+- 如果你希望**节省内存**，同时仍然有足够的内存存储所有属性，请跳过使用 `mlock`。操作系统将决定哪些内容应保持在内存中，基于频繁的磁盘读取。
+- 如果行式属性**不适合内存**，则选择 [列式属性](../../Creating_a_table/Data_types.md#Row-wise-and-columnar-attribute-storages)。
+- 如果全文搜索**性能不是问题**，并希望节省内存，请使用 `access_doclists/access_hitlists=file`。
+
+默认模式提供了一个平衡：
+
+- mmap，
+- 预读取非列式属性，
+- 使用无预读取的方式查找和读取列式属性，
+- 使用无预读取的方式查找和读取文档列表/命中列表。
+
+在大多数场景中，这提供了良好的搜索性能、最佳的内存利用率和更快的 searchd 重启。
+
+### 其他性能相关设置
 
 #### attr_update_reserve
 
@@ -624,9 +678,9 @@ This provides a decent search performance, optimal memory utilization, and faste
 attr_update_reserve = 256k
 ```
 
-This setting reserves extra space for updates to blob attributes such as multi-value attributes (MVA), strings, and JSON. The default value is 128k. When updating these attributes, their length may change. If the updated string is shorter than the previous one, it will overwrite the old data in the `*.spb` file. If the updated string is longer, it will be written to the end of the `*.spb` file. This file is memory-mapped, making resizing it a potentially slow process, depending on the operating system's memory-mapped file implementation. To avoid frequent resizing, you can use this setting to reserve extra space at the end of the .spb file.
+此设置为更新 Blob 属性（如多值属性（MVA）、字符串和 JSON）保留额外空间。默认值为 128k。在更新这些属性时，它们的长度可能会改变。如果更新后的字符串短于之前的字符串，它将覆盖 `*.spb` 文件中的旧数据。如果更新后的字符串更长，则将写入 `*.spb` 文件的末尾。该文件是内存映射的，这使得调整大小的过程可能会较慢，具体取决于操作系统的内存映射文件实现。为了避免频繁的调整大小，可以使用此设置在 .spb 文件末尾保留额外空间。
 
-Value: size, default **128k**.
+值：大小，默认 **128k**。
 
 #### docstore_block_size
 
@@ -634,9 +688,9 @@ Value: size, default **128k**.
 docstore_block_size = 32k
 ```
 
-This setting controls the size of blocks used by the document storage. The default value is 16kb. When original document text is stored using stored_fields or stored_only_fields, it is stored within the table and compressed for efficiency. To optimize disk access and compression ratios for small documents, these documents are concatenated into blocks. The indexing process collects documents until their total size reaches the threshold specified by this option. At that point, the block of documents is compressed. This option can be adjusted to achieve better compression ratios (by increasing the block size) or faster access to document text (by decreasing the block size).
+此设置控制文档存储使用的块大小。默认值为 16kb。当原始文档文本使用 `stored_fields` 或 `stored_only_fields` 存储时，它会在表内存储并进行压缩以提高效率。为了优化小文档的磁盘访问和压缩比，这些文档被连接成块。索引过程收集文档，直到其总大小达到此选项指定的阈值。此时，文档块会被压缩。可以调整此选项以获得更好的压缩比（通过增大块大小）或更快的文档文本访问（通过减小块大小）。
 
-Value: size, default **16k**.
+值：大小，默认 **16k**。
 
 #### docstore_compression
 
@@ -644,9 +698,9 @@ Value: size, default **16k**.
 docstore_compression = lz4hc
 ```
 
-This setting determines the type of compression used for compressing blocks of documents stored in document storage. If stored_fields or stored_only_fields are specified, the document storage stores compressed document blocks. 'lz4' offers fast compression and decompression speeds, while 'lz4hc' (high compression) sacrifices some compression speed for a better compression ratio. 'none' disables compression completely.
+此设置决定用于压缩存储在文档存储中的文档块的压缩类型。如果指定了 `stored_fields` 或 `stored_only_fields`，文档存储将存储压缩的文档块。`lz4` 提供快速的压缩和解压速度，而 `lz4hc`（高压缩）则在获得更好压缩比的同时牺牲了一些压缩速度。`none` 完全禁用压缩。
 
-Values: **lz4** (default), lz4hc, none.
+值：**lz4**（默认）、`lz4hc`、`none`。
 
 #### docstore_compression_level
 
@@ -654,9 +708,9 @@ Values: **lz4** (default), lz4hc, none.
 docstore_compression_level = 12
 ```
 
-The compression level used when 'lz4hc' compression is applied in document storage. By adjusting the compression level, you can find the right balance between performance and compression ratio when using 'lz4hc' compression. Note that this option is not applicable when using 'lz4' compression.
+在文档存储中应用 `lz4hc` 压缩时使用的压缩级别。通过调整压缩级别，你可以在使用 `lz4hc` 压缩时找到性能与压缩比之间的最佳平衡。请注意，当使用 `lz4` 压缩时，此选项不适用。
 
-Value: An integer between 1 and 12, with a default of **9**.
+值：介于 1 到 12 之间的整数，默认 **9**。
 
 #### preopen
 
@@ -664,9 +718,9 @@ Value: An integer between 1 and 12, with a default of **9**.
 preopen = 1
 ```
 
-This setting indicates that searchd should open all table files on startup or rotation, and keep them open while running. By default, the files are not pre-opened. Pre-opened tables require a few file descriptors per table, but they eliminate the need for per-query open() calls and are immune to race conditions that might occur during table rotation under high load. However, if you are serving many tables, it may still be more efficient to open them on a per-query basis in order to conserve file descriptors.
+此设置指示 `searchd` 在启动或轮换时打开所有表文件，并在运行时保持它们处于打开状态。默认情况下，文件不会预先打开。预打开的表每个表需要一些文件描述符，但它们消除了每次查询的 open() 调用的需要，并且在高负载下的表轮换期间不会发生竞争条件。然而，如果你服务许多表，仍然可能更有效地按查询打开它们，以节省文件描述符。
 
-Value: **0** (default), or 1.
+值：**0**（默认）或 1。
 
 #### read_buffer_docs
 
@@ -674,9 +728,9 @@ Value: **0** (default), or 1.
 read_buffer_docs = 1M
 ```
 
-Buffer size for storing the list of documents per keyword. Increasing this value will result in higher memory usage during query execution, but may reduce I/O time.
+用于存储每个关键字文档列表的缓冲区大小。增加此值将导致查询执行期间的内存使用量增加，但可能减少 I/O 时间。
 
-Value: size, default **256k**, minimum value is 8k.
+值：大小，默认 **256k**，最小值为 8k。
 
 #### read_buffer_hits
 
@@ -684,11 +738,11 @@ Value: size, default **256k**, minimum value is 8k.
 read_buffer_hits = 1M
 ```
 
-Buffer size for storing the list of hits per keyword. Increasing this value will result in higher memory usage during query execution, but may reduce I/O time.
+用于存储每个关键字命中列表的缓冲区大小。增加此值将导致查询执行期间的内存使用量增加，但可能减少 I/O 时间。
 
-Value: size, default **256k**, minimum value is 8k.
+值：大小，默认 **256k**，最小值为 8k。
 
-### Plain table disk footprint settings
+### 普通表磁盘占用设置
 
 #### inplace_enable
 
@@ -698,13 +752,13 @@ Value: size, default **256k**, minimum value is 8k.
 inplace_enable = {0|1}
 ```
 
-Enables in-place table inversion. Optional, default is 0 (uses separate temporary files).
+启用就地表反转。可选，默认值为 0（使用单独的临时文件）。
 
-The `inplace_enable` option reduces the disk footprint during indexing of plain tables, while slightly slowing down indexing (it uses approximately 2 times less disk, but yields around 90-95% of the original performance).
+`inplace_enable` 选项在索引普通表时减少磁盘占用，但会稍微降低索引速度（大约使用 2 倍更少的磁盘，但性能约为原始性能的 90-95%）。
 
-Indexing is comprised of two primary phases. During the first phase, documents are collected, processed, and partially sorted by keyword, and the intermediate results are written to temporary files (.tmp*). During the second phase, the documents are fully sorted and the final table files are created. Rebuilding a production table on-the-fly requires approximately 3 times the peak disk footprint: first for the intermediate temporary files, second for the newly constructed copy, and third for the old table that will be serving production queries in the meantime. (Intermediate data is comparable in size to the final table.) This may be too much disk footprint for large data collections, and the `inplace_enable` option can be used to reduce it. When enabled, it reuses the temporary files, outputs the final data back to them, and renames them upon completion. However, this may require additional temporary data chunk relocation, which is where the performance impact comes from.
+索引分为两个主要阶段。在第一个阶段，文档被收集、处理并按关键字部分排序，结果中间结果被写入临时文件（.tmp*）。在第二个阶段，文档被完全排序，最终的表文件被创建。实时重建生产表需要大约 3 倍的峰值磁盘占用：首先是中间临时文件，其次是新构建的副本，最后是将在此期间服务生产查询的旧表。（中间数据的大小与最终表相当。）这对于大型数据集可能过于占用磁盘，而 `inplace_enable` 选项可以用来减少占用。当启用时，它重用临时文件，将最终数据输出回这些文件，并在完成后重命名它们。然而，这可能需要额外的临时数据块重新定位，这就是性能影响的来源。
 
-This directive has no effect on [searchd](../../Starting_the_server/Manually.md), it only affects the [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool).
+此指令对 [searchd](../../Starting_the_server/Manually.md) 没有影响，仅对 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 产生影响。
 
 
 <!-- intro -->
@@ -730,11 +784,12 @@ table products {
 inplace_hit_gap = size
 ```
 
-The option [In-place inversion](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#inplace_enable) fine-tuning option. Controls preallocated hitlist gap size. Optional, default is 0.
+此选项是 [inplace_enable](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#inplace_enable) 的微调选项。控制预分配的命中列表间隙大小。可选，默认值为 0。
 
-This directive only affects the [searchd](../../Starting_the_server/Manually.md) tool, and does not have any impact on the  [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool).
+此指令仅影响 [searchd](../../Starting_the_server/Manually.md) 工具，对 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 没有影响。
 
 <!-- intro -->
+
 ##### CONFIG:
 
 <!-- request CONFIG -->
@@ -758,11 +813,12 @@ table products {
 inplace_reloc_factor = 0.1
 ```
 
-The inplace_reloc_factor setting determines the size of the relocation buffer within the memory arena used during indexing. The default value is 0.1.
+`inplace_reloc_factor` 设置决定了在索引期间使用的内存区域内重新定位缓冲区的大小。默认值为 0.1。
 
-This option is optional and only affects the [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) tool, not the [searchd](../../Starting_the_server/Manually.md)  server.
+此选项是可选的，仅影响 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 工具，而不影响 [searchd](../../Starting_the_server/Manually.md) 服务器。
 
 <!-- intro -->
+
 ##### CONFIG:
 
 <!-- request CONFIG -->
@@ -786,9 +842,9 @@ table products {
 inplace_write_factor = 0.1
 ```
 
-Controls the size of the buffer used for in-place writing during indexing. Optional, with a default value of 0.1.
+控制索引过程中就地写入时使用的缓冲区大小。可选，默认值为 0.1。
 
-It's important to note that this directive only impacts the [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) tool and not the [searchd](../../Starting_the_server/Manually.md) server.
+需要注意的是，此指令仅影响 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 工具，对 [searchd](../../Starting_the_server/Manually.md) 服务器没有影响。
 
 
 <!-- intro -->
@@ -807,8 +863,8 @@ table products {
 ```
 <!-- end -->
 
-### Natural language processing specific settings
-The following settings are supported. They are all described in section [NLP and tokenization](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md).
+### 自然语言处理特定设置
+支持以下设置。它们都在 [NLP 和分词](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md) 部分进行了描述。
 * [bigram_freq_words](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#bigram_freq_words)
 * [bigram_index](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#bigram_index)
 * [blend_chars](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#blend_chars)

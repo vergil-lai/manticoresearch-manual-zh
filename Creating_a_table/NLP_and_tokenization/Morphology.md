@@ -1,13 +1,13 @@
-# Advanced morphology
+# 高级词法
 
-Morphology preprocessors can be applied to words during indexing to normalize different forms of the same word and improve segmentation. For example, an English stemmer can normalize "dogs" and "dog" to "dog", resulting in identical search results for both keywords.
+词法预处理器可以在索引过程中应用于单词，以规范相同单词的不同形式，从而改善分词效果。例如，英语词干提取器可以将“dogs”和“dog”规范化为“dog”，从而使这两个关键字的搜索结果相同。
 
-Manticore has four built-in morphology preprocessors:
+Manticore 内置了四种词法预处理器：
 
-*   **Lemmatizer**: reduces a word to its root or lemma. For example, "running" can be reduced to "run" and "octopi" can be reduced to "octopus". Note that some words may have multiple corresponding root forms. For example, "dove" can be either the past tense of "dive" or a noun meaning a bird, as in "A white dove flew over the cuckoo's nest." In this case, a lemmatizer can generate all the possible root forms.
-*   **Stemmer**: reduces a word to its stem by removing or replacing certain known suffixes. The resulting stem may not necessarily be a valid word. For example, the Porter English stemmer reduces "running" to "run", "business" to "busi" (not a valid word), and does not reduce "octopi" at all.
-*   **Phonetic algorithms**: replace words with phonetic codes that are the same even if the words are different but phonetically close.
-*   **Word breaking algorithms**: split text into words. Currently available only for Chinese.
+- **词元化器（Lemmatizer）**：将单词简化为其根或词元。例如，“running”可以简化为“run”，“octopi”可以简化为“octopus”。请注意，一些单词可能具有多个对应的根形式。例如，“dove”可以是“dive”的过去式，或者是名词“鸽子”，例如“白鸽飞过杜鹃窝”。在这种情况下，词元化器可以生成所有可能的根形式。
+- **词干提取器（Stemmer）**：通过去除或替换某些已知后缀来将单词简化为其词干。结果词干不一定是有效单词。例如，Porter 英语词干提取器将“running”简化为“run”，“business”简化为“busi”（不是有效单词），而“octopi”则不作任何简化。
+- **语音算法（Phonetic algorithms）**：将单词替换为发音代码，即使单词不同但发音相近的单词也会生成相同的代码。
+- **分词算法（Word breaking algorithms）**：将文本拆分为单词。目前仅适用于中文。
 
 ## morphology
 
@@ -16,46 +16,48 @@ morphology = morphology1[, morphology2, ...]
 ```
 
 <!-- example morphology -->
-The morphology directive specifies a list of morphology preprocessors to apply to the words being indexed. This is an optional setting, with the default being no preprocessor applied.
 
-Manticore comes with built-in morphological preprocessors for:
+“词法”指令指定要应用于索引单词的词法预处理器列表。此设置是可选的，默认情况下不应用任何预处理器。
 
-* English, Russian, and German lemmatizers
-* English, Russian, Arabic, and Czech stemmers
-* SoundEx and MetaPhone phonetic algorithms
-* Chinese word breaking algorithm
-* Snowball (libstemmer) stemmers for more than [15 other languages](../../Creating_a_table/NLP_and_tokenization/Supported_languages.md) are also available.
+Manticore 提供了内置的词法预处理器，支持以下语言：
 
-Lemmatizers require dictionary `.pak` files that can be [downloaded from the Manticore website](https://manticoresearch.com/install/#other-downloads). The dictionaries need to be put in the directory specified by [lemmatizer_base](../../Server_settings/Common.md#lemmatizer_base). Additionally, the [lemmatizer_cache](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#lemmatizer_cache) setting can be used to speed up lemmatizing by spending more RAM for an uncompressed dictionary cache.
+- 英语、俄语和德语的词元化器
+- 英语、俄语、阿拉伯语和捷克语的词干提取器
+- SoundEx 和 MetaPhone 语音算法
+- 中文的分词算法
+- 还提供了支持超过 [15 种其他语言](../../Creating_a_table/NLP_and_tokenization/Supported_languages.md) 的 Snowball（libstemmer）词干提取器。
 
-The Chinese language segmentation can be done using [ICU](http://site.icu-project.org/) or [Jieba](https://github.com/yanyiwu/cppjieba). Both libraries provide more accurate segmentation than n-grams, but are slightly slower. The [charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table) must include all Chinese characters, which can be done using the `cont`, `cjk` or `chinese` character sets. When you set `morphology=icu_chinese` or `morphology=jieba_chinese`, the documents are first pre-processed by ICU or Jieba. Then, the tokenizer processes the result according to the charset_table, and finally, other morphology processors from the `morphology` option are applied. Only those parts of the text that contain Chinese are passed to ICU/Jieba for segmentation, while the other parts can be modified by different means such as different morphologies or `charset_table`.
+词元化器需要字典 `.pak` 文件，这些文件可以从 Manticore 网站 [下载](https://manticoresearch.com/install/#other-downloads)。字典需要放在由 [lemmatizer_base](../../Server_settings/Common.md#lemmatizer_base) 指定的目录中。此外，[lemmatizer_cache](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#lemmatizer_cache) 设置可用于通过占用更多 RAM 来加速词元化过程，生成未压缩的字典缓存。
 
-Built-in English and Russian stemmers are faster than their libstemmer counterparts but may produce slightly different results
+中文分词可通过 [ICU](http://site.icu-project.org/) 或 [Jieba](https://github.com/yanyiwu/cppjieba) 实现。这两种库提供的分词准确度高于 n-grams，但速度稍慢。`charset_table` 必须包含所有中文字符，可以使用 `cont`、`cjk` 或 `chinese` 字符集完成。当设置 `morphology=icu_chinese` 或 `morphology=jieba_chinese` 时，文档首先会通过 ICU 或 Jieba 进行预处理。然后，分词器根据 `charset_table` 处理结果，最后应用“词法”选项中的其他词法处理器。只有包含中文的文本部分会被传递给 ICU/Jieba 进行分词，其他部分可以通过不同的方式修改，例如使用不同的词法或 `charset_table`。
 
-Soundex implementation matches that of MySQL. Metaphone implementation is based on Double Metaphone algorithm and indexes the primary code.
+内置的英语和俄语词干提取器速度比其 libstemmer 对应物快，但可能产生略微不同的结果。
 
-To use the `morphology` option, specify one or multiple of the built-in options, including:
-* none: do not perform any morphology processing
-* lemmatize_ru - apply Russian lemmatizer and pick a single root form
-* lemmatize_uk - apply Ukrainian lemmatizer and pick a single root form (install it first in [Centos](../../Installation/RHEL_and_Centos.md#Ukrainian-lemmatizer) or [Ubuntu/Debian](../../Installation/Debian_and_Ubuntu.md#Ukrainian-lemmatizer)). For correct work of the lemmatizer make sure specific Ukrainian characters are preserved in your `charset_table` since by default they are not. For that override them, like this: `charset_table='non_cont,U+0406->U+0456,U+0456,U+0407->U+0457,U+0457,U+0490->U+0491,U+0491'`. [Here](https://play.manticoresearch.com/ua-lemmatizer/) is an interactive course about how to install and use the urkainian lemmatizer.
-* lemmatize_en - apply English lemmatizer and pick a single root form
-* lemmatize_de - apply German lemmatizer and pick a single root form
-* lemmatize_ru_all - apply Russian lemmatizer and index all possible root forms
-* lemmatize_uk_all - apply Ukrainian lemmatizer and index all possible root forms. Find the installation links above and take care of the `charset_table`.
-* lemmatize_en_all - apply English lemmatizer and index all possible root forms
-* lemmatize_de_all - apply German lemmatizer and index all possible root forms
-* stem_en - apply Porter's English stemmer
-* stem_ru - apply Porter's Russian stemmer
-* stem_enru - apply Porter's English and Russian stemmers
-* stem_cz - apply Czech stemmer
-* stem_ar - apply Arabic stemmer
-* soundex - replace keywords with their SOUNDEX code
-* metaphone - replace keywords with their METAPHONE code
-* icu_chinese - apply Chinese text segmentation using ICU
-* jieba_chinese - apply Chinese text segmentation using Jieba
-* libstemmer_* . Refer to the [list of supported languages](../../Creating_a_table/NLP_and_tokenization/Supported_languages.md) for details
+Soundex 的实现与 MySQL 的一致。Metaphone 的实现基于 Double Metaphone 算法，并为每个单词生成主要代码。
 
-Multiple stemmers can be specified, separated by commas. They will be applied to incoming words in the order they are listed, and the processing will stop once one of the stemmers modifies the word. Additionally, when [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) feature is enabled, the word will be looked up in the word forms dictionary first. If there is a matching entry in the dictionary, stemmers will not be applied at all.  [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) сan be used to implement stemming exceptions.
+要使用 `morphology` 选项，请指定一个或多个内置选项，包括：
+
+* none：不执行任何词法处理
+* lemmatize_ru：应用俄语词元化器并选择一个根形式
+* lemmatize_uk：应用乌克兰语词元化器并选择一个根形式（首先在 [Centos](../../Installation/RHEL_and_Centos.md#Ukrainian-lemmatizer) 或 [Ubuntu/Debian](../../Installation/Debian_and_Ubuntu.md#Ukrainian-lemmatizer) 中安装）。为确保词元化器正常工作，请确保在`charset_table` 中保留特定的乌克兰字符，因为默认情况下不会保留。要覆盖它们，可以这样设置：`charset_table='non_cont,U+0406->U+0456,U+0456,U+0407->U+0457,U+0457,U+0490->U+0491,U+0491'`。关于如何安装和使用乌克兰语词元化器，可以参考 [这里](https://play.manticoresearch.com/ua-lemmatizer/) 的互动课程。
+* lemmatize_en：应用英语词元化器并选择一个根形式
+* lemmatize_de：应用德语词元化器并选择一个根形式
+* lemmatize_ru_all：应用俄语词元化器并索引所有可能的根形式
+* lemmatize_uk_all：应用乌克兰语词元化器并索引所有可能的根形式。有关安装链接，请参阅上文，并确保 `charset_table` 的正确性。
+* lemmatize_en_all：应用英语词元化器并索引所有可能的根形式
+* lemmatize_de_all：应用德语词元化器并索引所有可能的根形式
+* stem_en：应用 Porter's 英语词干提取器
+* stem_ru：应用 Porter's 俄语词干提取器
+* stem_enru：应用 Porter's 英语和俄语词干提取器
+* stem_cz：应用捷克语词干提取器
+* stem_ar：应用阿拉伯语词干提取器
+* soundex：用 SOUNDEX 代码替换关键字
+* metaphone：用 METAPHONE 代码替换关键字
+* icu_chinese：应用 ICU 进行中文文本分词
+* jieba_chinese：应用 Jieba 进行中文文本分词
+* libstemmer_*：有关详细信息，请参阅 [支持的语言列表](../../Creating_a_table/NLP_and_tokenization/Supported_languages.md)。
+
+可以指定多个词干提取器，以逗号分隔。它们将按顺序应用于传入单词，一旦其中一个词干提取器修改了单词，处理将停止。此外，当启用 [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) 特性时，系统将首先在词形字典中查找单词。如果在字典中有匹配条目，则不应用词干提取器。 [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) 可用于实现词干提取例外。
 
 <!-- request SQL -->
 
@@ -134,7 +136,7 @@ table products {
 morphology_skip_fields = field1[, field2, ...]
 ```
 
-A list of fields to skip morphology preprocessing. Optional, default is empty (apply preprocessors to all fields).
+一个要跳过词法预处理的字段列表。可选参数，默认值为空（对所有字段应用预处理器）。
 
 <!-- request SQL -->
 
@@ -217,9 +219,9 @@ table products {
 min_stemming_len = length
 ```
 
-Minimum word length at which to enable stemming. Optional, default is 1 (stem everything).
+词法处理启用的最小单词长度。可选，默认值为1（处理所有单词）。
 
-Stemmers are not perfect, and might sometimes produce undesired results. For instance, running "gps" keyword through Porter stemmer for English results in "gp", which is not really the intent. `min_stemming_len` feature lets you suppress stemming based on the source word length, ie. to avoid stemming too short words. Keywords that are shorter than the given threshold will not be stemmed. Note that keywords that are exactly as long as specified **will** be stemmed. So in order to avoid stemming 3-character keywords, you should specify 4 for the value. For more finely grained control, refer to [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) feature.
+词法处理并不完美，有时可能会产生不希望的结果。例如，将“gps”关键字通过英语的Porter词法处理后，结果为“gp”，这并不是原意。`min_stemming_len`功能允许您根据源单词的长度抑制词法处理，即避免对过短的单词进行处理。长度低于给定阈值的关键字将不会进行词法处理。请注意，恰好等于指定长度的关键字**将**被处理。因此，要避免对3个字符的关键字进行处理，您应将值指定为4。有关更细粒度的控制，请参考[词形](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms)功能。
 
 <!-- request SQL -->
 
@@ -302,9 +304,9 @@ table products {
 index_exact_words = {0|1}
 ```
 
-This option allows for the indexing of original keywords along with their morphologically modified versions. However, original keywords that are remapped by the [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) and [exceptions](../../Creating_a_table/NLP_and_tokenization/Exceptions.md) cannot be indexed. The default value is 0, indicating that this feature is disabled by default.
+此选项允许在索引时同时保存原始关键字及其形态变化版本。然而，通过[词形变化](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms)和[例外](../../Creating_a_table/NLP_and_tokenization/Exceptions.md)进行重映射的原始关键字无法被索引。默认值为0，表示此功能默认禁用。
 
-This allows the use of the [exact form operator](../../Searching/Full_text_matching/Operators.md#Exact-form-modifier) in the query language. Enabling this feature will increase the full-text index size and indexing time, but will not impact search performance.
+启用此功能后，可以在查询语言中使用[精确形式操作符](../../Searching/Full_text_matching/Operators.md#Exact-form-modifier)。启用该功能将增加全文索引的大小和索引时间，但不会影响搜索性能。
 
 <!-- request SQL -->
 
@@ -387,13 +389,13 @@ table products {
 jieba_hmm = {0|1}
 ```
 
-Enable or disable HMM in the Jieba segmentation tool. Optional; the default is 1.
+启用或禁用 Jieba 分词工具中的 HMM（隐马尔可夫模型）。可选；默认值为 1。
 
-In Jieba, the HMM (Hidden Markov Model) option refers to an algorithm used for word segmentation. Specifically, it allows Jieba to perform Chinese word segmentation by recognizing unknown words, especially those not present in its dictionary.
+在 Jieba 中，HMM 选项指的是用于分词的算法。具体来说，它允许 Jieba 通过识别未知词（特别是字典中不存在的词）来进行中文分词。
 
-Jieba primarily uses a dictionary-based method for segmenting known words, but when the HMM option is enabled, it applies a statistical model to identify probable word boundaries for words or phrases that are not in its dictionary. This is particularly useful for segmenting new or rare words, names, and slang.
+Jieba 主要使用基于字典的方法来分词已知词，但当 HMM 选项启用时，它会应用统计模型来识别不在字典中的词或短语的可能词边界。这在分词新词、罕见词、名字和俚语时特别有用。
 
-In summary, the `jieba_hmm` option helps improve segmentation accuracy at the expense of indexing performance. It must be used with `morphology = jieba_chinese`, see [Chinese, Japanese and Korean (CJK) and Thai languages](Creating_a_table/NLP_and_tokenization/Languages_with_continuous_scripts.md).
+总之，`jieba_hmm` 选项有助于提高分词的准确性，但会影响索引性能。它必须与 `morphology = jieba_chinese` 一起使用，详见[中文、日文和韩文（CJK）及泰语](Creating_a_table/NLP_and_tokenization/Languages_with_continuous_scripts.md)。
 
 <!-- request SQL -->
 
@@ -476,15 +478,15 @@ table products {
 jieba_mode = {accurate|full|search}
 ```
 
-Jieba segmentation mode. Optional; the default is `accurate`.
+Jieba 分词模式。可选；默认值为 `accurate`。
 
-In accurate mode, Jieba splits the sentence into the most precise words using dictionary matching. This mode focuses on precision, ensuring that the segmentation is as accurate as possible.
+在精确模式下，Jieba 使用字典匹配将句子拆分为最精确的词汇。该模式侧重于准确性，确保分词尽可能准确。
 
-In full mode, Jieba tries to split the sentence into every possible word combination, aiming to include all potential words. This mode focuses on maximizing recall, meaning it identifies as many words as possible, even if some of them overlap or are less commonly used. It returns all the words found in its dictionary.
+在全模式下，Jieba 尝试将句子拆分为所有可能的词组合，旨在包括所有潜在的词汇。该模式专注于最大化召回率，即识别尽可能多的词汇，即使其中一些重叠或使用频率较低。它返回字典中找到的所有词汇。
 
-In search mode, Jieba breaks the text into both whole words and smaller parts, combining precise segmentation with extra detail by providing overlapping word fragments. This mode balances precision and recall, making it useful for search engines.
+在搜索模式下，Jieba 同时将文本拆分为完整词和较小部分，结合精确分词和额外细节，提供重叠的词片段。该模式在准确性和召回率之间取得平衡，适用于搜索引擎。
 
-`jieba_mode` should be used with `morphology = jieba_chinese`. See [Chinese, Japanese, Korean (CJK) and Thai languages](Creating_a_table/NLP_and_tokenization/Languages_with_continuous_scripts.md).
+`jieba_mode` 应与 `morphology = jieba_chinese` 一起使用。请参见[中文、日文和韩文（CJK）及泰语](Creating_a_table/NLP_and_tokenization/Languages_with_continuous_scripts.md)。
 
 <!-- request SQL -->
 

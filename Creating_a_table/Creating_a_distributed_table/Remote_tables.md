@@ -1,7 +1,8 @@
-# Remote tables
+# 远程表
 
-A remote table in Manticore Search is represented by the [agent](../../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md) prefix in the definition of a distributed table. A distributed table can include a combination of local and remote tables. If there are no local tables provided, the distributed table will be purely remote and serve as a proxy only. For example, you might have a Manticore instance that listens on multiple ports and serves different protocols, and then redirects queries to backend servers that only accept connections via Manticore's internal binary protocol, using persistent connections to reduce the overhead of establishing connections.
-Even though a purely remote distributed table doesn't serve local tables itself, it still consumes machine resources, as it still needs to perform final calculations, such as merging results and calculating final aggregated values.
+在 Manticore Search 中，远程表通过分布式表定义中的 [agent](../../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md) 前缀表示。分布式表可以包含本地表和远程表的组合。如果没有提供本地表，则分布式表将完全是远程的，仅作为代理。例如，您可能有一个 Manticore 实例监听多个端口并提供不同的协议，然后将查询重定向到仅接受通过 Manticore 内部二进制协议的后端服务器，并使用持久连接来减少建立连接的开销。
+
+尽管纯远程分布式表本身不提供本地表，但它仍然消耗机器资源，因为它仍需要执行最终计算，例如合并结果和计算最终聚合值。
 
 ## agent
 
@@ -10,39 +11,40 @@ agent = address1 [ | address2 [...] ][:table-list]
 agent = address1[:table-list [ | address2[:table-list [...] ] ] ]
 ```
 
-`agent` directive declares the remote agents that are searched each time the enclosing distributed table is searched. These agents are essentially pointers to networked tables. The value specified includes the address and can also include multiple alternatives (agent mirrors) for either the address only or the address and table list.
+`agent` 指令声明每次搜索包含的分布式表时所搜索的远程代理。这些代理本质上是指向网络表的指针。指定的值包括地址，也可以包含多个替代选项（代理镜像），这些选项可以仅用于地址或地址和表列表。
 
-The address specification must be one of the following:
+地址规范必须是以下之一：
 
 ```ini
 address = hostname[:port] # eg. server2:9312
 address = /absolute/unix/socket/path # eg. /var/run/manticore2.sock
 ```
 
-The `hostname` is the remote host name, `port` is the remote TCP port number, `table-list` is a comma-separated list of table names, and square brackets [] indicate an optional clause.
+`hostname` 是远程主机名，`port` 是远程 TCP 端口号，`table-list` 是以逗号分隔的表名列表，方括号 [] 表示可选条款。
 
-If the table name is omitted, it is assumed to be the same table as the one where this line is defined. In other words, when defining agents for the 'mycoolindex' distributed table, you can simply point to the address, and it will be assumed that you are querying the mycoolindex table on the agent's endpoints.
+如果省略表名，则假定与定义该行的表相同。换句话说，在为名为 'mycoolindex' 的分布式表定义代理时，您只需指向地址，它将假定您正在查询代理端点上的 mycoolindex 表。
 
-If the port number is omitted, it is assumed to be **9312**. If it is defined but invalid (e.g. 70000), the agent will be skipped.
+如果省略端口号，则假定为 **9312**。如果定义但无效（例如 70000），则该代理将被跳过。
 
-You can point each agent to one or more remote tables residing on one or more networked servers with no restrictions. This enables several different usage modes:
-* Sharding over multiple agent servers and creating an arbitrary cluster topology
-* Sharding over multiple agent servers mirrored for high availability and load balancing purposes
-* Sharding within localhost to utilize multiple cores (however, it is simpler just to use multiple local tables)
+您可以将每个代理指向一个或多个位于一个或多个网络服务器上的远程表，没有限制。这使得几种不同的使用模式成为可能：
 
-All agents are searched in parallel. The index list is passed verbatim to the remote agent. The exact way that list is searched within the agent (i.e. sequentially or in parallel) depends solely on the agent's configuration (see the [threads](../../Server_settings/Searchd.md#threads) setting). The master has no remote control over this.
+* 在多个代理服务器上进行分片并创建任意集群拓扑
+* 在多个代理服务器上进行分片，以实现高可用性和负载均衡目的的镜像
+* 在本地主机内进行分片，以利用多个核心（但是，使用多个本地表更简单）
 
-It is important to note that the `LIMIT`, option is ignored in agent queries. This is because each agent can contain different tables, so it is the responsibility of the client to apply the limit to the final result set. This is why the query to a physical table is different from the query to a distributed table when viewed in the query logs. The query cannot be a simple copy of the original query, as this would not produce the correct results.
+所有代理都是并行搜索的。索引列表原封不动地传递给远程代理。该列表在代理内的具体搜索方式（即顺序或并行）完全取决于代理的配置（参见 [threads](../../Server_settings/Searchd.md#threads) 设置）。主节点对其没有远程控制。
 
-For example, if a client makes a query SELECT ... LIMIT 10, 10, and there are two agents, with the second agent having only 10 documents, broadcasting the original `LIMIT 10, 10` query would result in receiving 0 documents from the second agent. However, `LIMIT 10,10` should return documents 10-20 from the resulting set. To resolve this, the query must be sent to the agents with a broader limit, such as the default max_matches value of 1000.
+需要注意的是，`LIMIT` 选项在代理查询中被忽略。这是因为每个代理可能包含不同的表，因此将限制应用于最终结果集的责任在于客户端。这就是物理表的查询与分布式表的查询在查询日志中显示的不同原因。查询不能简单地复制原始查询，因为这不会产生正确的结果。
 
-For instance, if there is a distributed table dist that refers to the remote table user, a client query `SELECT * FROM dist LIMIT 10,10` would be converted to `SELECT * FROM user LIMIT 0,1000` and sent to the remote table user. Once the distributed table receives the result, it will apply the LIMIT 10,10 and return the requested 10 documents.
+例如，如果客户端发出查询 `SELECT ... LIMIT 10, 10`，并且有两个代理，第二个代理只有 10 个文档，则广播原始的 `LIMIT 10, 10` 查询将导致从第二个代理接收到 0 个文档。然而，`LIMIT 10,10` 应返回结果集中的第 10 到第 20 个文档。为了解决此问题，必须以更广泛的限制发送查询，例如默认的最大匹配值 1000。
+
+例如，如果有一个分布式表 dist 引用远程表 user，则客户端查询 `SELECT * FROM dist LIMIT 10,10` 将被转换为 `SELECT * FROM user LIMIT 0,1000` 并发送到远程表 user。一旦分布式表接收到结果，它将应用 `LIMIT 10,10` 并返回请求的 10 个文档。
 
 ```sql
 SELECT * FROM dist LIMIT 10,10;
 ```
 
-the query will be converted to:
+该查询将会转为：
 
 ```sql
 SELECT * FROM user LIMIT 0,1000
@@ -58,7 +60,7 @@ Additionally, the value can specify options for each individual agent, such as:
 agent = address1:table-list[[ha_strategy=value, conn=value, blackhole=value]]
 ```
 
-Example:
+示例：
 
 ```ini
 # config on box1
@@ -85,12 +87,12 @@ agent = test:9312|box2:9312|box3:9312:any2[retry_count=2]
 agent = test:9312|box2:9312:any2[retry_count=2,conn=pconn,ha_strategy=noerrors]
 ```
 
-For optimal performance, it's recommended to place remote tables that reside on the same server within the same record. For instance, instead of:
+为了获得最佳性能，建议将位于同一服务器上的远程表放在同一条记录中。例如，不要：
 ```ini
 agent = remote:9312:idx1
 agent = remote:9312:idx2
 ```
-you should prefer:
+你应该这样：
 ```ini
 agent = remote:9312:idx1,idx2
 ```
@@ -101,11 +103,7 @@ agent = remote:9312:idx1,idx2
 agent_persistent = remotebox:9312:index2
 ```
 
-The `agent_persistent` option allows you to persistently connect to an agent, meaning the connection will not be dropped after a query is executed. The syntax for this directive is the same as the `agent` directive. However, instead of opening a new connection to the agent for each query and then closing it, the master will keep a connection open and reuse it for subsequent queries. The maximum number of persistent connections per agent host is defined by the [persistent_connections_limit](../../Server_settings/Searchd.md#persistent_connections_limit) option in the searchd section.
-
-It's important to note that the [persistent_connections_limit](../../Server_settings/Searchd.md#persistent_connections_limit) must be set to a value greater than 0 in order to use persistent agent connections. If it's not defined, it defaults to 0, and the `agent_persistent` directive will act the same as the `agent`directive.
-
-Using persistent master-agent connections reduces TCP port pressure and saves time on connection handshakes, making it more efficient.
+`agent_blackhole` 指令允许您将查询转发到远程代理，而无需等待或处理其响应。这对于调试或测试生产集群非常有用，因为您可以设置一个单独的调试/测试实例，并从生产主节点（聚合器）转发请求到它，而不干扰生产工作。主搜索节点将尝试连接到黑洞代理并像正常一样发送查询，但不会等待或处理任何响应，并且所有黑洞代理上的网络错误将被忽略。值的格式与常规 `agent` 指令相同。
 
 ## agent_blackhole
 
@@ -113,7 +111,7 @@ Using persistent master-agent connections reduces TCP port pressure and saves ti
 agent_blackhole = testbox:9312:testindex1,testindex2
 ````
 
-The `agent_blackhole` directive allows you to forward queries to remote agents without waiting for or processing their responses. This is useful for debugging or testing production clusters, as you can set up a separate debugging/testing instance and forward requests to it from the production master (aggregator) instance, without interfering with production work. The master searchd will attempt to connect to the blackhole agent and send queries as normal, but will not wait for or process any responses, and all network errors on the blackhole agents will be ignored. The format of the value is identical to that of the regular `agent` directive.
+`agent_blackhole` 指令允许您将查询转发到远程代理，而无需等待或处理其响应。这对于调试或测试生产集群非常有用，因为您可以设置一个单独的调试/测试实例，并从生产主节点（聚合器）转发请求到它，而不干扰生产工作。主搜索节点将尝试连接到黑洞代理并像正常一样发送查询，但不会等待或处理任何响应，并且所有黑洞代理上的网络错误将被忽略。值的格式与常规 `agent` 指令相同。
 
 ## agent_connect_timeout
 
@@ -121,9 +119,9 @@ The `agent_blackhole` directive allows you to forward queries to remote agents w
 agent_connect_timeout = 300
 ````
 
-The `agent_connect_timeout` directive defines the timeout for connecting to remote agents. By default, the value is assumed to be in milliseconds, but can have [another suffix](../../Server_settings/Special_suffixes.md)). The default value is 1000 (1 second).
+`agent_connect_timeout` 指令定义连接到远程代理的超时。默认值假定为毫秒，但可以有 [其他后缀](../../Server_settings/Special_suffixes.md)。默认值为 1000（1 秒）。
 
-When connecting to remote agents, `searchd` will wait for this amount of time at most to complete the connection successfully. If the timeout is reached but the connection has not been established, and `retries` are enabled, a retry will be initiated.
+连接到远程代理时，`searchd` 最多将等待此时间以成功完成连接。如果超时到达但未建立连接，并且启用了重试，将会启动重试。
 
 ## agent_query_timeout
 
@@ -131,43 +129,45 @@ When connecting to remote agents, `searchd` will wait for this amount of time at
 agent_query_timeout = 10000 # our query can be long, allow up to 10 sec
 ```
 
-The `agent_query_timeout` sets the amount of time that searchd will wait for a remote agent to complete a query. The default value is 3000 milliseconds (3 seconds), but can be `suffixed` to indicate a different unit of time.
+`agent_query_timeout` 设置 `searchd` 等待远程代理完成查询的时间。默认值为 3000 毫秒（3 秒），但可以用 `suffixed` 指示不同的时间单位。
 
-After establishing a connection, `searchd` will wait for a maximum of agent_query_timeout for remote queries to complete. Note that this timeout is separate from the `agent_connection_timeout` and the total possible delay caused by a remote agent will be the sum of both values. If the agent_query_timeout is reached, the query will **not** be retried, instead, a warning will be produced.
+在建立连接后，`searchd` 将等待最多 `agent_query_timeout` 的时间，以完成远程查询。如果到达了代理查询超时，查询将 **不** 被重试，而是会产生一个警告。
 
-Note that behavior is also affected by [reset_network_timeout_on_packet](../../Server_settings/Searchd.md#reset_network_timeout_on_packet)
+注意，此超时与 `agent_connection_timeout` 是分开的，远程代理可能导致的总延迟将是这两个值的总和。如果到达了代理查询超时，查询将 **不** 被重试，而是会产生一个警告。
+
+注意，行为也受 [reset_network_timeout_on_packet](../../Server_settings/Searchd.md#reset_network_timeout_on_packet) 的影响。
 
 ## agent_retry_count
 
-The `agent_retry_count` is an integer that specifies how many times Manticore will attempt to connect and query remote agents in a distributed table before reporting a fatal query error. It works similarly to `agent_retry_count` defined in the "searchd" section of the configuration file but applies specifically to the table.
+`agent_retry_count` 是一个整数，指定在报告致命查询错误之前，Manticore 将尝试连接和查询远程代理的次数。它的工作原理类似于配置文件 "searchd" 部分中定义的 `agent_retry_count`，但专门适用于该表。
 
 ## mirror_retry_count
 
-`mirror_retry_count` serves the same purpose as `agent_retry_count`.  If both values are provided, `mirror_retry_count` will take precedence, and a warning will be raised.
+`mirror_retry_count` 的作用与 `agent_retry_count` 相同。如果提供了两个值，则 `mirror_retry_count` 将优先，并将发出警告。
 
-## Instance-wide options
+## 实例级选项
 
-The following options manage the overall behavior of remote agents and are specified in **the searchd section of the configuration file**. They set default values for the entire Manticore instance.
+以下选项管理远程代理的整体行为，并在**配置文件的 searchd 部分**中指定。它们为整个 Manticore 实例设置默认值。
 
-* `agent_connect_timeout` - default value for the `agent_connect_timeout` parameter.
-* `agent_query_timeout` - default value for the `agent_query_timeout` parameter. This can also be overridden on a per-query basis using the same setting name in a distributed (network) table.
-* `agent_retry_count` is an integer that specifies the number of times Manticore will attempt to connect and query remote agents in a distributed table before reporting a fatal query error. The default value is 0 (i.e. no retries). This value can also be specified on a per-query basis using the 'OPTION retry_count=XXX' clause. If a per-query option is provided, it will take precedence over the value specified in the config.
+- `agent_connect_timeout` - `agent_connect_timeout` 参数的默认值。
+- `agent_query_timeout` - `agent_query_timeout` 参数的默认值。也可以通过在分布式（网络）表中使用相同设置名称来覆盖。
+- `agent_retry_count` 是一个整数，指定在报告致命查询错误之前，Manticore 将尝试连接和查询远程代理的次数。默认值为 0（即不重试）。此值也可以通过使用 `OPTION retry_count=XXX` 子句在每个查询中指定。如果提供了每个查询选项，则将优先于配置中指定的值。
 
-Note, that if you use **agent mirrors** in the definition of your distributed table, the server will select a different mirror before each connection attempt according to the specified [ha_strategy](../../Creating_a_cluster/Remote_nodes/Load_balancing.md#ha_strategy) specified. In this case the [agent_retry_count](../../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#agent_retry_count) will be aggregated for all mirrors in the set.
+注意，如果您在分布式表的定义中使用 **代理镜像**，服务器将在每次连接尝试之前根据指定的 [ha_strategy](../../Creating_a_cluster/Remote_nodes/Load_balancing.md#ha_strategy) 选择不同的镜像。在这种情况下，`agent_retry_count` 将对所有镜像的集合进行汇总。
 
-For example, if you have 10 mirrors and set `agent_retry_count=5`, he server will attempt up to 50 retries (assuming an average of 5 tries per every 10 mirrors). In case of the option `ha_strategy = roundrobin`, it will actually be exactly 5 tries per mirror.
+例如，如果您有 10 个镜像并设置 `agent_retry_count=5`，服务器将在尝试 50 次（假设平均每个镜像尝试 5 次）。如果选项 `ha_strategy = roundrobin`，则每个镜像将实际尝试 5 次。
 
-At the same time, the value provided as the [retry_count](../../Searching/Options.md#retry_count) option in the `agent` definition serves as an absolute limit. In other words, the `[retry_count=2]` option in the agent definition means there will be a maximum of 2 tries, regardless of whether there is 1 or 10 mirrors in the line.
+同时，在 `agent` 定义中提供的 `[retry_count]` 选项作为绝对限制。换句话说，`agent` 定义中的 `[retry_count=2]` 选项意味着无论镜像数量是 1 还是 10，最多只会尝试 2 次。
 
 ### agent_retry_delay
 
-The `agent_retry_delay` is an integer value that determines the amount of time, in milliseconds, that Manticore Search will wait before retrying to query a remote agent in case of a failure. This value can be specified either globally in the searchd configuration or on a per-query basis using the `OPTION retry_delay=XXX` clause. If both options are provided, the per-query option will take precedence over the global one. The default value is 500 milliseconds (0.5 seconds). This option is only relevant if agent_retry_count or the per-query `OPTION retry_count` are non-zero.
+`agent_retry_delay` 是一个整数值，确定在失败的情况下，Manticore Search 在重试查询远程代理之前等待的时间，单位为毫秒。可以在 searchd 配置中全局指定此值，或者通过 `OPTION retry_delay=XXX` 子句在每个查询中指定。如果两者都提供，则每个查询选项将优先于全局选项。默认值为 500 毫秒（0.5 秒）。此选项仅在 `agent_retry_count` 或每个查询的 `OPTION retry_count` 不为零时相关。
 
 ### client_timeout
 
-The `client_timeout` option sets the maximum waiting time between requests when using persistent connections. This value is expressed in seconds or with a time suffix. The default value is 5 minutes.
+`client_timeout` 选项设置在使用持久连接时请求之间的最大等待时间。此值以秒为单位表示，或带有时间后缀。默认值为 5 分钟。
 
-Example:
+示例：
 
 ```ini
 client_timeout = 1h
@@ -175,19 +175,19 @@ client_timeout = 1h
 
 ### hostname_lookup
 
-The `hostname_lookup` option defines the strategy for renewing hostnames. By default, the IP addresses of agent host names are cached at server start to avoid excessive access to DNS. However, in some cases, the IP can change dynamically (e.g. cloud hosting) and it may be desirable to not cache the IPs. Setting this option to `request` disables the caching and queries the DNS for each query. The IP addresses can also be manually renewed using the `FLUSH HOSTNAMES` command.
+`hostname_lookup` 选项定义了更新主机名的策略。默认情况下，代理主机名的 IP 地址在服务器启动时缓存，以避免过多访问 DNS。但是，在某些情况下，IP 可能动态更改（例如，云托管），可能希望不缓存 IP。将此选项设置为 `request` 会禁用缓存，并在每个查询时查询 DNS。也可以使用 `FLUSH HOSTNAMES` 命令手动更新 IP 地址。
 
 ### listen_tfo
 
-The `listen_tfo` option allows for the use of the TCP_FASTOPEN flag for all listeners. By default, it is managed by the system, but it can be explicitly turned off by setting it to '0'.
+`listen_tfo` 选项允许对所有监听器使用 TCP_FASTOPEN 标志。默认情况下，由系统管理，但可以通过将其设置为 '0' 显式关闭。
 
-For more information about the TCP Fast Open extension, please refer to [Wikipedia](https://en.wikipedia.org/wiki/TCP_Fast_Open).  In short, it allows to eliminate one TCP round-trip when establishing a connection.
+有关 TCP Fast Open 扩展的更多信息，请参见 [Wikipedia](https://en.wikipedia.org/wiki/TCP_Fast_Open)。简而言之，它可以在建立连接时消除一个 TCP 往返。
 
-In practice, using TFO can optimize the client-agent network efficiency, similar to when `agent_persistent`  is in use, but without holding active connections and without limitations on the maximum number of connections.
+在实践中，使用 TFO 可以优化客户端代理的网络效率，类似于使用 `agent_persistent` 时的效果，但无需保持活动连接，并且没有最大连接数的限制。
 
-Most modern operating systems support TFO. Linux (as one of the most progressive) has supported it since 2011, with kernels starting from 3.7 (for the server side). Windows has supported it since some builds of Windows 10. Other systems, such as FreeBSD and MacOS, are also in the game.
+大多数现代操作系统都支持 TFO。Linux（作为最进步的系统）自 2011 年起就支持它，内核版本从 3.7（用于服务器端）开始。Windows 自 Windows 10 的某些版本开始支持。FreeBSD 和 MacOS 等其他系统也在使用这个功能。
 
-For Linux systems, the server checks the variable `/proc/sys/net/ipv4/tcp_fastopen` and behaves accordingly. Bit 0 manages the client side, while bit 1 rules the listeners. By default, the system has this parameter set to 1, i.e., clients are enabled and listeners are disabled.
+对于 Linux 系统，服务器检查变量 `/proc/sys/net/ipv4/tcp_fastopen` 并相应地运行。位 0 管理客户端，位 1 管理监听器。默认情况下，系统将此参数设置为 1，即启用客户端，禁用监听器。
 
 ### persistent_connections_limit
 
@@ -195,13 +195,13 @@ For Linux systems, the server checks the variable `/proc/sys/net/ipv4/tcp_fastop
 persistent_connections_limit = 29 # assume that each host of agents has max_connections = 30 (or 29).
 ```
 
-The `persistent_connections_limit` option defines the maximum number of simultaneous persistent connections to remote persistent agents. This is an instance-wide setting and must be defined in the searchd configuration section. Each time a connection to an agent defined under `agent_persistent` is made, we attempt to reuse an existing connection (if one exists) or create a new connection and save it for future use. However, in some cases it may be necessary to limit the number of persistent connections. This directive defines the limit and affects the number of connections to each agent's host across all distributed tables.
+`persistent_connections_limit` 选项定义到远程持久代理的最大同时持久连接数。这是一个实例级设置，必须在 searchd 配置部分定义。每次连接到在 `agent_persistent` 下定义的代理时，我们尝试重用现有连接（如果存在）或创建新连接并保存以备将来使用。但是，在某些情况下，可能需要限制持久连接的数量。此指令定义了限制，并影响到所有分布式表中每个代理主机的连接数。
 
-It is recommended to set this value equal to or less than the [max_connections](../../Server_settings/Searchd.md#max_connections) option in the agent's configuration.
+建议将此值设置为小于或等于代理配置中的 [max_connections](../../Server_settings/Searchd.md#max_connections) 选项。
 
-## Distributed snippets creation
+## 分布式片段创建
 
-A special case of a distributed table is a single local and multiple remotes, which is used exclusively for  [distributed snippets creation](../../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#Distributed-snippets-creation), when snippets are sourced from files. In this case, the local table may act as a "template" table, providing settings for tokenization when building snippets.
+分布式表的特殊情况是单个本地和多个远程，这仅用于 [分布式片段创建](../../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#Distributed-snippets-creation)，当片段从文件中获取时。在这种情况下，本地表可以充当“模板”表，提供生成片段时的分词设置。
 
 ### snippets_file_prefix
 
@@ -209,17 +209,18 @@ A special case of a distributed table is a single local and multiple remotes, wh
 snippets_file_prefix = /mnt/common/server1/
 ```
 
-The `snippets_file_prefix` is an optional prefix that can be added to the local file names when generating snippets. The default value is the current working folder.
+`snippets_file_prefix` 是一个可选的前缀，可在生成片段时添加到本地文件名中。默认值是当前的工作文件夹。
 
-To learn more about distributed snippets creation, see  [CALL SNIPPETS](../../Searching/Highlighting.md).
+要了解更多关于分布式片段创建的信息，请参阅 [CALL SNIPPETS](../../Searching/Highlighting.md)。
 
-## Distributed percolate tables (DPQ tables)
+## 分布式预过滤表 (DPQ)
 
-You can create a distributed table from multiple [percolate](../../Creating_a_table/Local_tables/Percolate_table.md) tables. The syntax for constructing this type of table is the same as for other distributed tables, and can include multiple`local` tables as well as `agents`.
+您可以从多个 [预过滤](../../Creating_a_table/Local_tables/Percolate_table.md) 表创建一个分布式表。构建此类表的语法与其他分布式表相同，可以包含多个 `local` 表以及 `agents`。
 
-For DPQ, the operations of listing stored queries and searching through them (using [CALL PQ](../../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ)) are transparent and work as if all the tables were one single local table. However, data manipulation statements such as `insert`, `replace`, `truncate` are not available.
+对于 DPQ，列出存储的查询并通过它们进行搜索的操作（使用 [CALL PQ](../../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ)）是透明的，行为就像所有表都是单个本地表一样。然而，`insert`、`replace`、`truncate` 等数据操作语句不可用。
 
-If you include a non-percolate table in the list of agents, the behavior will be undefined. If the incorrect agent has the same schema as the outer schema of the PQ table (id, query, tags, filters), it will not trigger an error when listing stored PQ rules, and may pollute the list of actual PQ rules stored in PQ tables with its own non-PQ strings. As a result, be cautious and aware of the confusion that this may cause. A`CALL PQ` to such an incorrect agent will trigger an error.
+如果在代理列表中包含非预过滤表，行为将是未定义的。如果错误的代理与 PQ 表的外部架构（id、query、tags、filters）具有相同的架构，则在列出存储的 PQ 规则时不会触发错误，但可能会通过其非 PQ 字符串污染实际存储在 PQ 表中的 PQ 规则列表。因此，必须谨慎，避免产生混淆。对此类错误代理的 `CALL PQ` 将触发错误。
 
-For more information on making queries to a distributed percolate table, see [making queries to a distribute percolate table](../../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ).
+有关对分布式预过滤表进行查询的更多信息，请参阅 [对分布式预过滤表进行查询](../../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ)。
+
 <!-- proofread -->

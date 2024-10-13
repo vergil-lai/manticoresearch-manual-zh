@@ -1,19 +1,22 @@
-# Listing tables
+# 列出表格
 
-Manticore Search has a single level of hierarchy for tables.
+Manticore Search 只有一个层级的表结构。
 
-Unlike other DBMS, there is no concept of grouping tables into databases in Manticore. However, for interoperability with SQL dialects, Manticore accepts `SHOW DATABASES` statements for interoperability with SQL dialect, statements, but the statement does not return any results.
+
+
+与其他数据库管理系统不同，Manticore 中没有将表分组到数据库中的概念。然而，为了与 SQL 方言的互操作性，Manticore 接受 `SHOW DATABASES` 语句，但该语句不会返回任何结果。
 
 <!-- example listing -->
+
 ## SHOW TABLES
 
-General syntax:
+通用语法：
 
 ```sql
 SHOW TABLES [ LIKE pattern ]
 ```
 
-The `SHOW TABLES`statement lists all currently active tables along with their types. The existing table types are `local`, `distributed`, `rt`, `percolate` and `template`.
+`SHOW TABLES` 语句会列出所有当前活跃的表及其类型。现有的表类型包括 `local`（本地表）、`distributed`（分布式表）、`rt`（实时表）、`percolate`（过滤表）和 `template`（模板表）。
 
 
 <!-- intro -->
@@ -232,7 +235,7 @@ utilsApi.Sql("SHOW TABLES LIKE 'pro%'")
 {DESC | DESCRIBE} table_name [ LIKE pattern ]
 ```
 
-The `DESCRIBE` statement lists the table columns and their associated types. The columns are document ID, full-text fields, and attributes. The order matches the order in which fields and attributes are expected by `INSERT` and `REPLACE` statements. Column types  include `field`, `integer`, `timestamp`, `ordinal`, `bool`, `float`, `bigint`, `string`, and `mva`. ID column will be typed as `bigint`. Example:
+`DESCRIBE` 语句列出了表的列及其关联的类型。列包括文档 ID、全文字段和属性。列的顺序与 `INSERT` 和 `REPLACE` 语句中预期的字段和属性顺序相匹配。列类型包括 `field`、`integer`、`timestamp`、`ordinal`、`bool`、`float`、`bigint`、`string` 和 `mva`。ID 列的类型将为 `bigint`。例如：
 
 ```sql
 mysql> DESC rt;
@@ -247,13 +250,12 @@ mysql> DESC rt;
 4 rows in set (0.00 sec)
 ```
 
-An optional LIKE clause is supported. Refer to
-[SHOW META](Node_info_and_management/SHOW_META.md) for its syntax details.
+支持可选的 LIKE 子句。有关其语法详情，请参阅 [SHOW META](Node_info_and_management/SHOW_META.md)。
 
 ### SELECT FROM name.@table
 
 <!-- example name_table -->
-You can also view the table schema by executing the query `select * from <table_name>.@table`. The benefit of this method is that you can use the `WHERE` clause for filtering:
+您还可以通过执行查询 `select * from <table_name>.@table` 来查看表的模式。此方法的好处是您可以使用 `WHERE` 子句进行过滤：
 
 <!-- request SQL -->
 ```sql
@@ -274,7 +276,7 @@ select * from tbl.@table where type='text';
 
 <!-- example name_table2 -->
 
-You can also perform many other actions on `<your_table_name>.@table` considering it as a regular Manticore table with columns consisting of integer and string attributes.
+您还可以将 `<your_table_name>.@table` 视为常规的 Manticore 表，执行许多其他操作，其列包括整数和字符串属性。
 
 <!-- request SQL -->
 
@@ -293,7 +295,7 @@ select * from tbl.@table where properties any ('stored');
 SHOW CREATE TABLE table_name
 ```
 
-Prints the `CREATE TABLE` statement used to create the specified table.
+打印用于创建指定表的 `CREATE TABLE` 语句。
 
 <!-- intro -->
 ##### SQL:
@@ -315,7 +317,7 @@ f text indexed stored
 
 ### Percolate table schemas
 
-If you use the `DESC` statement on a percolate table, it will display the outer table schema, which is the schema of stored queries. This schema is static and the same for all local percolate tables:
+如果您在一个 percolate 表上使用 `DESC` 语句，它将显示外部表的模式，即存储查询的模式。该模式是静态的，并且对于所有本地 percolate 表都是相同的：
 
 ```sql
 mysql> DESC pq;
@@ -330,7 +332,7 @@ mysql> DESC pq;
 4 rows in set (0.00 sec)
 ```
 
-If you want to view the expected document schema, use the following command:
+如果您想查看预期的文档模式，请使用以下命令：
 `DESC <pq table name> table`:
 
 ```sql
@@ -345,7 +347,7 @@ mysql> DESC pq TABLE;
 3 rows in set (0.00 sec)
 ```
 
-Also `desc pq table like ...` is supported and works as follows:
+此外，`desc pq table like ...` 也受到支持，其工作原理如下：
 
 ```sql
 mysql> desc pq table like '%title%';

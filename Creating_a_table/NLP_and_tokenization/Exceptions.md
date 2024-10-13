@@ -1,14 +1,14 @@
-# Exceptions
+# 异常处理
 
-Exceptions (also known as synonyms) allow mapping one or more tokens (including tokens with characters that would normally be excluded) to a single keyword. They are similar to [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) in that they also perform mapping but have a number of important differences.
+异常处理（也称为同义词）允许将一个或多个标记（包括通常被排除的特殊字符）映射到单一关键词。这与[词形形式](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms)类似，因为它们也执行映射操作，但两者之间有一些重要区别。
 
-A short summary of the differences from [wordforms](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms) is as follows:
+以下是与[词形形式](../../Creating_a_table/NLP_and_tokenization/Wordforms.md#wordforms)的主要区别：
 
-| Exceptions | Word forms |
-| - | - |
-| Case sensitive | Case insensitive |
-| Can use special characters that are not in [charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table) | Fully obey [charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table) |
-| Underperform on huge dictionaries | Designed to handle millions of entries |
+| 异常处理                                                     | 词形形式                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 区分大小写                                                   | 不区分大小写                                                 |
+| 可以使用不在[charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table)中的特殊字符 | 完全遵循[charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table) |
+| 在处理大型字典时表现较差                                     | 设计用于处理数百万条记录                                     |
 
 ## exceptions
 
@@ -17,16 +17,16 @@ exceptions = path/to/exceptions.txt
 ```
 
 <!-- example exceptions -->
-Tokenizing exceptions file. Optional, the default is empty.
-In the RT mode, only absolute paths are allowed.
 
-The expected file format is plain text, with one line per exception. The line format is as follows:
+标记化异常文件。可选，默认值为空。在实时模式下，仅允许使用绝对路径。
+
+预期文件格式为纯文本，每行一个异常，行格式如下：
 
 ```ini
 map-from-tokens => map-to-token
 ```
 
-Example file:
+示例文件：
 
 ```ini
 at & t => at&t
@@ -41,21 +41,22 @@ C plus plus => cplusplus
 \=\>abc\> => abc
 ```
 
-All tokens here are case sensitive and will **not** be processed by [charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table) rules. Thus, with the example exceptions file above, the `at&t` text will be tokenized as two keywords `at` and `t` due to lowercase letters. On the other hand, `AT&T` will match exactly and produce a single `AT&T` keyword.
+这里所有的标记都是区分大小写的，并且**不会**通过[charset_table](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table)规则进行处理。因此，使用上面的示例异常文件，`at&t`文本会被标记为两个关键词 `at` 和 `t`，因为字母是小写的。另一方面，`AT&T`将完全匹配并生成一个单一的 `AT&T`关键词。
 
-If you need to use `>` or `=` as normal characters, you can escape them by preceding each with a backslash (`\`). Both `>` and `=` should be escaped in this manner.
+如果需要使用 `>` 或 `=` 作为普通字符，可以通过在每个字符前加反斜杠 (`\`) 来转义它们。`>` 和 `=` 都应以这种方式进行转义。
 
-Note that the map-to keywords:
-* are always interpreted as a *single* word
-* are both case and space sensitive
+注意，映射到的关键词：
 
-In the above sample, `ms windows` query will *not* match the document with `MS Windows` text. The query will be interpreted as a query for two keywords, `ms` and `windows`. The mapping for `MS Windows` is a single keyword `ms windows`, with a space in the middle. On the other hand, `standartenfuhrer` will retrieve documents with `Standarten Fuhrer` or `Standarten Fuehrer` contents (capitalized exactly like this), or any capitalization variant of the keyword itself, e.g., `staNdarTenfUhreR`. (It won't catch `standarten fuhrer`, however: this text does not match any of the listed exceptions because of case sensitivity and gets indexed as two separate keywords.)
+- 始终被解释为一个**单词**
+- 区分大小写和空格
 
-The whitespace in the map-from tokens list matters, but its amount does not. Any amount of whitespace in the map-form list will match any other amount of whitespace in the indexed document or query. For instance, the `AT & T` map-from token will match `AT & T` text, whatever the amount of space in both map-from part and the indexed text. Such text will, therefore, be indexed as a special `AT&T` keyword, thanks to the very first entry from the sample.
+在上述示例中，`ms windows`查询**不会**匹配含有 `MS Windows` 文本的文档。查询将被解释为两个关键词，`ms` 和 `windows`。而 `MS Windows` 的映射是一个包含空格的关键词 `ms windows`。另一方面，`standartenfuhrer`将能够检索到包含 `Standarten Fuhrer` 或 `Standarten Fuehrer` 内容的文档（准确的大小写），或者匹配关键词本身的任何大小写变体，如 `staNdarTenfUhreR`。（然而，它不会匹配 `standarten fuhrer`，因为此文本不符合列表中的任何异常，由于大小写敏感性，它会被索引为两个独立的关键词。）
 
-Exceptions also allow capturing special characters (that are exceptions from general `charset_table` rules; hence the name). Assume that you generally do not want to treat `+` as a valid character, but still want to be able to search for some exceptions from this rule such as `C++`. The sample above will do just that, totally independent of what characters are in the table and what are not.
+映射中的空格数量很重要，但其数量无关紧要。映射列表中的任何数量的空格都将匹配索引文档或查询中的任何数量的空格。例如，`AT & T` 映射将匹配 `AT & T` 文本，无论两者中的空格数量是多少。这样的文本将因此被索引为一个特殊的 `AT&T` 关键词，感谢示例中的第一条条目。
 
-When using a [plain table](../../Creating_a_table/Local_tables/Plain_table.md), it is necessary to rotate the table to incorporate changes from the exceptions file. In the case of a real-time table, changes will only apply to new documents.
+异常处理还允许捕获特殊字符（即偏离一般 `charset_table` 规则的字符，这也是名称的由来）。假设你通常不希望将 `+` 视为有效字符，但仍然希望能够搜索类似 `C++` 的例外情况。上面的示例正是这样做的，完全独立于表中的字符设置。
+
+当使用[普通表](../../Creating_a_table/Local_tables/Plain_table.md)时，必须旋转表以应用异常文件中的更改。对于实时表，变更只会应用于新文档。
 
 <!-- request SQL -->
 

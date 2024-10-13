@@ -1,6 +1,6 @@
-# Wildcard searching settings
+# 通配符搜索设置
 
-Wildcard searching is a common text search type. In Manticore, it is performed at the dictionary level. By default, both plain and RT tables use a dictionary type called [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict). In this mode, words are stored as they are, so enabling wildcarding does not affect the size of the table. When a wildcard search is performed, the dictionary is searched to find all possible expansions of the wildcarded word. This expansion can be problematic in terms of computation at query time when the expanded word provides many expansions or expansions that have huge hitlists, especially in the case of infixes where the wildcard is added at the start and end of the word. To avoid such problems, the  [expansion_limit](../../Server_settings/Searchd.md#expansion_limit) can be used.
+通配符搜索是一种常见的文本搜索类型。在 Manticore 中，它是在字典级别执行的。默认情况下，普通表和实时表使用称为 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 的字典类型。在此模式下，单词按原样存储，因此启用通配符不会影响表的大小。当执行通配符搜索时，系统会搜索字典以查找通配符单词的所有可能扩展。这种扩展在查询时可能会带来计算上的问题，特别是当扩展的单词提供许多扩展或具有巨大命中的情况下，尤其是在通配符被添加到单词的开头和结尾时。为避免此类问题，可以使用 [expansion_limit](../../Server_settings/Searchd.md#expansion_limit)。
 
 ## min_prefix_len
 
@@ -10,22 +10,23 @@ Wildcard searching is a common text search type. In Manticore, it is performed a
 min_prefix_len = length
 ```
 
-This setting determines the minimum word prefix length to index and search. By default, it is set to 0, meaning prefixes are not allowed.
+此设置确定要索引和搜索的最小单词前缀长度。默认值设置为 0，这意味着不允许前缀。
 
-Prefixes allow for wildcard searching by `wordstart*` wildcards.
+前缀允许通过 `wordstart*` 通配符进行搜索。
 
-For example, if the word "example" is indexed with min_prefix_len=3, it can be found by searching for "exa", "exam", "examp", "exampl", as well as the full word.
+例如，如果单词 "example" 的最小前缀长度设置为 3，则可以通过搜索 "exa"、"exam"、"examp"、"exampl" 以及完整单词来找到它。
 
-Note that with [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc min_prefix_len will affect the size of the full-text index since each word expansion will be stored additionally.
+请注意，对于 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc，min_prefix_len 会影响全文索引的大小，因为每个单词扩展都会额外存储。
 
-Manticore can differentiate perfect word matches from prefix matches and rank the former higher if the following conditions are met:
-* [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords (on by default)
-* [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words)=1 (off by default),
-* [expand_keywords](../../Searching/Options.md#expand_keywords)=1 (also off by default)
+Manticore 可以将精确单词匹配与前缀匹配区分开，并在满足以下条件时对前者进行更高的排名：
 
-Note that with either  [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc mode or any of the above options disabled, it is not possible to differentiate between prefixes and full words, and perfect word matches cannot be ranked higher.
+- [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords（默认开启）
+- [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words)=1（默认关闭）
+- [expand_keywords](../../Searching/Options.md#expand_keywords)=1（同样默认关闭）
 
-When the [minimum infix length](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) is set to a positive number, the minimum prefix length is always considered 1.
+请注意，如果 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc 模式或上述任何选项被禁用，则无法区分前缀和完整单词，且精确单词匹配无法获得更高的排名。
+
+当 [最小中缀长度](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) 设置为正数时，最小前缀长度始终被视为 1。
 
 
 <!-- intro -->
@@ -109,26 +110,28 @@ table products {
 ```ini
 min_infix_len = length
 ```
-The min_infix_len setting determines the minimum length of an infix prefix to index and search. It is optional and its default value is 0, which means that infixes are not allowed. The minimum allowed non-zero value is 2.
+min_infix_len 设置确定了要索引和搜索的中缀前缀的最小长度。它是可选的，默认值为 0，这意味着不允许中缀。允许的最小非零值为 2。
 
-When enabled, infixes allow for wildcard searching with term patterns like `start*`, `*end`, `*middle*`, , and so on. It also allows you to disable too short wildcards if they are too expensive to search for.
+启用后，中缀允许使用术语模式进行通配符搜索，例如 `start*`、`*end`、`*middle*` 等。它还允许禁用过短的通配符，如果它们的搜索成本过高。
 
-If the following conditions are met, Manticore can differentiate perfect word matches from infix matches and rank the former higher:
-* [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords (on by default)
-* [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=1 (off by default),
-* [expand_keywords](../../Searching/Options.md#expand_keywords)=1 (also off by default)
+如果满足以下条件，Manticore 可以将精确单词匹配与中缀匹配区分开，并对前者进行更高的排名：
 
-Note that with the [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc mode or any of the above options disabled, there is no way to differentiate between infixes and full words, and thus perfect word matches cannot be ranked higher.
+- [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords（默认开启）
+- [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=1（默认关闭）
+- [expand_keywords](../../Searching/Options.md#expand_keywords)=1（同样默认关闭）
 
-Infix wildcard search query time can vary greatly, depending on how many keywords the substring will actually expand to. Short and frequent syllables like `*in*` or `*ti*` might expand to way too many keywords, all of which would need to be matched and processed. Therefore, to generally enable substring searches, you would set min_infix_len to 2. To limit the impact from wildcard searches with too short wildcards, you might set it higher.
+请注意，如果 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=crc 模式或上述任何选项被禁用，则无法区分中缀和完整单词，因此精确单词匹配无法获得更高的排名。
 
-Infixes must be at least 2 characters long, and wildcards like `*a*` are not allowed for performance reasons.
+中缀通配符搜索查询的时间可能会有很大差异，这取决于子字符串实际扩展为多少关键字。像 `*in*` 或 `*ti*` 这样的短而常见的音节可能会扩展为过多的关键字，而这些关键字都需要被匹配和处理。因此，为了普遍启用子字符串搜索，您应该将 min_infix_len 设置为 2。为了限制过短通配符搜索的影响，您可以将其设置得更高。
 
-When min_infix_len is set to a positive number, the [minimum prefix length](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) is considered 1. For [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) word infixing and prefixing cannot be both enabled at the same time. For [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) and other fields to have prefixes declared with [prefix_fields](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#prefix_fields), it is forbidden to declare the same field in both lists.
+中缀必须至少为 2 个字符长，并且出于性能原因，不允许使用像 `*a*` 这样的通配符。
 
-If dict=keywords, besides the wildcard `*` two other wildcard characters can be used:
-* `?` can match any (one) character:  `t?st` will match `test`, but not `teast`
-* `%` can match zero or one character:  `tes%` will match `tes` or `test`, but not `testing`
+当 min_infix_len 设置为正数时， [最小前缀长度](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) 被视为 1。对于 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 来说，前缀和中缀不能同时启用。对于 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 和其他字段，如果通过 [prefix_fields](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#prefix_fields) 声明了前缀，则禁止在两个列表中声明同一字段。
+
+如果 dict=keywords，除了通配符 `*`，还可以使用两个其他通配符字符：
+
+- `?` 可以匹配任何（一个）字符： `t?st` 将匹配 `test`，但不匹配 `teast`
+- `%` 可以匹配零个或一个字符： `tes%` 将匹配 `tes` 或 `test`，但不匹配 `testing`
 
 
 <!-- intro -->
@@ -212,11 +215,12 @@ table products {
 prefix_fields = field1[, field2, ...]
 ```
 
-The prefix_fields setting is used to limit prefix indexing to specific full-text fields in [dict=crc](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) mode. By default, all fields are indexed in prefix mode, but because prefix indexing can affect both indexing and searching performance, it may be desired to limit it to certain fields.
+`prefix_fields` 设置用于在 [dict=crc](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 模式下将前缀索引限制为特定的全文字段。默认情况下，所有字段都在前缀模式下索引，但由于前缀索引会影响索引和搜索性能，可能希望将其限制在某些特定字段上。
 
-To limit prefix indexing to specific fields, use the prefix_fields setting followed by a comma-separated list of field names. If prefix_fields is not set, then all fields will be indexed in prefix mode.
+要将前缀索引限制为特定字段，请使用 `prefix_fields` 设置，后跟以逗号分隔的字段名称列表。如果未设置 `prefix_fields`，则所有字段都将在前缀模式下索引。
 
 <!-- intro -->
+
 ##### CONFIG:
 
 <!-- request CONFIG -->
@@ -237,8 +241,9 @@ table products {
 infix_fields = field1[, field2, ...]
 ```
 
-The infix_fields setting allows you to specify a list of full-text fields to limit infix indexing to. This applies to [dict=crc](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) only and is optional, with the default being to index all fields in infix mode.
-This setting is similar to [prefix_fields](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict), but instead allows you to limit infix indexing to specific fields.
+`infix_fields` 设置允许你指定一个全文字段列表，以将中缀索引限制在这些字段中。该设置仅适用于 [dict=crc](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 模式，且为可选项，默认情况下，所有字段都在中缀模式下索引。
+
+此设置类似于 [prefix_fields](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)，但它允许将中缀索引限制在特定字段上。
 
 
 <!-- intro -->
@@ -262,22 +267,23 @@ table products {
 max_substring_len = length
 ```
 
-The max_substring_len directive sets the maximum substring length to be indexed for either prefix or infix searches. This setting is optional, and its default value is 0 (which means that all possible substrings are indexed). It only applies to [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict).
+`max_substring_len` 指令设置用于前缀或中缀搜索的最大子字符串长度。该设置为可选项，默认值为 0（即索引所有可能的子字符串）。该指令仅适用于 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 模式。
 
-By default, substring indexing in [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) indexes  **all** possible substrings as separate keywords, which can result in an overly large full-text index. Therefore, the max_substring_len directive allows you to skip too-long substrings that will probably never be searched for.
+在 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict) 模式中，默认情况下，子字符串索引将 **所有** 可能的子字符串作为独立关键词进行索引，这可能会导致全文索引过大。因此，`max_substring_len` 指令允许跳过可能永远不会被搜索的过长子字符串。
 
-For example, a test table of 10,000 blog posts takes up a different amount of disk space depending on the settings:
-* 6.4 MB baseline (no substrings)
-* 24.3 MB (3.8x) with min_prefix_len = 3
-* 22.2 MB (3.5x) with min_prefix_len = 3, max_substring_len = 8
-* 19.3 MB (3.0x) with min_prefix_len = 3, max_substring_len = 6
-* 94.3 MB (14.7x) with min_infix_len = 3
-* 84.6 MB (13.2x) with min_infix_len = 3, max_substring_len = 8
-* 70.7 MB (11.0x) with min_infix_len = 3, max_substring_len = 6
+例如，一个包含 10,000 篇博客文章的测试表根据设置的不同会占用不同的磁盘空间：
 
-Therefore, limiting the max substring length can save 10-15% of the table size.
+- 6.4 MB 基线（没有子字符串）
+- 24.3 MB (3.8倍) 当 `min_prefix_len = 3`
+- 22.2 MB (3.5倍) 当 `min_prefix_len = 3, max_substring_len = 8`
+- 19.3 MB (3.0倍) 当 `min_prefix_len = 3, max_substring_len = 6`
+- 94.3 MB (14.7倍) 当 `min_infix_len = 3`
+- 84.6 MB (13.2倍) 当 `min_infix_len = 3, max_substring_len = 8`
+- 70.7 MB (11.0倍) 当 `min_infix_len = 3, max_substring_len = 6`
 
-When using dict=keywords mode, there is no performance impact associated with substring length. Therefore, this directive is not applicable and is intentionally forbidden in that case. However, if required, you can still limit the length of a substring that you search for in the application code.
+因此，限制最大子字符串长度可以节省 10-15% 的表空间。
+
+在 `dict=keywords` 模式下，子字符串长度对性能没有影响，因此该指令不适用并且在此模式下被禁止使用。不过，如果需要，仍然可以在应用代码中限制搜索的子字符串长度。
 
 
 <!-- intro -->
@@ -301,13 +307,12 @@ table products {
 expand_keywords = {0|1|exact|star}
 ```
 
-This setting expands keywords with their exact forms and/or with stars when possible. The supported values are:
-* 1 -  expand to both the exact form and the form with the stars. For instance,`running` will become `(running | *running* | =running)`
-* `exact` - - augment the keyword with only its exact form. For instance, `running` will become `(running | =running)`
-* `star` - augment the keyword by adding `*` around it. For instance, `running` will become `(running | *running*)`
-This setting is optional, and the default value is 0 (keywords are not expanded).
+该设置用于扩展关键词的确切形式和/或在关键词周围添加星号。支持的值有：
+*  1 - 扩展为确切形式和带星号的形式。例如，`running` 会被扩展为 `(running | *running* | =running)`
+* ``exact`  - 仅扩展关键词的确切形式。例如，`running` 会被扩展为 `(running | =running)`
+* `star` - 通过在关键词周围添加 `*` 扩展关键词。例如，`running` 会被扩展为 `(running | *running*)`
 
-Queries against tables with `expand_keywords` feature enabled are internally expanded as follows: if the table was built with prefix or infix indexing enabled, every keyword gets internally replaced with a disjunction of the keyword itself and a respective prefix or infix (keyword with stars). If the table was built with both stemming and [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words) enabled, exact form is also added.
+当启用 `expand_keywords` 功能时，对表执行的查询会进行内部扩展：如果构建表时启用了前缀或中缀索引，系统会将每个关键词内部替换为该关键词本身及相应的前缀或中缀（带星号的关键词）的析取形式。如果表在构建时启用了词干提取和 [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words)，则还会添加关键词的确切形式。
 
 <!-- intro -->
 ##### SQL:
@@ -384,9 +389,9 @@ table products {
 
 <!-- example expand_keywords2 -->
 
-Expanded queries take naturally longer to complete, but can possibly improve the search quality, as the documents with exact form matches should be ranked generally higher than documents with stemmed or infix matches.
+扩展查询自然会增加查询完成的时间，但可能会提高搜索质量，因为匹配确切形式的文档通常会比匹配词干或中缀的文档排名更高。
 
-**Note that the existing query syntax does not allow to emulate this kind of expansion**, because internal expansion works on keyword level and expands keywords within phrase or quorum operators too (which is not possible through the query syntax). Take a look at the examples and how expand_keywords affects the search result weights and how "runsy" is found by "runs" w/o the need to add a star:
+**注意，现有的查询语法无法模拟这种扩展**，因为内部扩展是在关键词级别上进行的，且扩展关键词包括短语或配额操作符内的关键词（这是查询语法无法实现的）。下列示例展示了 `expand_keywords` 如何影响搜索结果权重，以及如何通过 "runs" 查找到 "runsy"，而不需要添加星号：
 
 <!-- intro -->
 ##### expand_keywords is enabled
@@ -468,7 +473,7 @@ mysql> select *, weight() from t where match('running');
 ```
 <!-- end -->
 
-This directive does not affect [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) in any way, it only affects [searchd](../../Starting_the_server/Manually.md).
+该指令不会对 [indexer](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-tool) 产生任何影响，它仅对 [searchd](../../Starting_the_server/Manually.md) 有效。
 
 
 ## expansion_limit
@@ -477,6 +482,6 @@ This directive does not affect [indexer](../../Data_creation_and_modification/Ad
 expansion_limit = number
 ```
 
-Maximum number of expanded keywords for a single wildcard. Details are [here](../../Server_settings/Searchd.md#expansion_limit).
+单个通配符扩展的最大关键词数量。详情请参见 [这里](../../Server_settings/Searchd.md#expansion_limit)。
 
 <!-- proofread -->
