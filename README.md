@@ -2,7 +2,7 @@
 
 ## 官方介绍
 
-### Manticore Search —— 易于使用的开源快速数据库用于搜索
+### Manticore Search —— 易于使用的开源快速搜索数据库
 
 ### 性能
 
@@ -45,7 +45,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
 
 
 * [☝ 介绍](Introduction.md)
-* [❗ 先看这里](Read_this_first.md)
+* [❗ 首先阅读此文档](Read_this_first.md)
 * [1️⃣ 安装](Installation/Installation.md)
     * [• Docker](Installation/Docker.md)
     * [• RedHat和CentOS](Installation/RHEL_and_Centos.md)
