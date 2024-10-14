@@ -1,8 +1,8 @@
-# Emptying a table
+# 清空表
 
-The table can be emptied with a `TRUNCATE TABLE` SQL statement or with a `truncate()` PHP client function.
+可以使用 `TRUNCATE TABLE` SQL 语句或 PHP 客户端函数 `truncate()` 来清空表。
 
-Here is the syntax for the SQL statement:
+以下是 SQL 语句的语法：
 
 ```sql
 TRUNCATE TABLE index_name [WITH RECONFIGURE]
@@ -10,9 +10,9 @@ TRUNCATE TABLE index_name [WITH RECONFIGURE]
 
 <!-- example truncate -->
 
-When this statement is executed, it clears the RT table completely. It disposes the in-memory data, unlinks all the table data files, and releases the associated binary logs.
+执行此语句时，它会完全清空实时表（RT 表）。它会清除内存中的数据，解除所有表数据文件的链接，并释放相关的二进制日志。
 
-A table can also be emptied with `DELETE FROM index WHERE id>0`, but it's not recommended as it's slower than `TRUNCATE`.
+也可以使用 `DELETE FROM index WHERE id>0` 来清空表，但不推荐这种方法，因为它比 `TRUNCATE` 慢。
 
 <!-- intro -->
 ##### SQL:
@@ -120,13 +120,13 @@ utilsApi.Sql("TRUNCATE TABLE products");
 
 <!-- end -->
 
-One of the possible uses of this command is before [attaching a table](Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md).
+此命令的一个可能用途是在[附加表](Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md)之前使用。
 
 <!-- example truncate with RECONFIGURE -->
 
-When `RECONFIGURE` option is used new tokenization, morphology, and other text processing settings specified in the config take effect after the table gets cleared. In case the [schema declaration](Creating_a_table/Data_types.md) in config is different from the table schema the new schema from config got applied after table get cleared.
+当使用 `RECONFIGURE` 选项时，配置中指定的新标记化、词法分析和其他文本处理设置会在表被清空后生效。如果配置中的[模式声明](Creating_a_table/Data_types.md)与表模式不同，则清空表后会应用配置中的新模式。
 
-With this option clearing and reconfiguring a table becomes one atomic operation.
+使用此选项，清空和重新配置表将成为一个原子操作。
 
 <!-- intro -->
 ##### SQL:

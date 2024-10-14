@@ -1,14 +1,15 @@
-# Connecting to the server
+# 连接到服务器
 
 <!-- example connect -->
-With default configuration, Manticore is waiting for your connections on:
 
-  * port 9306 for MySQL clients
-  * port 9308 for HTTP/HTTPS connections
-  * port 9312 for HTTP/HTTPS, and connections from other Manticore nodes and clients based on Manticore binary API
+在默认配置下，Manticore 等待你通过以下端口进行连接：
+
+- 9306 端口用于 MySQL 客户端
+- 9308 端口用于 HTTP/HTTPS 连接
+- 9312 端口用于 HTTP/HTTPS 连接，以及其他 Manticore 节点和基于 Manticore 二进制 API 的客户端连接
 
 <!-- intro -->
-##### Connect via MySQL:
+##### 通过 MySQL 连接：
 
 <!-- request SQL -->
 ```bash
@@ -16,7 +17,8 @@ mysql -h0 -P9306
 ```
 
 <!-- intro -->
-##### Connect via JSON over HTTP
+
+##### 通过 HTTP 使用 JSON 进行连接
 
 <!-- request HTTP -->
 HTTP is a stateless protocol, so it doesn't require any special connection phase:
@@ -26,9 +28,11 @@ curl -s "http://localhost:9308/search"
 ```
 
 <!-- intro -->
-##### Connect via [PHP client](https://github.com/manticoresoftware/manticoresearch-php):
+
+##### 通过[PHP 客户端](https://github.com/manticoresoftware/manticoresearch-php)进行连接：
 
 <!-- request PHP -->
+
 ```php
 require_once __DIR__ . '/vendor/autoload.php';
 $config = ['host'=>'127.0.0.1','port'=>9308];
@@ -94,10 +98,11 @@ UtilsApi utilsApi = new UtilsApi(basePath);
 ```
 
 <!-- intro -->
-##### Connect via Docker
-If you are familiar with Docker, you can use Manticore's [official Docker image](https://github.com/manticoresoftware/docker) to run Manticore. Here is how you can connect to Manticore's docker via MySQL:
+##### 通过 Docker 连接
+如果你熟悉 Docker，可以使用 Manticore 的[官方 Docker 镜像](https://github.com/manticoresoftware/docker) 来运行 Manticore。以下是通过 MySQL 连接到 Manticore 的 Docker 容器的方法：
 <!-- request docker -->
-Run Manticore container and use built-in MySQL client to connect to the node.
+运行 Manticore 容器并使用内置的 MySQL 客户端连接到节点。
+
 ```bash
 docker run -e EXTRA=1 --name manticore -d manticoresearch/manticore && docker exec -it manticore mysql
 ```

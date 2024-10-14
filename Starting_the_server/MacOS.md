@@ -1,15 +1,15 @@
-# Starting Manticore in MacOS
+# 在 MacOS 上启动 Manticore
 
-## Starting Manticore via HomeBrew package manager
+## 通过 HomeBrew 包管理器启动 Manticore
 
-If Manticore is installed using HomeBrew, you can run it as a Brew service.
+如果 Manticore 是通过 HomeBrew 安装的，你可以将其作为 Brew 服务运行。
 
-To start Manticore, run the following command:
+要启动 Manticore，运行以下命令：
 
 ```bash
 brew services start manticoresearch
 ```
-To stop Manticore, run the following command:
+要停止 Manticore，运行以下命令：
 
 ```bash
 brew services stop manticoresearch
