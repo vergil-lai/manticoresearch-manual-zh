@@ -1,82 +1,83 @@
-# Starting Manticore in Linux
+# 在 Linux 中启动 Manticore
 
-### Starting and stopping using systemd
+### 使用 systemd 启动和停止
 
-After the installation the Manticore Search service is not started automatically. To start Manticore run the following command:
+安装完成后，Manticore Search 服务不会自动启动。要启动 Manticore，运行以下命令：
 
 ```shell
 sudo systemctl start manticore
 ```
 
-To stop Manticore run the following command:
+要停止 Manticore，运行以下命令：
 
 ```shell
 sudo systemctl stop manticore
 ```
 
-The Manticore service is set to run at boot. You can check it by running:
+Manticore 服务被设置为在启动时运行。您可以通过运行以下命令来检查：
 
 ```shell
 sudo systemctl is-enabled manticore
 ```
 
-If you want to disable Manticore from starting at boot time, run:
+如果您希望禁用 Manticore 在启动时自动启动，请运行：
 
 ```bash
 sudo systemctl disable manticore
 ```
 
-To make Manticore start at boot, run:
+要让 Manticore 在启动时自动启动，运行以下命令：
 
 ```bash
 sudo systemctl enable manticore
 ```
 
-`searchd` process logs startup information in `systemd` journal. If `systemd` logging is enabled you can view the logged information with the following command:
+`searchd` 进程在 `systemd` 日志中记录启动信息。如果启用了 `systemd` 日志记录，您可以通过以下命令查看记录的信息：
 
 ```shell
 sudo journalctl -u manticore
 ```
 
-### Custom startup flags using systemd
+### 使用 systemd 自定义启动标志
 
-`systemctl set-environment _ADDITIONAL_SEARCHD_PARAMS`  allows you to specify custom startup flags that the Manticore Search daemon should be started with. See full list [here](../Starting_the_server/Manually.md#searchd-command-line-options).
+`systemctl set-environment _ADDITIONAL_SEARCHD_PARAMS` 允许您指定 Manticore Search 守护进程启动时的自定义启动标志。查看完整列表 [这里](../Starting_the_server/Manually.md#searchd-command-line-options)。
 
-For example, to start Manticore with the debug logging level, you can run:
+例如，要以调试日志级别启动 Manticore，可以运行：
+
 ```bash
 systemctl set-environment _ADDITIONAL_SEARCHD_PARAMS='--logdebug'
 systemctl restart manticore
 ```
 
-To undo it, run:
+要撤销此操作，运行：
 ```bash
 systemctl set-environment _ADDITIONAL_SEARCHD_PARAMS=''
 systemctl restart manticore
 ```
 
-Note, systemd environment variables get reset on server reboot.
+请注意，systemd 的环境变量会在服务器重启时重置。
 
-### Starting and stopping using service
+### 使用 service 启动和停止
 
-Manticore can be started and stopped using service commands:
+Manticore 可以通过 `service` 命令启动和停止：
 
 ```shell
 sudo service manticore start
 sudo service manticore stop
 ```
 
-To enable the sysV service at boot on RedHat systems run:
+要在 RedHat 系统上启用 sysV 服务在启动时运行，运行：
 
 ```shell
 chkconfig manticore on
 ```
 
-To enable the sysV service at boot on Debian systems (including Ubuntu) run:
+要在 Debian 系统（包括 Ubuntu）上启用 sysV 服务在启动时运行，运行：
 
 ```shell
 update-rc.d manticore defaults
 ```
 
-Please note that `searchd` is started by the init system under the `manticore` user and all files created by the server will be owned by this user. If `searchd` is started under, for example, the root user, the file permissions will be changed, which may result in issues when running `searchd` as a service again.
+请注意，`searchd` 是由 init 系统以 `manticore` 用户身份启动的，服务器创建的所有文件都将归该用户所有。如果 `searchd` 以 root 用户身份启动，文件权限将会改变，可能会导致再次以服务方式运行 `searchd` 时出现问题。
 
 <!-- proofread -->

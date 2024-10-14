@@ -1,17 +1,17 @@
 # Manticore Buddy
 
-Manticore Buddy is a sidecar for Manticore Search, written in PHP, that helps with various tasks. The typical workflow is that before returning an error to the user, Manticore Search asks Buddy if it can handle the issue for the daemon. Buddy's PHP code makes it easy to implement high-level features that do not require extremely high performance.
+**Manticore Buddy** 是用 PHP 编写的 Manticore Search 辅助程序，可帮助完成各种任务。典型的流程是，在向用户返回错误之前，Manticore Search 会询问 Buddy 是否可以处理守护进程的该问题。Buddy 的 PHP 代码使得实现不需要极高性能的高级功能变得容易。
 
-For a deeper understanding of Buddy, check out these articles:
-- [Introducing Buddy: the PHP sidecar for Manticore Search](https://manticoresearch.com/blog/manticoresearch-buddy-intro/)
-- [Manticore Buddy: challenges and solutions](https://manticoresearch.com/blog/manticoresearch-buddy-challenges-and-solutions/)
-- [Manticore Buddy: pluggable design](https://manticoresearch.com/blog/manticoresearch-buddy-pluggable-design/)
-- [Manticore Buddy GitHub repository](https://github.com/manticoresoftware/manticoresearch-buddy)
+要更深入地了解 Buddy，请查看以下文章：
+- [介绍 Buddy：Manticore Search 的 PHP 辅助程序](https://manticoresearch.com/blog/manticoresearch-buddy-intro/)
+- [Manticore Buddy：挑战和解决方案](https://manticoresearch.com/blog/manticoresearch-buddy-challenges-and-solutions/)
+- [Manticore Buddy：可插拔设计](https://manticoresearch.com/blog/manticoresearch-buddy-pluggable-design/)
+- [Manticore Buddy GitHub 代码仓库](https://github.com/manticoresoftware/manticoresearch-buddy)
 
-## Manticore Buddy Installation
+## Manticore Buddy 安装
 
-If you follow the installation instructions above or [on the website](https://manticoresearch.com/install), you don't have to worry about installing or starting Manticore Buddy: it gets installed automatically when you install the package `manticore-extra`, and Manticore Search starts it automatically at launch.
+如果您按照上述说明或 [网站](https://manticoresearch.com/install) 上的说明进行安装，则无需担心安装或启动 Manticore Buddy：当您安装 `manticore-extra` 包时，它会自动安装，并且 Manticore Search 在启动时会自动启动它。
 
-## Disabling Manticore Buddy
+## 禁用 Manticore Buddy
 
-To disable Manticore Buddy, please use the [buddy_path](../Server_settings/Searchd.md#buddy_path) setting.
+要禁用 Manticore Buddy，请使用 buddy_path 设置。

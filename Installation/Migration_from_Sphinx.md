@@ -1,80 +1,81 @@
-# Migration from Sphinx Search
+# 从Sphinx迁移
 
 ## Sphinx 2.x -> Manticore 2.x
-Manticore Search 2.x maintains compatibility with Sphinxsearch 2.x and can load existing tables created by Sphinxsearch. In most cases, upgrading is just a matter of replacing the binaries.
+Manticore Search 2.x 保持了与 Sphinxsearch 2.x 的兼容性，可以加载由 Sphinxsearch 创建的现有表。在大多数情况下，升级仅仅是替换二进制文件。
 
-Instead of sphinx.conf (in Linux normally located at `/etc/sphinxsearch/sphinx.conf`) Manticore by default uses `/etc/manticoresearch/manticore.conf`. It also runs under a different user and use different folders.
+Manticore 默认使用 `/etc/manticoresearch/manticore.conf`，而不是 sphinx.conf（在 Linux 中通常位于 `/etc/sphinxsearch/sphinx.conf`）。它还在不同的用户下运行，并使用不同的文件夹。
 
-Systemd service name has changed from `sphinx/sphinxsearch` to `manticore` and the service runs under user `manticore` (Sphinx was using `sphinx` or `sphinxsearch`). It also uses a different folder for the PID file.
+Systemd 服务名称已从 `sphinx/sphinxsearch` 更改为 `manticore`，并且服务在用户 `manticore` 下运行（Sphinx 使用 `sphinx` 或 `sphinxsearch`）。它还使用了一个不同的文件夹来存放 PID 文件。
 
-The folders used by default are `/var/lib/manticore`, `/var/log/manticore`, `/var/run/manticore`. You can still use the existing Sphinx config, but you need to manually change permissions for `/var/lib/sphinxsearch` and `/var/log/sphinxsearch` folders. Or, just rename globally 'sphinx' to 'manticore' in system files. If you use other folders (for data, wordforms files etc.) the ownership must be also switched to user `manticore`. The `pid_file` location should be changed to match the manticore.service to `/var/run/manticore/searchd.pid`.
+默认使用的文件夹是 `/var/lib/manticore`、`/var/log/manticore` 和 `/var/run/manticore`。您仍然可以使用现有的 Sphinx 配置，但您需要手动更改 `/var/lib/sphinxsearch` 和 `/var/log/sphinxsearch` 文件夹的权限。或者，您可以在系统文件中全局将 'sphinx' 重命名为 'manticore'。如果您使用其他文件夹（用于数据、词形文件等），其所有权也必须切换到 `manticore` 用户。`pid_file` 位置应更改为与 manticore.service 相匹配，位于 `/var/run/manticore/searchd.pid`。
 
-If you want to use the Manticore folder instead, the table files need to be moved to the new data folder (`/var/lib/manticore`) and the permissions must be changed to user `manticore`.
+如果您希望使用 Manticore 文件夹，表文件需要移动到新的数据文件夹（`/var/lib/manticore`），并且权限必须更改为用户 `manticore`。
 
 ## Sphinx 2.x / Manticore 2.x -> Manticore 3.x
-Upgrading from Sphinx / Manticore 2.x to 3.x is not straightforward, as the table storage engine has undergone a significant upgrade and the new searchd cannot load older tables and upgrade them to the new format on-the-fly.
+从 Sphinx / Manticore 2.x 升级到 3.x 并不简单，因为表存储引擎进行了重大升级，新的 searchd 无法加载旧表并将其即时升级到新格式。
 
-Manticore Search 3 got a redesigned table storage. Tables created with Manticore/Sphinx 2.x cannot be loaded by Manticore Search 3 without a [conversion](../Installation/Migration_from_Sphinx.md#index_converter). Because of the 4GB limitation, a real-time table in 2.x could still have several disk chunks after an optimize operation. After upgrading to 3.x, these tables can now be optimized to 1-disk chunk with the usual [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE) command. Index files also changed. The only component that didn't get any structural changes is the `.spp` file (hitlists). `.sps` (strings/json) and `.spm` (MVA) are now held by `.spb` (var-length attributes). The new format has an `.spm` file present, but it's used for row map (previously it was dedicated for MVA attributes). The new extensions added are `.spt` (docid lookup), `.sphi` ( secondary index histograms), `.spds` (document storage). In case you are using scripts that manipulate table files, they should be adapted for the new file extensions.
+Manticore Search 3 重新设计了表存储。使用 Manticore/Sphinx 2.x 创建的表在未经过[转换](../Installation/Migration_from_Sphinx.md#index_converter)的情况下，无法被 Manticore Search 3 加载。由于 4GB 限制，2.x 中的实时表在优化操作后可能仍有多个磁盘块。升级到 3.x 后，这些表现在可以通过常规 [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE) 命令优化为一个磁盘块。索引文件也发生了变化。唯一未发生结构变化的组件是 `.spp` 文件（命中列表）。`.sps`（字符串/JSON）和 `.spm`（MVA）现在由 `.spb`（可变长属性）持有。新格式包含 `.spm` 文件，但它用于行映射（以前专用于 MVA 属性）。新增了 `.spt`（docid 查找）、`.sphi`（二级索引直方图）、`.spds`（文档存储）等新扩展名。如果您使用脚本操作表文件，它们应适配新的文件扩展名。
 
-The upgrade procedure may differ depending on your setup (number of servers in the cluster, whether you have high availability or not, etc.), but in general, it involves creating new 3.x table versions and replacing your existing ones, as well as replacing older 2.x binaries with the new ones.
+升级过程可能因您的设置而异（集群中的服务器数量、是否有高可用性等），但通常涉及创建 3.x 表的新版本，替换现有的表，以及用新二进制文件替换旧的 2.x 二进制文件。
 
-There are two special requirements to take care:
+需要注意的两个特殊要求：
 
-* Real-time tables need to be flushed using [FLUSH RAMCHUNK](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_a_new_disk_chunk.md#FLUSH-RAMCHUNK)
-* Plain tables with kill-lists require adding a new directive in table configuration (see [killlist_target](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target))
+- 需要使用 [FLUSH RAMCHUNK](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_a_new_disk_chunk.md#FLUSH-RAMCHUNK) 刷新实时表。
+- 使用删除列表的普通表需要在表配置中添加一个新指令（参见 [killlist_target](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target)）。
 
-Manticore Search 3 includes a new tool - [index_converter](../Installation/Migration_from_Sphinx.md#index_converter) - that can convert Sphinx 2.x / Manticore 2.x tables to 3.x format. `index_converter` comes in a separate package which should be installed first. Using the convert tool create 3.x versions of your tables. `index_converter` can write the new files in the existing data folder and backup the old files or it can write the new files to a chosen folder.
+Manticore Search 3 包含一个新工具 - [index_converter](../Installation/Migration_from_Sphinx.md#index_converter) - 可将 Sphinx 2.x / Manticore 2.x 表转换为 3.x 格式。`index_converter` 是一个独立的软件包，必须先安装。使用转换工具创建 3.x 版本的表。`index_converter` 可以将新文件写入现有数据文件夹，并备份旧文件，或者将新文件写入选定文件夹。
 
-## Basic upgrade instruction
+## 基本升级指南
 
-If you have a single server:
+如果您有单台服务器：
 
-* Install the manticore-converter package
-* Use index_converter to create new versions of the tables in a different folder than the existing data folder (using the `--output-dir` option)
-* Stop the existing Manticore/Sphinx, upgrade to 3.0, move the new tables to the data folder, and start Manticore
+- 安装 manticore-converter 软件包。
+- 使用 index_converter 在不同于现有数据文件夹的位置创建表的新版本（使用 `--output-dir` 选项）。
+- 停止现有的 Manticore/Sphinx，升级到 3.0，将新表移动到数据文件夹，然后启动 Manticore。
 
-To minimize downtime, you can copy 2.x tables, config (you'll need to edit paths here for tables, logs, and different ports), and binaries to a separate location and start this on a separate port. Point your application to it. After upgrading to 3.0 and the new server is started, you can point the application back to the normal ports. If everything is good, stop the 2.x copy and delete the files to free up space.
+为了将停机时间降到最低，您可以将 2.x 表、配置文件（您需要在这里编辑表、日志和端口的路径）和二进制文件复制到单独的位置，并在单独的端口上启动此副本。指向您的应用程序。在升级到 3.0 并启动新服务器后，您可以将应用程序指回正常端口。如果一切正常，停止 2.x 副本并删除文件以释放空间。
 
-If you have a spare box (like a testing or staging server), you can do the table upgrade there first and even install Manticore 3 to perform several tests. If everything is okay, copy the new table files to the production server. If you have multiple servers that can be pulled out of production, do it one by one and perform the upgrade on each. For distributed setups, 2.x searchd can work as a master with 3.x nodes, so you can do the upgrading on the data nodes first, and then on the master node.
+如果您有备用机器（如测试或登台服务器），您可以先在那升级表，甚至安装 Manticore 3 以进行一些测试。如果一切正常，将新表文件复制到生产服务器。如果您有多台服务器可以从生产环境中移除，请逐台进行升级。在分布式设置中，2.x searchd 可以作为 3.x 节点的主节点，因此您可以先在数据节点上进行升级，然后再升级主节点。
 
-There have been no changes made to the way clients should connect to the engine, or any changes to the querying mode or behavior of queries.
+客户端连接引擎的方式未发生变化，查询模式或查询行为也没有变化。
 
-## kill-lists in Sphinx / Manticore 2.x vs Manticore 3.x
-[Kill-lists](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md) have been redesigned in Manticore Search 3. In previous versions, kill-lists were applied to the result set provided by each previously searched table at query time.
+## Sphinx / Manticore 2.x 与 Manticore 3.x 中的 kill-lists
+在 Manticore Search 3 中，[kill-lists](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md) 进行了重新设计。在以前的版本中，kill-lists 在查询时应用于每个已搜索表的结果集。
 
-Thus, in 2.x, the table order at query time mattered. For example, if a delta table had a kill-list, in order to apply it against the main table, the order had to be main, delta (either in a distributed table or in the FROM clause).
+因此，在 2.x 中，查询时表的顺序是有影响的。例如，如果增量表有 kill-list，为了将其应用于主表，顺序必须是主表在前，增量表在后（无论是在分布式表中还是在 FROM 子句中）。
 
-In Manticore 3, kill-lists are applied to a table when it's loaded during searchd startup or gets rotated. The new directive `killlist_target` in table configuration specifies target tables and defines which doc ids from the source table should be used for suppression. These can be ids from the defined kill-list, actual doc ids of the table or both.
+在 Manticore 3 中，kill-lists 会在 searchd 启动时或表被轮换时应用于表。表配置中的新指令 `killlist_target` 指定目标表，并定义来自源表的哪些文档 ID 应用于抑制。这些可以是定义的 kill-list 中的 ID、表的实际文档 ID，或两者兼有。
 
-Documents from the kill-lists are deleted from the target tables, they are not returned in results even if the search doesn't include the table that provided the kill-lists. Because of that, the order of tables for searching does not matter anymore. Now, `delta, main` and `main, delta` will provide the same results.
+来自 kill-lists 的文档会从目标表中删除，即使查询中不包含提供 kill-lists 的表，它们也不会出现在结果中。因此，查询时表的顺序不再重要。现在，`delta, main` 和 `main, delta` 将提供相同的结果。
 
-In previous versions, tables were rotated following the order from the configuration file. In Manticore 3 table rotation order is much smarter and works in accordance with killlist targets. Before starting to rotate tables, the server looks for chains of tables by `killlist_target` definitions. It will then first rotate tables not referenced anywhere as kill-lists targets. Next, it will rotate tables targeted by already rotated tables and so on. For example, if we do  `indexer --all` and we have 3 tables: main, delta_big (which targets at the main) and delta_small (with target at delta_big), first, delta_small is rotated, then delta_big and finally the main. This is to ensure that when a dependent table is rotated it gets the most actual kill-list from other tables.
+在以前的版本中，表的轮换顺序是按照配置文件中的顺序进行的。而在 Manticore 3 中，表的轮换顺序更智能，遵循 killlist 目标。在开始轮换表之前，服务器会根据 `killlist_target` 定义查找表链。然后，它会先轮换未被任何地方引用为 kill-list 目标的表。接着，它会轮换由已轮换表作为目标的表，依此类推。例如，如果我们执行 `indexer --all`，并且我们有 3 个表：main、delta_big（以 main 为目标）和 delta_small（以 delta_big 为目标），首先会轮换 delta_small，然后是 delta_big，最后是 main。这样可以确保依赖表在轮换时能够从其他表获得最新的 kill-list。
 
-## Configuration keys removed in Manticore 3.x
-* `docinfo` - everything is now extern
-* `inplace_docinfo_gap` - not needed anymore
-* `mva_updates_pool` - MVAs don’t have anymore a dedicated pool for updates, as now they can be updated directly in the blob (see below).
+## 在 Manticore 3.x 中移除的配置键
+* `docinfo` - 现在一切都外部化了。
+* `inplace_docinfo_gap` - 不再需要。
+* `mva_updates_pool` - MVA 不再有专用的更新池，因为它们现在可以直接在 blob 中更新（见下文）。
 
-## Updating var-length attributes in Manticore 3.x
-String, JSON and MVA attributes can be updated in Manticore 3.x using `UPDATE` statement.
+## 在 Manticore 3.x 中更新可变长属性
 
-In 2.x string attributes required `REPLACE`, for JSON it was only possible to update scalar properties (as they were fixed-width) and MVAs could be updated using the MVA pool. Now updates are performed directly on the blob component. One setting that may require tuning is [attr_update_reserve](../Data_creation_and_modification/Updating_documents/UPDATE.md#attr_update_reserve) which allows changing the allocated extra space at the end of the blob used to avoid frequent resizes in case the new values are bigger than the existing values in the blob.
+在 Manticore 3.x 中，可以使用 `UPDATE` 语句更新字符串、JSON 和 MVA 属性。
 
-## Document IDs in Manticore 3.x
-Doc ids used to be UNSIGNED 64-bit integers. Now they are POSITIVE SIGNED 64-bit integers.
+在 2.x 中，字符串属性需要 `REPLACE`，对于 JSON 只能更新标量属性（因为它们是定宽的），MVA 可以使用 MVA 池进行更新。现在更新直接在 blob 组件上执行。可能需要调整的设置之一是 [attr_update_reserve](../Data_creation_and_modification/Updating_documents/UPDATE.md#attr_update_reserve)，它允许更改 blob 末尾的分配额外空间，以避免新值大于 blob 中现有值时频繁调整大小。
 
-## RT mode in Manticore 3.x
-Read here about the [RT mode](../Read_this_first.md#Real-time-mode-vs-plain-mode)
+## Manticore 3.x 中的文档 ID
+文档 ID 过去是无符号 64 位整数。现在它们是正的有符号 64 位整数。
 
-## Special suffixes since Manticore 3.x
-Manticore 3.x recognizes and parses special suffixes which makes easier to use numeric values with special meaning. Common form for them is integer number + literal, like 10k or 100d, but not 40.3s (since 40.3 is not integer), or not 2d 4h (since there are two, not one value). Literals are case-insensitive, so 10W is the same as 10w. There are 2 types of such suffixes currently supported:
+## Manticore 3.x 中的 RT 模式
+关于 [RT 模式](../Read_this_first.md#Real-time-mode-vs-plain-mode)，请点击此处。
 
-* Size suffixes - can be used in parameters that define size of something (memory buffer, disk file, limit of RAM, etc. ) in bytes. "Naked" numbers in that places mean literally size in bytes (octets). Size values take suffix `k` for kilobytes (1k=1024), `m` for megabytes (1m=1024k), `g` for gigabytes (1g=1024m) and `t` for terabytes (1t=1024g).
-* Time suffixes - can be used in parameters defining some time interval values like delays, timeouts, etc. "Naked" values for those parameters usually have documented scale, and you must know if their numbers, say, 100, means '100 seconds' or '100 milliseconds'. However instead of guessing you just can write suffixed value and it will be fully determined by it's suffix. Time values take suffix `us` for useconds (microseconds), `ms` for milliseconds, `s` for seconds, `m` for minutes, `h` for hours, `d` for days and `w` for weeks.
+## Manticore 3.x 引入的特殊后缀
+Manticore 3.x 支持并解析特殊后缀，使得使用具有特殊意义的数值更加简便。常见格式为整数数字 + 字母，如 10k 或 100d，但不支持 40.3s（因为 40.3 不是整数），或 2d 4h（因为有两个值，而非一个）。字母不区分大小写，因此 10W 等同于 10w。目前支持两类后缀：
+
+- 尺寸后缀：可用于定义某些参数（如内存缓冲区、磁盘文件、RAM 限制等）的大小，以字节为单位。未带后缀的数字表示字节数（八位字节）。尺寸值可以使用后缀 `k` 表示千字节（1k=1024 字节），`m` 表示兆字节（1m=1024k），`g` 表示千兆字节（1g=1024m），以及 `t` 表示太字节（1t=1024g）。
+- 时间后缀：可用于定义时间间隔参数（如延迟、超时时间等）。未带后缀的值通常有记录的时间单位，必须知道这些数值所代表的时间单位是“秒”还是“毫秒”。使用带后缀的值可以明确指定单位。时间值的后缀包括 `us` 表示微秒，`ms` 表示毫秒，`s` 表示秒，`m` 表示分钟，`h` 表示小时，`d` 表示天，`w` 表示周。
 
 ## index_converter
 
-`index_converter` is a tool for converting tables created with Sphinx/Manticore Search 2.x to the Manticore Search 3.x table format. The tool can be used in several different ways:
+`index_converter` 是一种工具，用于将 Sphinx/Manticore Search 2.x 创建的表转换为 Manticore Search 3.x 的表格式。该工具可以通过多种方式使用：
 
 #### Convert one table at a time
 
@@ -94,36 +95,36 @@ $ index_converter --config /home/myuser/manticore.conf --all
 $ index_converter  --path /var/lib/manticoresearch/data --all
 ```
 
-The new version of the table is written by default in the same folder. The previous version's files are saved with the `.old` extension in their name. An exception is the `.spp` (hitlists) file, which is the only table component that didn't have any changes in the new format.
+新版本的表默认写入相同的文件夹，之前版本的文件将保存在名称带 `.old` 扩展名的文件中。例外的是 `.spp`（命中列表）文件，它是唯一没有任何结构变化的表组件。
 
-You can save the new table version to a different folder using the `-–output-dir` option
+您可以使用 `--output-dir` 选项将新表版本保存到不同的文件夹：
 
 ```ini
 $ index_converter --config /home/myuser/manticore.conf --all --output-dir /new/path
 ```
 
-#### Convert kill lists
+#### 转换 kill 列表
 
-A special case is for tables containing kill-lists. As the behaviour of how kill-lists works has changed (see [killlist_target](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target)), the delta table should know which are the target tables for applying the kill-lists. There are 3 ways to have a converted table ready for setting targeted tables for applying kill-lists:
+对于包含 kill-lists 的表，这是一个特殊情况。由于 kill-lists 的工作方式已更改（请参阅 [killlist_target](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target)），增量表需要知道应用 kill-lists 的目标表。转换表后，有 3 种方法可以设置 kill-lists 的目标表：
 
-* Use `-–killlist-target` when converting a table
+* 在转换表时使用 `--killlist-target`
   ```ini
   $ index_converter --config /home/myuser/manticore.conf --index deltaindex --killlist-target mainindex:kl
   ```
-* Add killlist_target in the configuration before doing the conversion
-* use [ALTER ... KILLIST_TARGET](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#killlist_target) command after conversion
+* 在执行转换前，将 killlist_target 添加到配置中
+* 转换后使用 [ALTER ... KILLIST_TARGET](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#killlist_target) 命令
 
-#### Complete list of index_converter options
+#### index_converter 选项列表
 
-Here's the complete list of `index_converter` options:
+以下是 `index_converter` 选项的完整列表：
 
-* `--config <file>` (`-c <file>` for short) tells index_converter to use the given file as its configuration. Normally, it will look for manticore.conf in the installation directory (e.g. `/usr/local/manticore/etc/manticore.conf` if installed into `/usr/local/sphinx`), followed by the current directory you are in when calling index_converter from the shell.
-* `--index` specifies which table should be converted
-* `--path` - instead of using a config file, a path containing table(s) can be used
-* `--strip-path` - strips path from filenames referenced by table: stopwords, exceptions and wordforms
-* `--large-docid` - allows to convert documents with ids larger than 2^63 and display a warning, otherwise it will just exit on the large id with an error. This option was added as in Manticore 3.x doc ids are signed bigint, while previously they were unsigned
-* `--output-dir <dir>` - writes the new files in a chosen folder rather than the same location as with the existing table files. When this option set, existing table files will remain untouched at their location.
-* `--all` - converts all tables from the config
-* `--killlist-target <targets>` sets the target tables for which kill-lists will be applied. This option should be used only in conjunction with the `--index` option
+- `--config <file>`（简写为 `-c <file>`）指定要使用的配置文件。通常，它会在安装目录中查找 manticore.conf（例如，如果安装在 `/usr/local/sphinx`，则查找 `/usr/local/manticore/etc/manticore.conf`），其次是调用 `index_converter` 时所在的当前目录。
+- `--index` 指定要转换的表
+- `--path` - 使用包含表的路径，而不是配置文件
+- `--strip-path` - 从表中引用的文件名（如停用词、例外词和词形）中去除路径
+- `--large-docid` - 允许转换 ID 大于 2^63 的文档并显示警告，否则在遇到大 ID 时将以错误退出。添加此选项是因为在 Manticore 3.x 中，文档 ID 是有符号 bigint，而之前是无符号的
+- `--output-dir <dir>` - 将新文件写入选定文件夹，而不是与现有表文件相同的位置。设置此选项后，现有表文件将保持不变。
+- `--all` - 转换配置中的所有表
+- `--killlist-target <targets>` 设置应用 kill-lists 的目标表。此选项应仅与 `--index` 选项结合使用
 
 <!-- proofread -->
