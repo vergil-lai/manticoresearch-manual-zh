@@ -2,31 +2,32 @@
 
 ## 全文字段和属性
 
-Manticore's data types can be split into two categories: full-text fields and attributes.
+Manticore 的数据类型可以分为两类：全文字段和属性。
 
 ### 全文字段
 
 全文字段：
-* can be indexed with natural language processing algorithms, therefore can be searched for keywords
-* cannot be used for sorting or grouping
-* original document's content can be retrieved
-* original document's content can be used for highlighting
+* 可以使用自然语言处理算法进行索引，因此可以按关键词进行搜索。
+* 不能用于排序或分组。
+* 可以检索原始文档的内容。
+* 可以用于高亮显示原始文档的内容。
 
-Full-text fields are represented by the data type `text`. All other data types are called "attributes".
+全文字段由数据类型 text 表示。所有其他数据类型称为“属性”。
 
-### Attributes
+### 属性
 
-Attributes are non-full-text values associated with each document that can be used to perform non-full-text filtering, sorting and grouping during a search.
+属性是与每个文档相关联的非全文值，可以在搜索过程中用于非全文的过滤、排序和分组。
 
-It is often desired to process full-text search results based not only on matching document ID and its rank, but also on a number of other per-document values. For example, one might need to sort news search results by date and then relevance, or search through products within a specified price range, or limit a blog search to posts made by selected users, or group results by month. To do this efficiently, Manticore enables not only full-text fields, but also additional attributes to be added to each document. These attributes can be used to filter, sort, or group full-text matches, or to search only by attributes.
+通常希望基于匹配的文档ID及其排名之外的其他值来处理全文搜索结果。例如，可能需要按日期然后按相关性对新闻搜索结果进行排序，或者在指定的价格范围内搜索产品，或将博客搜索限制为特定用户发布的帖子，或者按月份对结果进行分组。为了高效地实现这些操作，Manticore 允许为每个文档添加不仅限于全文字段的附加属性。这些属性可以用于过滤、排序或分组全文匹配结果，甚至可以仅通过属性进行搜索。
 
-The attributes, unlike full-text fields, are not full-text indexed. They are stored in the table, but it is not possible to search them as full-text.
+与全文字段不同，属性并没有进行全文索引。它们存储在表中，但无法像全文字段那样进行搜索。
 
 <!-- example attributes or fields -->
 
-A good example for attributes would be a forum posts table. Assume that only the title and content fields need to be full-text searchable - but that sometimes it is also required to limit search to a certain author or a sub-forum (i.e., search only those rows that have some specific values of author_id or forum_id); or to sort matches by post_date column; or to group matching posts by month of the post_date and calculate per-group match counts.
+属性的一个典型示例是论坛帖子表。假设只有 title（标题）和 content（内容）字段需要进行全文搜索，但有时还需要将搜索限制在特定的作者或子论坛内（即仅搜索那些 author_id 或 forum_id 具有特定值的行）；或者按 post_date 列对匹配结果进行排序；或者按 post_date 的月份对匹配帖子进行分组，并计算每个分组的匹配数量。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -123,9 +124,10 @@ table forum
 
 <!-- example filtered query -->
 
-This example shows running a full-text query filtered by `author_id`, `forum_id` and sorted by `post_date`.
+此示例展示了一个全文查询，同时根据 author_id 和 forum_id 进行过滤，并按 post_date 排序。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -251,60 +253,60 @@ var searchResponse = searchApi.Search(searchRequest);
 
 <!-- end -->
 
-### Row-wise and columnar attribute storages
+### 行存储和列存储属性
 
-Manticore supports two types of attribute storages:
-* row-wise - traditional storage available in Manticore Search out of the box
-* columnar - provided by [Manticore Columnar Library](https://github.com/manticoresoftware/columnar)
+Manticore 支持两种属性存储类型：
+* 行存储 - Manticore Search 默认提供的传统存储方式
+* 列存储 - 由 [Manticore Columnar Library](https://github.com/manticoresoftware/columnar) 提供
 
-As can be understood from their names, they store data differently. The traditional **row-wise storage**:
-* stores attributes uncompressed
-* all attributes of the same document are stored in one row close to each other
-* rows are stored one by one
-* accessing attributes is basically done by just multiplying the row ID by the stride (length of a single vector) and getting the requested attribute from the calculated memory location. It gives very low random access latency.
-* attributes have to be in memory to get acceptable performance, otherwise due to the row-wise nature of the storage Manticore may have to read from disk too much unneeded data which is in many cases suboptimal.
+从它们的名称可以看出，它们以不同的方式存储数据。传统的**行存储**：
+* 以未压缩的方式存储属性
+* 同一文档的所有属性存储在一个行中，彼此靠近
+* 行一个接一个地存储
+* 访问属性的方式基本上是通过将行 ID 乘以步长（单个向量的长度），并从计算出的内存位置获取所请求的属性。这使得随机访问的延迟非常低。
+* 属性必须存储在内存中以获得可接受的性能，否则，由于存储的行存储特性，Manticore 可能需要从磁盘读取过多不需要的数据，这在许多情况下效率不佳。
 
-With **the columnar storage**:
-* each attribute is stored independently of all other attributes in its separate "column"
-* storage is split into blocks of 65536 entries
-* the blocks are stored compressed. This often allows storing just a few distinct values instead of storing all of them like in the row-wise storage. High compression ratio allows reading from disk faster and makes the memory requirement much lower
-* when data is indexed, storage scheme is selected for each block independently. For example, if all values in a block are the same, it gets "const" storage and only one value is stored for the whole block. If there are less than 256 unique values per block, it gets "table" storage and stores indexes to a table of values instead of the values themselves
-* search in a block can be early rejected if it's clear the requested value is not present in the block.
+对于**列存储**：
+* 每个属性独立于其他属性存储在它自己的“列”中
+* 存储被分为65536条数据的块
+* 块以压缩形式存储。这通常允许只存储少量不同的值，而不是像行存储那样存储所有值。高压缩率使得从磁盘读取更快，并且降低了内存需求
+* 当数据被索引时，每个块会独立选择存储方案。例如，如果一个块中的所有值都相同，它会使用“常量”存储，只为整个块存储一个值。如果每块的唯一值少于256个，则使用“表”存储，将值的索引存储到一个值表中，而不是存储实际的值
+* 如果确定请求的值不在某个块中，搜索可以提前排除该块。
 
-The columnar storage was designed to handle large data volume that does not fit into RAM, so the recommendations are:
-* if you have enough memory for all your attributes you will benefit from the row-wise storage
-* otherwise, the columnar storage can still give you decent performance with a much lower memory footprint which will allow you to store much more documents in your table
+列存储旨在处理无法完全存入RAM的大数据量，因此建议：
+* 如果你有足够的内存存储所有属性，使用行存储会更有优势
+* 否则，列存储仍然能在较低的内存占用下提供不错的性能，这将允许你在表中存储更多文档
 
-### How to switch between the storages
+### 如何在存储方式之间切换
 
-The traditional row-wise storage is the default, so if you want everything to be stored in a row-wise fashion, you don't need to do anything when you create a table.
+传统的行存储是默认选项，因此如果你希望所有数据都以行存储方式存储，创建表时无需做任何操作。
 
-To enable the columnar storage you need to:
-* specify `engine='columnar'` in [CREATE TABLE](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#Creating-a-real-time-table-online-via-CREATE-TABLE) to make all attributes of the table columnar. Then, if you want to keep a specific attribute row-wise, you need to add `engine='rowwise'` when you declare it. For example:
+要启用列存储，你需要：
+* 在[CREATE TABLE](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#Creating-a-real-time-table-online-via-CREATE-TABLE)中指定engine='columnar'，以使表的所有属性采用列存储。如果你想让某个特定属性保持行存储，则在声明该属性时需要添加engine='rowwise'。例如：
 ```sql
 create table tbl(title text, type int, price float engine='rowwise') engine='columnar'
 ```
-* specify `engine='columnar'` for a specific attribute in `CREATE TABLE` to make it columnar. For example:
+* 在 CREATE TABLE 中为特定属性指定 engine='columnar' 以将其设置为列式存储。例如：
 ```sql
 create table tbl(title text, type int, price float engine='columnar');
 ```
-or
+或者
 ```sql
 create table tbl(title text, type int, price float engine='columnar') engine='rowwise';
 ```
-* in the [plain mode](../Read_this_first.md#Real-time-mode-vs-plain-mode) you need to list attributes you want to be columnar in [columnar_attrs](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#columnar_attrs).
+* 在[plain模式](../Read_this_first.md#Real-time-mode-vs-plain-mode)中，你需要在[columnar_attrs](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#columnar_attrs)中列出你希望作为列式存储的属性。
 
 
-Below is the list of data types supported by Manticore Search:
+以下是Manticore Search支持的数据类型列表：
 
-## Document ID
+## 文档 ID（Document ID）
 
 <!-- example id -->
-The document identifier is a mandatory attribute, and document IDs must be **unique 64-bit unsigned integers**. Document IDs can be explicitly specified, but if not, they are still enabled. Document IDs cannot be updated. Note that when retrieving document IDs, they are treated as signed 64-bit integers, which means they may be negative. Use the [UINT64()](Functions/Type_casting_functions.md#UINT64%28%29) function to cast them to unsigned 64-bit integers if necessary.
+文档标识符是一个必需的属性，文档ID必须是**唯一的64位无符号整数**。文档ID可以显式指定，但即使不指定，它们仍然是启用的。文档ID不能被更新。请注意，当检索文档ID时，它们被视为有符号的64位整数，这意味着它们可能为负数。如有必要，可以使用[UINT64()](Functions/Type_casting_functions.md#UINT64())函数将它们转换为无符号64位整数。
 
 <!-- request Explicit ID -->
 
-When you create a table, you can specify ID explicitly, but no matter what data type you use, it will be always as said previously - a signed 64-bit integer.
+在创建表时，你可以显式指定ID，但无论使用什么数据类型，它始终会如上所述存储为一个有符号的64位整数。
 
 ```sql
 CREATE TABLE tbl(id bigint, content text);
@@ -324,7 +326,7 @@ DESC tbl;
 
 <!-- request Implicit ID -->
 
-You can also omit specifying ID at all, it will be enabled automatically.
+你也可以完全省略指定ID，它会自动启用。
 
 ```sql
 CREATE TABLE tbl(content text);
@@ -332,6 +334,7 @@ DESC tbl;
 ```
 
 <!-- response Implicit ID -->
+
 ```sql
 +---------+--------+----------------+
 | Field   | Type   | Properties     |
@@ -344,37 +347,37 @@ DESC tbl;
 
 <!-- end -->
 
-## Character data types
+## 字符数据类型
 
-General syntax:
+通用语法：
 ```
 string|text [stored|attribute] [indexed]
 ```
 
-**Properties:**
+**属性:**
 
-1. `indexed` - full-text indexed (can be used in full-text queries)
-2. `stored` - stored in a docstore (stored on disk, not in RAM, lazy read)
-3. `attribute` - makes it a string attribute (can sort/group by it)
+1. `indexed` - 全文索引（可以用于全文查询）
+2. `stored` - 存储在docstore中（存储在磁盘上，不在RAM中，延迟读取）
+3. `attribute` - 使其成为字符串属性（可以按其排序/分组）
 
-Specifying at least one property overrides all the default ones (see below), i.e., if you decide to use a custom combination of properties, you need to list all the properties you want.
+指定至少一个属性会覆盖所有默认属性（见下文），也就是说，如果你决定使用自定义的属性组合，你需要列出所有你想要的属性。
 
-**No properties specified:**
+**未指定属性：**
 
-`string` and `text` are aliases, but if you don’t specify any properties, they by default mean different things:
+string和text是别名，但如果你不指定任何属性，它们默认的含义不同：
 
-* just `string` by default means `attribute` (see details [below](../Creating_a_table/Data_types.md#Text)).
-* just `text` by default means `stored` + `indexed` (see details [below](../Creating_a_table/Data_types.md#String)).
+* 仅string默认意味着attribute（详见[下文](../Creating_a_table/Data_types.md#Text)）。
+* 仅text默认意味着stored + indexed（详见[下文](../Creating_a_table/Data_types.md#String)）。
 
-### Text
+### 文本 (Text)
 
 <!-- example working with text -->
 
-The text (just `text` or `text/string indexed`) data type forms the full-text part of the table. Text fields are indexed and can be searched for keywords.
+文本数据类型（仅text或text/string indexed）构成表的全文部分。文本字段会被索引，可以用于关键词搜索。
 
-Text is passed through an analyzer pipeline that converts the text to words, applies morphology transformations, etc. Eventually, a full-text table (a special data structure that enables quick searches for a keyword) gets built from that text.
+文本通过一个分析管道处理，该管道将文本转换为词汇，应用词法转换等。最终，从该文本构建了一个全文表（一个特殊的数据结构，用于快速搜索关键词）。
 
-Full-text fields can only be used in the `MATCH()` clause and cannot be used for sorting or aggregation. Words are stored in an inverted index along with references to the fields they belong to and positions in the field. This allows searching a word inside each field and using advanced operators like proximity. By default, the original text of the fields is both indexed and stored in document storage. It means that the original text can be returned with the query results and used in [search result highlighting](../Searching/Highlighting.md).
+全文字段只能在MATCH()子句中使用，不能用于排序或聚合。单词存储在倒排索引中，并与其所属字段及在字段中的位置相关联。这允许在每个字段中搜索单词并使用高级操作符，如邻近搜索。默认情况下，字段的原始文本既被索引，也存储在文档存储中。这意味着原始文本可以与查询结果一起返回，并可用于[搜索结果高亮](../Searching/Highlighting.md)。
 
 <!-- intro -->
 ##### SQL:
@@ -547,7 +550,7 @@ table products
 
 <!-- example for field naming  -->
 
-Fields are named, and you can limit your searches to a single field (e.g. search through "title" only) or a subset of fields (e.g. "title" and "abstract" only). You can have up to 256 full-text fields.
+字段是有名称的，你可以将搜索限定在单个字段中（例如仅搜索“title”字段），或者限定在字段的一个子集内（例如仅搜索“title”和“abstract”字段）。你最多可以使用256个全文字段。
 
 <!-- intro -->
 ##### SQL:
@@ -620,13 +623,13 @@ utilsApi.Sql("CREATE TABLE products(title text indexed)");
 
 <!-- end -->
 
-### String
+### 字符串（String）
 
 <!-- example for string attributes  -->
 
-Unlike full-text fields, string attributes (just `string` or `string/text attribute`) are stored as they are received and cannot be used in full-text searches. Instead, they are returned in results, can be used in the `WHERE` clause for comparison filtering or `REGEX`, and can be used for sorting and aggregation. In general, it's not recommended to store large texts in string attributes, but use string attributes for metadata like names, titles, tags, keys.
+与全文字段不同，字符串属性（只使用 string 或 string/text attribute）按收到的原样存储，不能用于全文搜索。相反，它们可以在结果中返回，可用于 WHERE 子句中的比较过滤或 REGEX，并可用于排序和聚合。通常不建议将大文本存储在字符串属性中，但字符串属性适合用于存储元数据，例如名称、标题、标签、键。
 
-If you want to also index the string attribute, you can specify both as `string attribute indexed`. It will allow full-text searching and works as an attribute.
+如果你还想对字符串属性进行索引，可以指定为 string attribute indexed。这样既可以进行全文搜索，也可以作为属性使用。
 
 <!-- intro -->
 ##### SQL:
@@ -713,20 +716,20 @@ table products
 
 <details>
 <summary>More</summary>
-
 <!-- example string field -->
 
-You can create a full-text field that is also stored as a string attribute. This approach creates a full-text field and a string attribute that have the same name. Note that you can't add a `stored` property to store the data as a string attribute and in the document storage at the same time.
+你可以创建一个同时存储为字符串属性的全文字段。这种方法会创建一个具有相同名称的全文字段和字符串属性。需要注意的是，不能同时将 stored 属性添加到一个字段，以便既作为字符串属性存储又同时存储在文档存储中。
 
 <!-- intro -->
 ##### SQL:
 <!-- request SQL -->
-`string attribute indexed` means that we're working with a string data type that is stored as an attribute and indexed as a full-text field.
+`string attribute indexed` 意味着我们正在处理一个字符串数据类型，它作为属性存储，并被索引为全文字段。
 
 ```sql
 CREATE TABLE products ( title string attribute indexed );
 ```
 <!-- intro -->
+
 ##### JSON:
 
 <!-- request JSON -->
@@ -802,13 +805,15 @@ table products
 
 </details>
 
-### Storing binary data in Manticore
+### 在 Manticore 中存储二进制数据
 
 <!-- example binary -->
 
-Manticore doesn't have a dedicated field type for binary data, but you can store it safely by using base64 encoding and the `text stored` or `string stored` field types (which are synonyms). If you don't encode the binary data, parts of it may get lost — for example, Manticore trims the end of a string if it encounters a null-byte.
+Manticore 没有专门的二进制数据字段类型，但你可以通过使用 base64 编码，并结合 `text stored` 或 `string stored` 字段类型（它们是同义词），安全地存储二进制数据。如果不对二进制数据进行编码，部分数据可能会丢失——例如，当 Manticore 遇到空字节（null-byte）时，会截断字符串的末尾。
 
-Here is an example where we encode the `ls` command using base64, store it in Manticore, and then decode it to verify that the MD5 checksum remains unchanged:
+
+
+下面是一个示例，其中我们使用 base64 对 ls 命令进行编码，将其存储在 Manticore 中，然后解码以验证 MD5 校验和保持不变：
 
 <!-- request Example -->
 ```bash
@@ -821,11 +826,11 @@ Here is an example where we encode the `ls` command using base64, store it in Ma
 ```
 <!-- end -->
 
-## Integer
+## 整数（Integer）
 
 <!-- example for integers  -->
 
-Integer type allows storing 32 bit **unsigned** integer values.
+整数类型允许存储 32 位的**无符号**整数值。
 
 <!-- intro -->
 ##### SQL:
@@ -913,9 +918,10 @@ table products
 
 <!-- example for bit integers  -->
 
-Integers can be stored in shorter sizes than 32-bit by specifying a bit count. For example, if we want to store a numeric value which we know is not going to be bigger than 8, the type can be defined as `bit(3)`. Bitcount integers perform slower than the full-size ones, but they require less RAM. They are saved in 32-bit chunks, so in order to save space, they should be grouped at the end of attribute definitions (otherwise a bitcount integer between 2 full-size integers will occupy 32 bits as well).
+整数可以通过指定位数存储为比32位更短的大小。例如，如果我们知道要存储的数值不会大于8，则可以将类型定义为 bit(3)。位数较少的整数比全尺寸整数的执行速度要慢，但它们需要更少的内存。它们以32位块保存，因此为了节省空间，应该将它们放在属性定义的末尾进行分组（否则位数较少的整数位于两个全尺寸整数之间时仍会占用32位）。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -1000,7 +1006,7 @@ table products
 
 <!-- end -->
 
-## Big Integer
+## 大整数（Big Integer）
 
 <!-- example for bigints  -->
 
@@ -1090,11 +1096,11 @@ table products
 
 <!-- end -->
 
-## Boolean
+## 布尔值（Boolean）
 
 <!-- example for boolean  -->
 
-Declares a boolean attribute. It's equivalent to an integer attribute with bit count of 1.
+声明布尔属性，它等价于位数为1的整数属性。
 
 <!-- intro -->
 ##### SQL:
@@ -1180,26 +1186,40 @@ table products
 
 <!-- end -->
 
-## Timestamps
+## 时间戳（Timestamp）
 
 <!-- example for timestamps  -->
 
-The timestamp type represents Unix timestamps, which are stored as 32-bit integers. Unlike basic integers, the timestamp type allows the use of [time and date](../Functions/Date_and_time_functions.md) functions. Conversion from string values follows these rules:
+时间戳类型表示Unix时间戳，存储为32位整数。与基本整数不同，时间戳类型允许使用[时间和日期](../Functions/Date_and_time_functions.md)函数。字符串值的转换遵循以下规则：
 
-- Numbers without delimiters, at least 10 characters long, are converted to timestamps as is.
-- `%Y-%m-%dT%H:%M:%E*S%Z`
-- `%Y-%m-%d'T'%H:%M:%S%Z`
-- `%Y-%m-%dT%H:%M:%E*S`
-- `%Y-%m-%dT%H:%M:%s`
-- `%Y-%m-%dT%H:%M`
-- `%Y-%m-%dT%H`
-- `%Y-%m-%d`
-- `%Y-%m`
-- `%Y`
+无分隔符的数字，至少10个字符长，按原样转换为时间戳。
 
-The meanings of these conversion specifiers are detailed in the [strptime manual](https://man7.org/linux/man-pages/man3/strptime.3.html), except for `%E*S`, which stands for milliseconds.
+- %Y-%m-%dT%H:%M:%E*S%Z
 
-Note that auto-conversion of timestamps is not supported in plain tables.
+- %Y-%m-%d'T'%H:%M:%S%Z
+
+- %Y-%m-%dT%H:%M:%E*S
+
+- %Y-%m-%dT%H:%M:%s
+
+- %Y-%m-%dT%H:%M
+
+- %Y-%m-%dT%H
+
+- %Y-%m-%d
+
+- %Y-%m
+
+- %Y
+
+
+
+
+这些转换格式的含义可以在[strptime手册](https://man7.org/linux/man-pages/man3/strptime.3.html)中找到，除了 %E*S，它代表毫秒。
+
+
+
+请注意，自动转换时间戳在普通表中不受支持。
 
 <!-- intro -->
 ##### SQL:
@@ -1285,10 +1305,10 @@ table products
 
 <!-- end -->
 
-## Float
+## 浮点数（Float）
 
 <!-- example for float -->
-Real numbers are stored as 32-bit IEEE 754 single precision floats.
+实数存储为32位IEEE 754单精度浮点数。
 
 <!-- intro -->
 ##### SQL:
@@ -1378,7 +1398,7 @@ table products
 
 <!-- example for eps comparison -->
 
-Unlike integer types, comparing two floating-point numbers for equality is not recommended due to potential rounding errors. A more reliable approach is to use a near-equal comparison, by checking the absolute error margin.
+与整数类型不同，不推荐直接比较两个浮点数是否相等，因为可能存在舍入误差。更可靠的方法是使用近似比较，通过检查绝对误差范围。
 
 <!-- intro -->
 ##### SQL:
@@ -1461,9 +1481,10 @@ var searchResponse = searchApi.Search(searchRequest);
 
 <!-- example for float mul -->
 
-Another alternative, which can also be used to perform `IN(attr,val1,val2,val3)` is to compare floats as integers by choosing a multiplier factor and convert the floats to integers in operations. The following example illustrates modifying `IN(attr,2.0,2.5,3.5)` to work with integer values.
+另一种方法是将浮点数转换为整数进行比较，这可以用于执行 IN(attr,val1,val2,val3) 操作。你可以选择一个乘数因子，将浮点数转换为整数来进行操作。下面的例子展示了如何将 IN(attr,2.0,2.5,3.5) 修改为与整数值一起使用。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -1542,11 +1563,12 @@ var searchResponse = searchApi.Search(searchRequest);
 <!-- end -->
 
 <!-- example float_accuracy -->
-Float values in Manticore are displayed with precision to ensure they reflect the exact stored value. This approach was introduced to prevent precision loss, especially for cases like geographical coordinates, where rounding to 6 decimal places caused inaccuracies.
 
-Now, Manticore first outputs a number with 6 digits, then parses and compares it to the original value. If they don't match, additional digits are added until they do.
+Manticore中的浮点数显示时具有精度，以确保它们准确反映存储的值。这种方法是为了防止精度丢失，尤其是在处理地理坐标等场景时，舍入到小数点后6位可能导致不准确。
 
-For example, if a float value was inserted as `19.45`, Manticore will display it as `19.450001` to accurately represent the stored value.
+现在，Manticore首先以6位小数的形式输出数字，然后解析并与原始值进行比较。如果它们不匹配，则会继续增加小数位，直到匹配为止。
+
+例如，如果插入的浮点值是 19.45，Manticore 将显示为 19.450001 以准确表示存储的值。
 
 <!-- request Example -->
 ```sql
@@ -1575,7 +1597,7 @@ select * from t
 
 <!-- example for creating json -->
 
-This data type allows storing JSON objects, which is useful for storing schema-less data. However, it is not supported by columnar storage. However, it can be stored in traditional storage, as it's possible to combine both storage types in the same table.
+该数据类型允许存储JSON对象，这对于存储无模式数据非常有用。然而，JSON数据类型不支持列式存储。但它可以存储在传统存储中，因为可以在同一张表中结合使用这两种存储类型。
 
 <!-- intro -->
 ##### SQL:
@@ -1664,7 +1686,7 @@ table products
 
 <!-- example for INDEXOF() json -->
 
-JSON properties can be used in most operations. There are also special functions such as [ALL()](../Functions/Arrays_and_conditions_functions.md#ALL%28%29), [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY%28%29), [GREATEST()](../Functions/Mathematical_functions.md#GREATEST%28%29), [LEAST()](../Functions/Mathematical_functions.md#LEAST%28%29) and [INDEXOF()](../Functions/Arrays_and_conditions_functions.md#INDEXOF%28%29) that allow traversal of property arrays.
+JSON属性可以用于大多数操作中。此外，还有一些特殊函数，如 [ALL()](../Functions/Arrays_and_conditions_functions.md#ALL())、[ANY()](../Functions/Arrays_and_conditions_functions.md#ANY())、[GREATEST()](../Functions/Mathematical_functions.md#GREATEST())、[LEAST()](../Functions/Mathematical_functions.md#LEAST()) 和 [INDEXOF()](../Functions/Arrays_and_conditions_functions.md#INDEXOF())，它们允许遍历属性数组。
 
 <!-- intro -->
 ##### SQL:
@@ -1843,7 +1865,7 @@ var searchResponse = searchApi.Search(searchRequest);
 
 <!-- example for DOUBLE() -->
 
-In the case of JSON properties, enforcing data type may be required for proper functionality in certain situations. For example, when working with float values, [DOUBLE()](../Functions/Type_casting_functions.md#DOUBLE%28%29) must be used for proper sorting.
+在处理JSON属性时，某些情况下可能需要强制指定数据类型以确保功能正常。例如，在处理浮点值时，必须使用 [DOUBLE()](../Functions/Type_casting_functions.md#DOUBLE()) 来确保正确排序。
 
 <!-- intro -->
 ##### SQL:
@@ -1923,15 +1945,15 @@ var searchResponse = searchApi.Search(searchRequest);
 
 <!-- end -->
 
-## Float vector
+## 浮点向量（Float vector）
 
 <!-- example for creating float_vector -->
 
-Float vector attributes allow storing variable-length lists of floats. It's important to note that this concept differs from multi-valued attributes. Multi-valued attributes (MVAs) are essentially sets; they do not preserve value order, and duplicate values are not retained. In contrast, float vectors perform no additional processing on values during insertion.
+浮点向量属性允许存储可变长度的浮点数列表。需要注意的是，这个概念与多值属性不同。多值属性（MVAs）本质上是集合，不保留值的顺序，且不保留重复值。相比之下，浮点向量在插入时对值不进行任何额外处理。
 
-Float vector attributes can be used in k-nearest neighbor searches; see [KNN search](../Searching/KNN.md).
+浮点向量属性可以用于k最近邻（k-nearest neighbor）搜索；请参阅 [KNN 搜索](../Searching/KNN.md)。
 
-** Currently, `float_vector` fields can only be utilized in KNN search within real-time tables and the data type is not supported in any other functions or expressions, nor is it supported in plain tables. **
+** 目前，float_vector 字段只能在实时表中用于 KNN 搜索，不支持在其他函数或表达式中使用，也不支持普通表。 **
 
 <!-- intro -->
 ##### SQL:
@@ -2018,11 +2040,11 @@ table products
 
 <!-- end -->
 
-## Multi-value integer (MVA)
+## 多值整数（Multi-value integer 、MVA）
 
 <!-- example for creating MVA32 -->
 
-Multi-value attributes allow storing variable-length lists of 32-bit unsigned integers. This can be useful for storing one-to-many numeric values, such as tags, product categories, and properties.
+多值属性允许存储可变长度的 32 位无符号整数列表。这对于存储一对多的数值信息非常有用，例如标签、产品类别和属性。
 
 <!-- intro -->
 ##### SQL:
@@ -2109,9 +2131,8 @@ table products
 
 <!-- end -->
 
-
 <!-- example for any/all MVA -->
-It supports filtering and aggregation, but not sorting. Filtering can be done using a condition that requires at least one element to pass (using [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY%28%29)) or all elements ([ALL()](../Functions/Arrays_and_conditions_functions.md#ALL%28%29)) to pass.
+它支持过滤和聚合，但不支持排序。可以使用至少一个元素通过的条件进行过滤（使用 [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY())）或所有元素都通过的条件（使用 [ALL()](../Functions/Arrays_and_conditions_functions.md#ALL())）。
 
 
 <!-- intro -->
@@ -2194,7 +2215,7 @@ var searchResponse = searchApi.Search(searchRequest);
 
 <!-- example for least/greatest MVA -->
 
-Information like [least](../Functions/Mathematical_functions.md#LEAST%28%29) or [greatest](../Functions/Mathematical_functions.md#GREATEST%28%29) element and length of the list can be extracted. An example shows ordering by the least element of a multi-value attribute.
+可以提取列表中  [least](../Functions/Mathematical_functions.md#LEAST%28%29) 或 [greatest](../Functions/Mathematical_functions.md#GREATEST%28%29) 元素以及列表的长度。以下示例展示了如何按多值属性的最小元素排序。
 
 <!-- intro -->
 ##### SQL:
@@ -2279,7 +2300,7 @@ searchResponse = searchApi.search(searchRequest);
 <!-- end -->
 
 <!-- example for grouping by MVA -->
-When grouping by a multi-value attribute, a document will contribute to as many groups as there are different values associated with that document. For instance, if a collection contains exactly one document having a 'product_codes' multi-value attribute with values 5, 7, and 11, grouping on 'product_codes' will produce 3 groups with `COUNT(*)`equal to 1 and `GROUPBY()` key values of 5, 7, and 11, respectively. Also, note that grouping by multi-value attributes may lead to duplicate documents in the result set because each document can participate in many groups.
+当按多值属性进行分组时，一个文档将根据与其相关的不同值贡献给多个组。例如，如果一个集合中有一个文档的 ‘product_codes’ 多值属性包含值 5、7 和 11，那么按 ‘product_codes’ 进行分组将生成 3 个组，COUNT(*) 等于 1，GROUPBY() 键值分别为 5、7 和 11。此外，注意按多值属性分组可能会导致结果集中出现重复的文档，因为每个文档可以参与多个组。
 
 <!-- intro -->
 ##### SQL:
@@ -2308,7 +2329,7 @@ Query OK, 1 row affected (0.00 sec)
 <!-- end -->
 
 <!-- example for MVA value order -->
-The order of the numbers inserted as values of multivalued attributes is not preserved. Values are stored internally as a sorted set.
+插入为多值属性的数字顺序不会被保留。这些值在内部会被存储为排序后的集合。
 
 <!-- intro -->
 ##### SQL:
@@ -2557,11 +2578,11 @@ class SearchResponse {
 <!-- end -->
 
 
-## Multi-value big integer
+## 多值大整数（Multi-value big integer）
 
 <!-- example for creating MVA64 -->
 
-A data type that allows storing variable-length lists of 64-bit signed integers. It has the same functionality as multi-value integer.
+一种允许存储可变长度的 64 位有符号整数列表的数据类型。它的功能与多值整数相同。
 
 <!-- intro -->
 ##### SQL:
@@ -2648,14 +2669,14 @@ table products
 
 <!-- end -->
 
-## Columnar attribute properties
+## 列式属性的属性
 
 When you use the columnar storage you can specify the following properties for the attributes.
 
 <!-- example fast_fetch -->
 ### fast_fetch
 
-By default, Manticore Columnar storage stores all attributes in a columnar fashion, as well as in a special docstore row by row. This enables fast execution of queries like `SELECT * FROM ...`, especially when fetching a large number of records at once. However, if you are sure that you do not need it or wish to save disk space, you can disable it by specifying `fast_fetch='0'` when creating a table or (if you are defining a table in a config) by using `columnar_no_fast_fetch` as shown in the following example.
+默认情况下，Manticore 列式存储将所有属性以列的方式存储，同时也会以逐行的方式存储在一个特殊的 docstore 中。这使得像 SELECT * FROM ... 这样的查询可以快速执行，特别是在一次获取大量记录时。然而，如果您确定不需要此功能，或者希望节省磁盘空间，可以通过在创建表时指定 fast_fetch='0' 来禁用它，或者（如果您在配置中定义表）通过使用 columnar_no_fast_fetch 来实现，如以下示例所示。
 
 <!-- request RT mode -->
 ```sql

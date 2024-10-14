@@ -45,7 +45,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
 
 
 * [☝ 介绍](Introduction.md)
-* [❗ 首先阅读此文档](Read_this_first.md)
+* [❗ 首先阅读](Read_this_first.md)
 * [1️⃣ 安装](Installation/Installation.md)
     * [• Docker](Installation/Docker.md)
     * [• RedHat和CentOS](Installation/RHEL_and_Centos.md)
@@ -56,7 +56,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
     * [• Manticore Buddy](Installation/Manticore_Buddy.md)
     * [• 从Sphinx迁移](Installation/Migration_from_Sphinx.md)
 * [🔰 快速入门指南](Quick_start_guide.md)
-* [2️⃣ Starting the server](Starting_the_server.md)
+* [2️⃣ 启动服务器](Starting_the_server.md)
     * [• In Linux](Starting_the_server/Linux.md)
     * [• Manually](Starting_the_server/Manually.md)
     * [• In Docker](Starting_the_server/Docker.md)
