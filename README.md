@@ -91,7 +91,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
 * [⪢ 创建集群](Creating_a_cluster/Creating_a_cluster.md)
     * [添加新节点](Creating_a_cluster/Adding_a_new_node.md)
     * [⪢ 删除节点](Creating_a_cluster/Remote_nodes.md)
-        * [镜像化](Creating_a_cluster/Remote_nodes/Mirroring.md)
+        * [镜像](Creating_a_cluster/Remote_nodes/Mirroring.md)
         * [负载均衡](Creating_a_cluster/Remote_nodes/Load_balancing.md)
     * [⪢ 设置复制](Creating_a_cluster/Setting_up_replication/Setting_up_replication.md)
         * [创建复制集群](Creating_a_cluster/Setting_up_replication/Creating_a_replication_cluster.md)

@@ -1,6 +1,7 @@
-# Data creation and modification
+# 数据创建与修改
 
-You can add, update, replace, and delete your indexed data using different ways provided by Manticore. Manticore supports working with external storages such as databases, XML, CSV, and TSV documents. For insert and delete operations, a [transaction mechanism](../Data_creation_and_modification/Transactions.md) is supported.
- 
-Also, for insert and replace queries, Manticore supports Elasticsearch-like query format along with its own format. For details, see the corresponding examples in the [Adding documents to a real-time table](../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md) and [REPLACE](../Data_creation_and_modification/Updating_documents/REPLACE.md) sections.
+Manticore 提供了多种方法来添加、更新、替换和删除已索引的数据。Manticore 支持与外部存储（如数据库、XML、CSV 和 TSV 文档）协同工作。在插入和删除操作中，Manticore 支持 [事务机制](../Data_creation_and_modification/Transactions.md)。
+
+此外，对于插入和替换查询，Manticore 支持类似 Elasticsearch 的查询格式以及其自身的格式。有关详细信息，请参见 [向实时表添加文档](../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md) 和 [REPLACE](../Data_creation_and_modification/Updating_documents/REPLACE.md) 部分中的相应示例。
+
 <!-- proofread -->

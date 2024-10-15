@@ -1,25 +1,24 @@
-# Deleting documents
+# 删除文档
 
-Deleting documents is only supported in [RT mode](../../Read_this_first.md#Real-time-mode-vs-plain-mode) for the following table types:
-* [Real-time](../Creating_a_table/Local_tables/Real-time_table.md) tables
-* [Percolate](../Creating_a_table/Local_tables/Percolate_table.md) tables
-* Distributed tables that only contain RT tables as local or remote agents.
+删除文档仅在 [RT 模式](../../Read_this_first.md#Real-time-mode-vs-plain-mode) 下支持以下表类型：
+* [实时表](../Creating_a_table/Local_tables/Real-time_table.md)
+* [渗透表](../Creating_a_table/Local_tables/Percolate_table.md)
+* 仅包含 RT 表的分布式表作为本地或远程代理。
 
-You can delete existing documents from a table based on either their ID or certain conditions.
+你可以根据文档的 ID 或某些条件从表中删除现有文档。
 
-Also, [bulk deletion](../Data_creation_and_modification/Deleting_documents.md#Bulk-deletion) is available to delete multiple documents.
+此外，[批量删除](../Data_creation_and_modification/Deleting_documents.md#Bulk-deletion) 可用于删除多个文档。
 
-Deletion of documents can be accomplished via both SQL and JSON interfaces.
+删除文档可以通过 SQL 和 JSON 接口完成。
 
-For SQL, the response for a successful operation will indicate the number of rows deleted.
+对于 SQL，成功操作的响应将指示删除的行数。
 
-For JSON, the `json/delete` endpoint is used. The server will respond with a JSON object indicating whether the operation was successful and the number of rows deleted.
+对于 JSON，使用 `json/delete` 端点。服务器将响应一个 JSON 对象，指示操作是否成功以及删除的行数。
 
-It is recommended to use [table truncation](../Emptying_a_table.md) instead of deletion to delete all documents from a table, as it is a much faster operation.
-
+建议使用 [表截断](../Emptying_a_table.md) 来删除表中的所有文档，因为这是一个更快的操作。
 
 <!-- example delete 2 -->
-In this example we delete all documents that match full-text query `test document` from the table named `test`:
+在此示例中，我们将从名为 `test` 的表中删除所有符合全文查询 `test document` 的文档：
 
 
 <!-- intro -->
@@ -73,7 +72,7 @@ POST /delete -d '
     }'
 ```
 
-* `query` for JSON contains a clause for a full-text search; it has the same syntax as in the [JSON/update](../Data_creation_and_modification/Updating_documents/UPDATE.md#Updates-via-HTTP-JSON).
+* `query` 的 JSON 格式包含一个用于全文搜索的子句，语法与  [JSON/update](../Data_creation_and_modification/Updating_documents/UPDATE.md#Updates-via-HTTP-JSON) 中的相同。
 
 <!-- response JSON -->
 
@@ -82,7 +81,7 @@ POST /delete -d '
     "_index":"test",
     "deleted":2,
 }
-```    
+```
 <!-- intro -->
 ##### PHP:
 
@@ -215,7 +214,7 @@ deleteRequest.SetQuery(deleteQuery)
 <!-- end -->
 
 <!-- example delete 3 -->
-Here - deleting a document with `id` equalling 1 from the table named `test`:
+以下示例展示了如何从名为 `test` 的表中删除 `id` 为 1 的文档：
 
 
 <!-- intro -->
@@ -238,7 +237,7 @@ POST /delete -d '
     }'
 ```
 
-* `id` for JSON is the row `id` which should be deleted.
+* 对于 JSON，`id` 表示应删除的行的 `id`。
 
 <!-- response JSON -->
 
@@ -249,7 +248,7 @@ POST /delete -d '
     "found": true,
     "result": "deleted"      
 }
-```    
+```
 <!-- intro -->
 ##### PHP:
 
@@ -369,10 +368,9 @@ deleteRequest.SetId(1)
 <!-- end -->
 
 <!-- example delete 4 -->
-Here, documents with `id` matching values from the table named `test` are deleted:
+以下示例展示了如何删除 `id` 匹配给定值的文档，删除操作发生在名为 `test` 的表中：
 
-Note that the delete forms with `id=N` or `id IN (X,Y)` are the fastest, as they delete documents without performing a search.
-Also note that the response contains only the id of the first deleted document in the corresponding `_id` field.
+请注意，使用 `id=N` 或 `id IN (X,Y)` 的删除形式是最快的，因为它们在删除文档时无需执行搜索操作。 还要注意，响应中只包含第一个被删除文档的 `id`，并显示在相应的 `_id` 字段中。
 
 <!-- intro -->
 ##### SQL:
@@ -409,7 +407,7 @@ POST /delete -d '
         "found":true,
         "result":"deleted"      
     }
-```    
+```
 
 <!-- intro -->
 ##### PHP:
@@ -434,9 +432,10 @@ Array(
 <!-- end -->
 
 <!-- example delete 5 -->
-Manticore SQL allows to use complex conditions for the `DELETE` statement.
 
-For example here we are deleting documents that match full-text query `test document` and have attribute `mva1` with a value greater than 206 or `mva1` values 100 or 103 from table named `test`:
+Manticore SQL 允许在 `DELETE` 语句中使用复杂条件。
+
+例如，以下示例展示了如何从名为 `test` 的表中删除满足全文查询 `test document` 且属性 `mva1` 大于 206 或 `mva1` 值为 100 或 103 的文档：
 
 
 <!-- intro -->
@@ -468,10 +467,10 @@ Query OK, 4 rows affected (0.00 sec)
 <!-- end -->
 
 <!-- example delete 6 -->
-Here is an example of deleting documents in cluster `cluster`'s table `test`.  Note that we must provide the cluster name property along with table property to delete a row from a table within a replication cluster:
-
+以下是从集群 `cluster` 中的表 `test` 删除文档的示例。请注意，当从复制集群中的表中删除行时，必须同时提供集群名称和表名称属性：
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -489,9 +488,10 @@ POST /delete -d '
       "id": 100
     }'
 ```
-* `cluster` for JSON is the name of the [replication cluster](../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster). which contains the needed table
+* `cluster` 用于 JSON 中，表示包含所需表的[复制集群](../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster)的名称。
 
 <!-- intro -->
+
 ##### PHP:
 
 <!-- request PHP -->
@@ -611,12 +611,11 @@ deleteRequest.SetId(1)
 
 <!-- end -->
 
-
-## Bulk deletion
+## 批量删除
 
 <!-- example bulk delete -->
 
-You can also perform multiple delete operations in a single call using the `/bulk` endpoint. This endpoint only works with data that has `Content-Type` set to `application/x-ndjson`. The data should be formatted as newline-delimited JSON (NDJSON). Essentially, this means that each line should contain exactly one JSON statement and end with a newline `\n` and, possibly, a `\r`.
+您还可以通过 `/bulk` 端点在单个调用中执行多个删除操作。该端点仅适用于 `Content-Type` 设置为 `application/x-ndjson` 的数据。数据应以换行分隔的 JSON (NDJSON) 格式编写。简而言之，这意味着每一行应包含一个 JSON 语句，并以换行符 `\n` 或可能的 `\r` 结尾。
 
 
 <!-- intro -->

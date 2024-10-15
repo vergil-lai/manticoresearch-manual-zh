@@ -1,14 +1,15 @@
 # HTTP
 
-You can connect to Manticore Search through HTTP/HTTPS.
+您可以通过 HTTP/HTTPS 连接到 Manticore Search。
 
-## Configuration
+## 配置
 <!-- example HTTP -->
-By default, Manticore listens for HTTP, HTTPS, and binary requests on ports 9308 and 9312.
 
-In the "searchd" section of your configuration file, you can define the HTTP port using the `listen` directive as follows:
+默认情况下，Manticore 监听端口 9308 和 9312，处理 HTTP、HTTPS 和二进制请求。
 
-Both lines are valid and have the same meaning (except for the port number). They both define listeners that will serve all API/HTTP/HTTPS protocols. There are no special requirements, and any HTTP client can be used to connect to Manticore.
+在配置文件的 "searchd" 部分，您可以使用 `listen` 指令定义 HTTP 端口，如下所示：
+
+以下两行都是有效的，且意义相同（除了端口号）。它们都定义了监听器，用于服务所有的 API/HTTP/HTTPS 协议。没有特殊要求，任何 HTTP 客户端都可以用于连接到 Manticore。
 
 <!-- request HTTP -->
 ```ini
@@ -21,13 +22,13 @@ searchd {
 ```
 <!-- end -->
 
-All HTTP endpoints return `application/json` content type. For the most part, endpoints use JSON payloads for requests. However, there are some exceptions that use NDJSON or simple URL-encoded payloads.
+所有 HTTP 端点返回的内容类型均为 `application/json`。大多数端点使用 JSON 负载进行请求，但也有一些例外使用 NDJSON 或简单的 URL 编码负载。
 
-Currently, there is no user authentication. Therefore, make sure that the HTTP interface is not accessible to anyone outside your network. As Manticore functions like any other web server, you can use a reverse proxy, such as Nginx, to implement HTTP authentication or caching.
+当前没有用户身份验证。因此，请确保 HTTP 接口对网络外部的任何人不可访问。Manticore 像其他 Web 服务器一样，您可以使用 Nginx 等反向代理来实现 HTTP 认证或缓存。
 
 <!-- example HTTPS -->
-The HTTP protocol also supports [SSL encryption](../Security/SSL.md):
-If you specify `:https` instead of `:http` **only** secured connections will be accepted. Otherwise in case of no valid key/certificate provided, but the client trying to connect via https - the connection will be dropped. If you make not HTTPS, but an HTTP request to 9443 it will respond with HTTP code 400.
+
+HTTP 协议还支持 [SSL 加密](../Security/SSL.md)： 如果您指定 `:https` 而不是 `:http`，则**仅接受**安全连接。否则，如果没有提供有效的密钥/证书，客户端尝试通过 https 连接时——连接将会被拒绝。如果您通过 HTTP 而非 HTTPS 请求 9443 端口，它将响应 HTTP 状态码 400。
 
 <!-- request HTTPS -->
 ```ini
@@ -40,11 +41,12 @@ searchd {
 ```
 <!-- end -->
 
-### VIP Connection
+### VIP 连接
 <!-- example VIP -->
-Separate HTTP interface can be used for 'VIP' connections. In this case, the connection bypasses a thread pool and always creates a new dedicated thread. This is useful for managing Manticore Search during periods of severe overload when the server might stall or not allow regular port connections.
 
-For more information on the `listen` directive, see [this section](../Server_settings/Searchd.md#listen).
+可以为 "VIP" 连接使用单独的 HTTP 接口。在这种情况下，连接将绕过线程池，并始终创建一个新的专用线程。这对于在服务器过载严重期间管理 Manticore Search 非常有用，此时服务器可能会停滞或不允许通过常规端口连接。
+
+有关 `listen` 指令的更多信息，请参见[此部分](../Server_settings/Searchd.md#listen)。
 
 <!-- request VIP -->
 ```ini
@@ -57,37 +59,45 @@ searchd {
 ```
 <!-- end -->
 
-## SQL over HTTP
+## 通过 HTTP 发送 SQL 查询
 
-Endpoints `/sql` and `/cli` allow running SQL queries via HTTP.
+端点 `/sql` 和 `/cli` 允许通过 HTTP 运行 SQL 查询。
 
-* `/sql` endpoint accepts only SELECT statements and returns the response in HTTP JSON format.
-* The `/sql?mode=raw` endpoint accepts any SQL query and returns the response in raw format, similar to what you would receive via mysql.
-* The `/cli` endpoint accepts any SQL query and returns the response in raw format, similar to what you would receive via mysql. Unlike the `/sql` and `/sql?mode=raw` endpoints, the `query` parameter must not be URL-encoded. This endpoint is intended for manual actions using a browser or command line HTTP clients such as curl. It is not recommended to use the `/cli` endpoint in scripts.
+- `/sql` 端点仅接受 SELECT 语句，并以 HTTP JSON 格式返回响应。
+- `/sql?mode=raw` 端点接受任何 SQL 查询，并以原始格式返回响应，类似于您通过 MySQL 获得的响应。
+- `/cli` 端点接受任何 SQL 查询，并以原始格式返回响应，类似于通过 MySQL 获得的响应。与 `/sql` 和 `/sql?mode=raw` 端点不同，`query` 参数不需要 URL 编码。该端点主要用于通过浏览器或命令行 HTTP 客户端（如 curl）进行手动操作，不建议在脚本中使用 `/cli` 端点。
 
 ### /sql
 
 <!-- example SQL_over_HTTP -->
 
-General syntax:
-* `curl "localhost:6780/sql[?mode=raw]&query={URL_ENCODED_QUERY}"`
-* `curl localhost:6780/sql[?mode=raw] -d "[query={URL_ENCODED_QUERY}|{NOT_URL_ENCODED_QUERY}]"`
+通用语法：
 
-The `/sql` endpoint accepts an SQL query via the HTTP JSON interface:
-* Without `mode=raw`- only [SELECTs](../Searching/Full_text_matching/Basic_usage.md#SQL) are allowed, returning the response in JSON format.
-* With [mode=raw](../Connecting_to_the_server/HTTP.md#mode=raw) - any SQL query is permitted, returning the response in raw format.
+- `curl "localhost:6780/sql[?mode=raw]&query={URL_ENCODED_QUERY}"`
+- `curl localhost:6780/sql[?mode=raw] -d "[query={URL_ENCODED_QUERY}|{NOT_URL_ENCODED_QUERY}]"`
 
-The endpoint can handle HTTP requests using either the GET or the POST method. For sending queries, you can:
-1. **Using GET:** Include the query in the `query` parameter of the URL, like `/sql?query=your_encoded_query_here`. It's **important to URL encode** this parameter to avoid errors, especially if the query includes an `=` sign, which might be interpreted as part of the URL syntax rather than the query.
-2. **Using POST:** You can also send the query within the body of a POST request. When using this method:
-   - If you send the query as a parameter named `query`, **ensure it is URL encoded**.
-   - If you send the query directly as plain text (a raw POST body), **do not URL encode it**. This is useful when the query is long or complex, or if the query is stored in a file and you want to send it as is by pointing your HTTP client (e.g., `curl`) to it.
+`/sql` 端点通过 HTTP JSON 接口接受 SQL 查询：
 
-This approach keeps the usage of GET and POST distinct and avoids any confusion about combining methods in a single request.
+- 没有 `mode=raw` 时 - 只允许 [SELECT 语句](../Searching/Full_text_matching/Basic_usage.md#SQL)，并以 JSON 格式返回响应。
+- 使用 [mode=raw](../Connecting_to_the_server/HTTP.md#mode=raw) 时 - 允许任何 SQL 查询，并以原始格式返回响应。
 
-Without `mode=raw` the response is a JSON containing information about the hits and the execution time. The response format is the same as the [json/search](../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON) endpoint. Note that the `/sql` endpoint only supports single search requests. For processing a multi-query, see the section below about the [raw mode](../Connecting_to_the_server/HTTP.md#mode=raw).
+该端点可以使用 GET 或 POST 方法处理 HTTP 请求。发送查询时，您可以：
+
+1. **使用 GET：** 将查询包含在 URL 的 `query` 参数中，例如 `/sql?query=your_encoded_query_here`。**重要的是要对该参数进行 URL 编码**，以避免出现错误，特别是当查询包含 `=` 符号时，可能会被解释为 URL 语法的一部分而非查询。
+
+2. 使用 POST：
+
+    您也可以在 POST 请求的正文中发送查询。使用此方法时：
+
+   - 如果您将查询作为名为 `query` 的参数发送，请确保**对其进行 URL 编码**。
+   - 如果您将查询直接作为纯文本发送（原始 POST 正文），则**不要对其进行 URL 编码**。这在查询很长或复杂时非常有用，或者当查询存储在文件中时，您可以通过 HTTP 客户端（例如 `curl`）将其直接发送。
+
+这种方法保持了 GET 和 POST 的独立使用，避免了在单个请求中组合方法的混淆。
+
+没有 `mode=raw` 时，响应是包含匹配结果和执行时间的 JSON 格式。响应格式与 [json/search](../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON) 端点相同。请注意，`/sql` 端点只支持单一搜索请求。要处理多查询请求，请参见下文有关 [raw 模式](../Connecting_to_the_server/HTTP.md#mode=raw) 的部分。
 
 <!-- request POST -->
+
 ```bash
 POST /sql
 select id,subject,author_id  from forum where match('@subject php manticore') group by author_id order by id desc limit 0,5
@@ -199,7 +209,7 @@ GET /sql?query=select%20id%2Csubject%2Cauthor_id%20%20from%20forum%20where%20mat
 
 <!-- example mode=raw -->
 
-The `/sql` endpoint also includes a special "raw" mode, which allows you to send **any valid SQL queries, including multi-queries**. The response is a JSON array containing one or more result sets. You can activate this mode by using the option `mode=raw`.
+`/sql` 端点还包括一个特殊的 "raw" 模式，允许您发送**任何有效的 SQL 查询，包括多重查询**。响应是一个 JSON 数组，包含一个或多个结果集。您可以通过使用 `mode=raw` 选项来激活该模式。
 
 <!-- request POST -->
 ```bash
@@ -486,9 +496,9 @@ curl localhost:9308/sql -d 'mode=raw&query=SHOW TABLES'
 
 <!-- example cli -->
 
-> NOTE: `/cli` requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：`/cli` 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
-While the `/sql` endpoint is useful for controlling Manticore programmatically from your application, there's also the `/cli` endpoint. This makes it easier to **manually maintain a Manticore instance** using curl or your browser. It accepts both POST and GET HTTP methods. Everything inputted after `/cli?` is understood by Manticore, even if it's not manually escaped with curl or automatically encoded by the browser. No `query` parameter is required. Importantly, the `+` sign is not changed to a space, eliminating the need for encoding it. For the POST method, Manticore accepts everything exactly as it is, without any changes. The response is in tabular format, similar to an SQL result set you might see in a MySQL client.
+虽然 `/sql` 端点适合从应用程序中以编程方式控制 Manticore，但还有一个 `/cli` 端点。它使得**手动维护 Manticore 实例**变得更加容易，可以使用 curl 或浏览器操作。该端点同时接受 POST 和 GET HTTP 方法。在 `/cli?` 之后输入的任何内容都可以被 Manticore 理解，即使它没有通过 curl 手动转义或通过浏览器自动编码。无需 `query` 参数。重要的是，`+` 符号不会被转换为空格，因此不需要对其进行编码。对于 POST 方法，Manticore 接受一切输入内容，完全不作任何更改。响应是表格格式，类似于在 MySQL 客户端中看到的 SQL 结果集。
 
 <!-- request POST -->
 
@@ -555,10 +565,12 @@ curl 0:9308/cli -d 'desc test'
 
 ### /cli_json
 <!-- example cli_json -->
-The `/cli_json` endpoint provides the same functionality as `/cli`, but the response format is JSON. It includes:
-- `columns` section describing the schema.
-- `data` section with the actual data.
-- Summary section with "total", "error", and "warning".
+
+`/cli_json` 端点提供与 `/cli` 相同的功能，但响应格式为 JSON。响应内容包括：
+
+- `columns` 部分，描述了表的模式。
+- `data` 部分，包含实际的数据。
+- 摘要部分，包含 "total"、"error" 和 "warning" 信息。
 
 <!-- request POST -->
 
@@ -691,7 +703,7 @@ curl 0:9308/cli_json -d 'desc test'
 
 ### Keep-alive
 
-HTTP keep-alive is supported (except for the `/cli` endpoint), which allows for stateful interactions via the HTTP JSON interface as long as the client also supports keep-alive. For instance, using the [/cli_json](../Connecting_to_the_server/HTTP.md#/cli_json) endpoint, you can execute `SHOW META` after a `SELECT` command, and it will function similarly to interactions with Manticore through a MySQL client.
+HTTP 支持 Keep-alive（除了 `/cli` 端点），这允许通过 HTTP JSON 接口进行有状态的交互，前提是客户端也支持 Keep-alive。例如，使用 [/cli_json](../Connecting_to_the_server/HTTP.md#/cli_json) 端点，您可以在执行 `SELECT` 命令后运行 `SHOW META`，这将类似于通过 MySQL 客户端与 Manticore 交互的方式。
 
 
 <!-- proofread -->

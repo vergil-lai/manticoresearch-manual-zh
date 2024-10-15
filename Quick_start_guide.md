@@ -1,9 +1,9 @@
-# Quick start guide
+# 快速入门指南
 
 <!-- example install -->
-## Install and start Manticore
+## 安装并启动 Manticore
 
-You can install and start Manticore easily on various operating systems, including Ubuntu, Centos, Debian, Windows, and MacOS. Additionally, you can also use Manticore as a Docker container.
+你可以在各种操作系统上轻松安装并启动 Manticore，包括 Ubuntu、Centos、Debian、Windows 和 MacOS。此外，你也可以将 Manticore 作为 Docker 容器使用。
 
 <!-- intro -->
 ### Ubuntu
@@ -43,13 +43,13 @@ sudo systemctl start manticore
 ### Windows
 
 <!-- request Windows -->
-* Download the Windows archive from https://manticoresearch.com/install/
-* Extract all files from the archive to `C:\Manticore`
-* Run the following command to install Manticore as a service:
+* 从 https://manticoresearch.com/install/ 下载 Windows 压缩包。
+* 将压缩包中的所有文件解压到 `C:\Manticore`。
+* 运行以下命令将 Manticore 安装为服务：
 * ```bash
   C:\Manticore\bin\searchd --install --config C:\Manticore\sphinx.conf.in --servicename Manticore
   ```
-* Start Manticore from the Services snap-in of the Microsoft Management Console.
+* 从 Microsoft 管理控制台的服务管理工具中启动 Manticore。
 
 <!-- intro -->
 ### MacOS
@@ -71,18 +71,18 @@ For persisting your data directory, read [how to use Manticore docker in product
 <!-- end -->
 
 <!-- example connect -->
-## Connect to Manticore
+## 连接到 Manticore
 
-By default Manticore is waiting for your connections on:
+默认情况下，Manticore 等待您的连接在以下端口：
 
-  * port 9306 for MySQL clients
-  * port 9308 for HTTP/HTTPS connections
-  * port 9312 for connections from other Manticore nodes and clients based on Manticore binary API
+  * MySQL 客户端使用 9306 端口
+  * HTTP/HTTPS 连接使用 9308 端口
+  * 其他 Manticore 节点和基于 Manticore 二进制 API 的客户端使用 9312 端口
 
-More details about HTTPS support can be found in our learning course [here](https://play.manticoresearch.com/https/).   
+有关 HTTPS 支持的更多详细信息，请参见我们的学习课程 [此处](https://play.manticoresearch.com/https/)。
 
 <!-- intro -->
-##### Connect via MySQL:
+##### 通过MySQL连接:
 
 <!-- request SQL -->
 ```bash
@@ -90,17 +90,17 @@ mysql -h0 -P9306
 ```
 
 <!-- intro -->
-##### Connect via JSON over HTTP
+##### 通过HTTP使用JSON进行连接
 
 <!-- request HTTP -->
-HTTP is a stateless protocol, so it doesn't require any special connection phase. You can simply send an HTTP request to the server and receive the response. To communicate with Manticore using the JSON interface, you can use any HTTP client library in your programming language of choice to send GET or POST requests to the server and parse the JSON responses:
+HTTP 是无状态协议，因此不需要任何特殊的连接阶段。您可以直接向服务器发送 HTTP 请求并接收响应。要使用 JSON 接口与 Manticore 通信，您可以使用任何编程语言中的 HTTP 客户端库，向服务器发送 GET 或 POST 请求，并解析 JSON 响应：
 
 ```bash
 curl -s "http://localhost:9308/search"
 ```
 
 <!-- intro -->
-##### Connect via [PHP client](https://github.com/manticoresoftware/manticoresearch-php):
+##### 通过 [PHP客户端](https://github.com/manticoresoftware/manticoresearch-php)连接：
 
 <!-- request PHP -->
 ```php
@@ -111,7 +111,7 @@ $client = new \Manticoresearch\Client($config);
 ```
 
 <!-- intro -->
-##### Connect via [Python client](https://github.com/manticoresoftware/manticoresearch-php):
+##### 通过[Python 客户端](https://github.com/manticoresoftware/manticoresearch-php)连接：
 
 <!-- request Python -->
 ```python
@@ -127,7 +127,7 @@ utilsApi = manticoresearch.UtilsApi(client)
 ```
 
 <!-- intro -->
-##### Connect via [Javascript client](https://github.com/manticoresoftware/manticoresearch-javascript):
+##### 通过[Javascript 客户端](https://github.com/manticoresoftware/manticoresearch-javascript)连接：
 
 <!-- request Javascript -->
 ```javascript
@@ -140,7 +140,7 @@ searchApi = new Manticoresearch.SearchApi(client);
 utilsApi = new Manticoresearch.UtilsApi(client);
 ```
 <!-- intro -->
-##### Connect via [Java client](https://github.com/manticoresoftware/manticoresearch-java):
+##### 通过 [Java 客户端](https://github.com/manticoresoftware/manticoresearch-java)连接：
 
 <!-- request Java -->
 ```java
@@ -158,7 +158,7 @@ UtilsApi utilsApi = new UtilsApi(client);
 ```
 
 <!-- intro -->
-##### Connect via [.Net client](https://github.com/manticoresoftware/manticoresearch-net):
+##### 通过 [.Net 客户端](https://github.com/manticoresoftware/manticoresearch-net)连接：
 
 <!-- request C# -->
 ```clike
@@ -180,7 +180,7 @@ var utilsApi = new UtilsApi(httpClient, config, httpClientHandler);
 ```
 
 <!-- intro -->
-##### Connect via [TypeScript client](https://github.com/manticoresoftware/manticoresearch-typescript):
+##### 通过[TypeScript 客户端](https://github.com/manticoresoftware/manticoresearch-typescript)连接：
 
 <!-- request Typescript -->
 ```typescript
@@ -200,7 +200,7 @@ const utilsApi = new UtilsApi(config);
 ```
 
 <!-- intro -->
-##### Connect via [Go client](https://github.com/manticoresoftware/manticoresearch-go):
+##### 通过 [Go 客户端](https://github.com/manticoresoftware/manticoresearch-go)连接：
 
 <!-- request Go -->
 ```go
@@ -217,24 +217,25 @@ apiClient := manticoreclient.NewAPIClient(configuration)
 <!-- end -->
 
 <!-- example create -->
-## Create a table
+## 创建表
 
-Let's now create a table called "products" with 2 fields:
-* title - full-text field which will contain our product's title
-* price - of type "float"
+现在我们创建一个名为 "products" 的表，包含两个字段：
+* title - 全文字段，用于存储产品的标题
+* price - 类型为 "float"
 
-Note that it is possible to omit creating a table with an explicit create statement. For more information, see [Auto schema](Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-schema).
+注意，创建表时可以省略显式的创建语句。更多信息请参阅 [自动模式](Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-schema)。
 
-More information about different ways to create a table can be found in our learning courses:
-* [Creating a RealTime table](https://play.manticoresearch.com/rtmode/)
-* [Creating a table from the MySQL source](https://play.manticoresearch.com/mysql/)
-* [Creating a table from the CSV source](https://play.manticoresearch.com/csv/) 
-* [Creating a table using the auto schema mechanism](https://play.manticoresearch.com/autoschema/)
-* [Creating a table with Logstash/Beats](https://play.manticoresearch.com/logstash/)
-* [Creating a table with Fluentbit](https://play.manticoresearch.com/vectordev/)
-* [Creating a table using the Vector.dev agent](https://play.manticoresearch.com/vectordev/)
+关于创建表的不同方式，您可以在以下学习课程中找到更多信息：
+* [创建实时表](https://play.manticoresearch.com/rtmode/)
+* [从 MySQL 数据源创建表](https://play.manticoresearch.com/mysql/)
+* [从 CSV 数据源创建表](https://play.manticoresearch.com/csv/)
+* [使用自动模式机制创建表](https://play.manticoresearch.com/autoschema/)
+* [使用 Logstash/Beats 创建表](https://play.manticoresearch.com/logstash/)
+* [使用 Fluentbit 创建表](https://play.manticoresearch.com/vectordev/)
+* [使用 Vector.dev 代理创建表](https://play.manticoresearch.com/vectordev/)
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -334,9 +335,9 @@ res := apiClient.UtilsAPI.Sql(context.Background()).Body("create table products(
 <!-- end -->
 
 <!-- example insert -->
-## Add documents
+## 添加文档
 
-Let's now add few documents to the table:
+现在我们向表中添加几个文档：
 
 <!-- intro -->
 ##### SQL:
@@ -356,7 +357,7 @@ Query OK, 3 rows affected (0.01 sec)
 ##### JSON:
 
 <!-- request JSON -->
-`"id":0` or no id forces automatic ID generation.
+`"id":0` 或者省略 `id` 字段将会强制自动生成 ID。
 
 ```json
 POST /insert
@@ -554,15 +555,15 @@ apiClient.IndexAPI.Insert(context.Background()).InsertDocumentRequest(*indexReq)
 
 <!-- end -->
 
-More details on the subject can be found here:
-* [Adding data to a plain table](https://play.manticoresearch.com/mysql/) 
-* [Adding data to a RealTime table](https://play.manticoresearch.com/rtintro/)
+更多关于此主题的详细信息可以参考：
+* [向普通表中添加数据](https://play.manticoresearch.com/mysql/)
+* [向实时表中添加数据](https://play.manticoresearch.com/rtintro/)
 
 
 <!-- example search -->
-## Search
+## 搜索
 
-Let's find one of the documents. The query we will use is 'remove hair'. As you can see, it finds a document with the title 'Pet Hair Remover Glove' and highlights 'Hair remover' in it, even though the query has "remove", not "remover". This is because when we created the table, we turned on using English stemming (`morphology "stem_en"`).
+我们现在尝试查找其中一个文档。我们将使用的查询是 "remove hair"。正如你所看到的，它找到了标题为 "Pet Hair Remover Glove" 的文档，并在其中高亮显示了 "Hair remover"，即使查询中使用的是 "remove"，而不是 "remover"。这是因为我们在创建表时启用了英语词干分析（`词法 "stem_en"`）。
 
 <!-- intro -->
 ##### SQL:
@@ -835,15 +836,15 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 ```
 <!-- end -->
 
-More information on different search options available in Manticore can be found in our learning courses:
-* [Faceted search](https://play.manticoresearch.com/faceting/)
-* [Geo search](https://play.manticoresearch.com/geosearch/)
-* [Searching for similar documents](https://play.manticoresearch.com/mlt/)
+更多关于 Manticore 中不同搜索选项的信息可以在我们的学习课程中找到：
+* [分面搜索](https://play.manticoresearch.com/faceting/)
+* [地理搜索](https://play.manticoresearch.com/geosearch/)
+* [搜索相似文档](https://play.manticoresearch.com/mlt/)
 
 <!-- example update -->
-## Update
+## 更新
 
-Let's assume we now want to update the document - change the price to 18.5. This can be done by filtering by any field, but normally you know the document id and update something based on that.
+假设我们现在想要更新文档 - 将价格更改为 18.5。此操作可以通过任何字段进行过滤，但通常你会知道文档的 ID，并基于此更新相关信息。
 
 <!-- intro -->
 ##### SQL:
@@ -967,9 +968,9 @@ res, _, _ = apiClient.IndexAPI.Update(context.Background()).UpdateDocumentReques
 <!-- end -->
 
 <!-- example delete -->
-## Delete
+## 删除
 
-Let's now delete all documents with price lower than 10.
+现在我们删除所有价格低于 10 的文档。
 
 <!-- intro -->
 ##### SQL:
