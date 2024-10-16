@@ -1,49 +1,46 @@
-# Escaping characters in query string
+# 转义查询字符串中的字符
 
-Since certain characters function as operators in the query string, they must be escaped to prevent query errors or unintended matching conditions.
+由于某些字符在查询字符串中用作操作符，因此必须对其进行转义，以避免查询错误或不希望的匹配条件。
 
-The following characters should be escaped using a backslash (`\`):
+以下字符需要使用反斜杠（`\`）进行转义：
 
 ```
 !    "    $    '    (    )    -    /    <    @    \    ^    |    ~
 ```
 
-## In MySQL command line client
+## 在 MySQL 命令行客户端中
 
-To escape a single quote ('), use one backslash:
+要转义单引号 (`'`)，使用一个反斜杠：
 ```sql
 SELECT * FROM your_index WHERE MATCH('l\'italiano');
 ```
 
 
-For the other characters in the list mentioned earlier, which are operators or query constructs, they must be treated as simple characters by the engine, with a preceding escape character.
-The backslash must also be escaped, resulting in two backslashes:
+对于前面列表中提到的其他字符（它们是操作符或查询构造符），必须使用转义字符前缀处理为简单字符。反斜杠也需要转义，因此需要两个反斜杠：
 
 ```sql
 SELECT * FROM your_index WHERE MATCH('r\\&b | \\(official video\\)');
 ```
 
-To use a backslash as a character, you must escape both the backslash as a character and the backslash as the escape operator, which requires four backslashes:
+要将反斜杠作为字符使用，必须同时转义反斜杠作为字符和转义符，这需要四个反斜杠：
 
 ```sql
 SELECT * FROM your_index WHERE MATCH('\\\\ABC');
 ```
 
-When you are working with JSON data in Manticore Search and need to include a double quote (`"`) within a JSON string, it's important to handle it with proper escaping. In JSON, a double quote within a string is escaped using a backslash (`\`). However, when inserting the JSON data through an SQL query, Manticore Search interprets the backslash (`\`) as an escape character within strings.
+当在 Manticore Search 中处理 JSON 数据且需要在 JSON 字符串中包含双引号（`"`）时，务必正确转义。在 JSON 中，字符串中的双引号使用反斜杠（`\`）转义。但是，当通过 SQL 查询插入 JSON 数据时，Manticore Search 会将反斜杠（`\`）视为字符串中的转义字符。
 
-To ensure the double quote is correctly inserted into the JSON data, you need to escape the backslash itself. This results in using two backslashes (`\\`) before the double quote. For example:
+为确保双引号正确插入到 JSON 数据中，必须对反斜杠本身进行转义。这意味着在双引号之前使用两个反斜杠（`\\`）。例如：
 
 ```sql
 insert into tbl(j) values('{"a": "\\"abc\\""}');
 ```
 
-## Using MySQL drivers
+## 使用 MySQL 驱动程序
 
-MySQL drivers provide escaping functions (e.g., `mysqli_real_escape_string` in PHP or `conn.escape_string` in Python), but they only escape specific characters.
-You will still need to add escaping for the characters from the previously mentioned list that are not escaped by their respective functions.
-Because these functions will escape the backslash for you, you only need to add one backslash.
+MySQL 驱动程序提供了转义函数（例如，PHP 中的 `mysqli_real_escape_string` 或 Python 中的 `conn.escape_string`），但它们只转义特定字符。 对于上述列表中未被这些函数转义的字符，仍然需要手动添加转义。 因为这些函数会为你转义反斜杠，因此你只需要添加一个反斜杠。
 
-This also applies to drivers that support (client-side) prepared statements. For example, with PHP PDO prepared statements, you need to add a backslash for the `$` character:
+这同样适用于支持（客户端）预处理语句的驱动程序。例如，在 PHP PDO 预处理语句中，你需要为 `$` 字符添加反斜杠：
 
 ```php
 $statement = $ln_sph->prepare( "SELECT * FROM index WHERE MATCH(:match)");
@@ -52,36 +49,37 @@ $statement->bindParam(':match',$match,PDO::PARAM_STR);
 $results = $statement->execute();
 ```
 
-This results in the final query `SELECT * FROM index WHERE MATCH('\\$manticore');`
+最终的查询结果为： `SELECT * FROM index WHERE MATCH('\\$manticore');`
 
-## In HTTP JSON API
+## 在 HTTP JSON API 中
 
-The same rules for the SQL protocol apply, with the exception that for JSON, the double quote must be escaped with a single backslash, while the rest of the characters require double escaping.
+同样的规则适用于 SQL 协议，区别在于对于 JSON，双引号需要使用单个反斜杠转义，而其他字符需要双重转义。
 
-When using JSON libraries or functions that convert data structures to JSON strings, the double quote and single backslash are automatically escaped by these functions and do not need to be explicitly escaped.
-
-
-
-## In clients
-
-The [new official clients](https://github.com/manticoresoftware/) (which use the HTTP protocol) utilize common JSON libraries/functions available in their respective programming languages under the hood. The same rules for escaping mentioned earlier apply.
+当使用 JSON 库或将数据结构转换为 JSON 字符串的函数时，这些函数会自动转义双引号和单个反斜杠，因此不需要显式转义。
 
 
-## Escaping asterisk
 
-The asterisk (`*`) is a unique character that serves two purposes:
-* as a wildcard prefix/suffix expander
-* as an any-term modifier within a phrase search.
+## 在客户端中
 
-Unlike other special characters that function as operators, the asterisk cannot be escaped when it's in a position to provide one of its functionalities.
+[新官方客户端](https://github.com/manticoresoftware/)（使用 HTTP 协议）在其编程语言中使用了常见的 JSON 库/函数。适用上述提到的转义规则。
 
-In non-wildcard queries, the asterisk does not require escaping, whether it's in the `charset_table` or not.
 
-In wildcard queries, an asterisk in the middle of a word does not require escaping. As a wildcard operator (either at the beginning or end of the word), the asterisk will always be interpreted as the wildcard operator, even if escaping is applied.
+## 转义星号
 
-## Escaping json node names in SQL
+星号 (`*`) 是一个特殊字符，具有两种用途：
 
-To escape special characters in JSON nodes, use a backtick. For example:
+- 作为通配符前缀/后缀扩展符
+- 作为短语搜索中的任何词修饰符。
+
+与其他作为操作符的特殊字符不同，星号在用于提供其功能时无法被转义。
+
+在非通配符查询中，星号不需要转义，无论它是否在 `charset_table` 中。
+
+在通配符查询中，单词中间的星号不需要转义。作为通配符操作符时（单词的开头或结尾），星号将始终被解释为通配符操作符，即使应用了转义。
+
+## 在 SQL 中转义 JSON 节点名称
+
+要转义 JSON 节点中的特殊字符，使用反引号。例如：
 
 ```sql
 MySQL [(none)]> select * from t where json.`a=b`=234;

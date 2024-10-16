@@ -1,14 +1,14 @@
 # MATCH
 
-The `MATCH` clause allows for full-text searches in text fields. The input query string is [tokenized](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md) using the same settings applied to the text during indexing. In addition to the tokenization of input text, the query string supports a number of [full-text operators](../../Searching/Full_text_matching/Operators.md) that enforce various rules on how keywords should provide a valid match.
+`MATCH` 子句允许在文本字段中进行全文搜索。输入的查询字符串使用与索引时相同的设置进行[分词](../../Creating_a_table/NLP_and_tokenization/Data_tokenization.md)。除了对输入文本进行分词外，查询字符串还支持许多[全文操作符](../../Searching/Full_text_matching/Operators.md)，这些操作符对关键词的匹配方式施加了各种规则。
 
-Full-text match clauses can be combined with attribute [filters](../../Searching/Filters.md) as an AND boolean. **OR relations between full-text matches and attribute filters are not supported**.
+全文匹配子句可以与属性[过滤器](../../Searching/Filters.md)结合使用，作为布尔值 AND 关系。**不支持全文匹配与属性过滤器之间的 OR 关系**。
 
-The match query is always executed first in the filtering process, followed by the [attribute filters](../../Searching/Filters.md). The attribute filters are applied to the result set of the match query. A query without a match clause is called a fullscan.
+在过滤过程中，匹配查询始终首先执行，然后应用[属性过滤器](../../Searching/Filters.md)。属性过滤器应用于匹配查询的结果集。没有匹配子句的查询称为全扫描查询。
 
-There must be at most one `MATCH()` in the `SELECT` clause.
+在 `SELECT` 子句中最多只能有一个 `MATCH()`。
 
-Using the [full-text query syntax](../../Searching/Full_text_matching/Operators.md), matching is performed across all indexed text fields of a document, unless the expression requires a match within a field (like phrase search) or is limited by field operators.
+使用[全文查询语法](../../Searching/Full_text_matching/Operators.md)时，匹配会在文档的所有已索引文本字段中执行，除非表达式要求在字段内匹配（如短语搜索）或被字段操作符限制。
 
 ## SQL
 <!-- example Example_1 -->
@@ -17,7 +17,7 @@ Using the [full-text query syntax](../../Searching/Full_text_matching/Operators.
 SELECT * FROM myindex WHERE MATCH('cats|birds');
 ```
 
-The [SELECT](../../Searching/Full_text_matching/Basic_usage.md#SQL) statement uses a [MATCH](../../Searching/Full_text_matching/Basic_usage.md) clause, which must come after WHERE, for performing full-text searches. `MATCH()` accepts an input string in which all [full-text operators](../../Searching/Full_text_matching/Operators.md) are available.
+SELECT 语句使用 [MATCH](../../Searching/Full_text_matching/Basic_usage.md) 子句来执行全文搜索，该子句必须位于 WHERE 之后。MATCH() 接受一个输入字符串，所有的 [全文操作符](../../Searching/Full_text_matching/Operators.md) 都可用。
 
 <!-- intro -->
 ##### SQL:
@@ -40,7 +40,7 @@ SELECT * FROM myindex WHERE MATCH('"find me fast"/2');
 ```
 
 <!-- request MATCH with filters -->
-An example of a more complex query using MATCH with WHERE filters.
+一个使用 MATCH 与 WHERE 过滤器的更复杂查询示例。
 
 ```sql
 SELECT * FROM myindex WHERE MATCH('cats|birds') AND (`title`='some title' AND `id`=123);
@@ -52,11 +52,11 @@ SELECT * FROM myindex WHERE MATCH('cats|birds') AND (`title`='some title' AND `i
 
 <!-- example Example_11 -->
 
-Full-text matching is available in the `/search` endpoint and in HTTP-based clients. The following clauses can be used for performing full-text matches:
+全文匹配可以在 /search 端点和基于 HTTP 的客户端中使用。以下子句可用于执行全文匹配：
 
 ### match
 
-"match" is a simple query that matches the specified keywords in the specified fields.
+“match” 是一个简单的查询，用于在指定字段中匹配指定的关键字。
 
 ```json
 "query":
@@ -65,7 +65,7 @@ Full-text matching is available in the `/search` endpoint and in HTTP-based clie
 }
 ```
 
-You can specify a list of fields:
+您可以指定字段列表：
 
 ```json
 "match":
@@ -73,9 +73,11 @@ You can specify a list of fields:
   "field1,field2": "keyword"
 }
 ```
-Or you can use `_all` or `*` to search all fields.
+或者您可以使用 `_all` 或 `*` 搜索所有字段。
 
-You can search all fields except one using "!field":
+
+
+您还可以通过使用 !field 排除某个字段来进行搜索：
 
 ```json
 "match":
@@ -83,7 +85,7 @@ You can search all fields except one using "!field":
   "!field1": "keyword"
 }
 ```
-By default, keywords are combined using the OR operator. However, you can change that behavior using the "operator" clause:
+默认情况下，关键字通过 OR 操作符组合。但是，您可以使用 operator 子句更改此行为：
 
 ```json
 "query":
@@ -99,9 +101,10 @@ By default, keywords are combined using the OR operator. However, you can change
 }
 ```
 
-"operator" can be set to "or" or "and".
+operator 可以设置为 “or” 或 “and”。
 
-The `boost` modifier can also be applied. It raises the word [IDF](../../Searching/Options.md#idf)_score by the indicated factor in ranking scores that incorporate IDF into their calculations. It does not impact the matching process in any manner.
+还可以应用 boost 修饰符。它通过提高在排名分数中包含 IDF 计算的词语 [IDF](../../Searching/Options.md#idf)_score 来提升得分。这不会影响匹配过程。
+
 ```json
 "query":
 {
@@ -118,7 +121,7 @@ The `boost` modifier can also be applied. It raises the word [IDF](../../Searchi
 
 ### match_phrase
 
-"match_phrase" is a query that matches the entire phrase. It is similar to a phrase operator in SQL. Here's an example:
+"match_phrase"是一个查询，它匹配整个短语。它类似于 SQL 中的短语操作符。以下是一个示例：
 
 ```json
 "query":
@@ -128,7 +131,7 @@ The `boost` modifier can also be applied. It raises the word [IDF](../../Searchi
 ```
 
 ### query_string
-"query_string" accepts an input string as a full-text query in `MATCH()` syntax.
+"query_string" 接受一个输入字符串作为 `MATCH()` 语法的全文查询。
 
 ```json
 "query":
@@ -139,7 +142,7 @@ The `boost` modifier can also be applied. It raises the word [IDF](../../Searchi
 
 ### match_all
 
-"match_all" accepts an empty object and returns documents from the table without performing any attribute filtering or full-text matching. Alternatively, you can just omit the `query` clause in the request which will have the same effect.
+"match_all" 接受一个空对象，并从表中返回文档，而不进行任何属性过滤或全文匹配。或者，您可以在请求中省略 `query` 子句，这将产生相同的效果。
 
 ```json
 "query":
@@ -149,12 +152,12 @@ The `boost` modifier can also be applied. It raises the word [IDF](../../Searchi
 ```
 
 
-### Combining full-text filtering with other filters
+### 将全文过滤与其他过滤器组合
 
-All full-text match clauses can be combined with [must](../../Searching/Filters.md#must), [must_not](../../Searching/Filters.md#must_not), and [should](../../Searching/Filters.md#should) operators of a [JSON `bool` query](../../Searching/Filters.md#bool-query).
+所有全文匹配子句都可以与 [must](../../Searching/Filters.md#must)，[must_not](../../Searching/Filters.md#must_not) 和 [should](../../Searching/Filters.md#should) 操作符组合在 [JSON bool 查询](../../Searching/Filters.md#bool-query) 中。
 
 <!-- intro -->
-Examples:
+示例：
 
 <!-- request match -->
 

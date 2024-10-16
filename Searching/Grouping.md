@@ -1,21 +1,22 @@
-# Grouping search results
+# 分组搜索结果
 
 <!-- example general -->
-Grouping search results is often helpful for obtaining per-group match counts or other aggregations. For example, it's useful for creating a graph illustrating the number of matching blog posts per month or grouping web search results by site or forum posts by author, etc.
+分组搜索结果通常有助于获取每个组的匹配计数或其他聚合信息。例如，这对于创建显示每月匹配博客文章数量的图表，或者按网站对网页搜索结果进行分组、按作者对论坛帖子进行分组等非常有用。
 
-Manticore supports the grouping of search results by single or multiple columns and computed expressions. The results can:
+Manticore 支持按单列、多列或计算表达式对搜索结果进行分组。结果可以：
 
-* Be sorted within a group
-* Return more than one row per group
-* Have groups filtered
-* Have groups sorted
-* Be aggregated using the [aggregation functions](../Searching/Grouping.md#Aggregation-functions)
+- 在组内排序
+- 返回每个组中超过一行的结果
+- 对组进行过滤
+- 对组进行排序
+- 使用 [聚合函数](../Searching/Grouping.md#Aggregation-functions) 进行聚合
 
 <!-- intro -->
-The general syntax is:
+通用语法：
 
 <!-- request SQL -->
-General syntax
+通用语法：
+
 ```sql
 SELECT {* | SELECT_expr [, SELECT_expr ...]}
 ...
@@ -29,7 +30,7 @@ where_condition: {aggregation expression alias | COUNT(*)}
 ```
 
 <!-- request JSON -->
-JSON query format currently supports a basic grouping that can retrieve aggregate values and their count(*).
+JSON 查询格式目前支持基本的分组功能，能够检索聚合值及其 `count(*)`。
 
 ```json
 {
@@ -46,22 +47,22 @@ JSON query format currently supports a basic grouping that can retrieve aggregat
 }
 ```
 
-The standard query output returns the result set without grouping, which can be hidden using `limit` (or `size`).
-The aggregation requires setting a `size` for the group's result set size.
+标准查询输出返回未分组的结果集，可以通过使用 `limit`（或 `size`）来隐藏它。要进行聚合，需要为组的结果集设置一个 `size`。
 
 <!-- end -->
 
 <!-- example group1 -->
-### Just Grouping
-Grouping is quite simple - just add "GROUP BY smth" to the end of your `SELECT` query. The something can be:
+### 仅分组
+分组非常简单——只需在 `SELECT` 查询末尾添加 "GROUP BY smth"。该分组依据可以是：
 
-* Any non-full-text field from the table: integer, float, string, MVA (multi-value attribute)
-* Or, if you used an alias in the `SELECT` list, you can GROUP BY it too
+- 表中的任何非全文字段：整数、浮点数、字符串、MVA（多值属性）
+- 或者，如果在 `SELECT` 列表中使用了别名，也可以按此别名进行分组
 
-You can omit any [aggregation functions](../Searching/Grouping.md#Aggregation-functions) in the `SELECT` list and it will still work:
+您可以省略 `SELECT` 列表中的任何[聚合函数](../Searching/Grouping.md#Aggregation-functions)，查询仍然能够正常运行。
 
 <!-- intro -->
-##### Example:
+
+##### 示例:
 
 <!-- request SQL -->
 ```sql
@@ -81,14 +82,15 @@ SELECT release_year FROM films GROUP BY release_year LIMIT 5;
 ```
 <!-- end -->
 <!-- example group2 -->
-In most cases, however, you'll want to obtain some aggregated data for each group, such as:
 
-* `COUNT(*)` to simply get the number of elements in each group
-* or `AVG(field)` to calculate the average value of the field within the group
+不过，在大多数情况下，您可能希望为每个组获取一些聚合数据，例如：
+
+- `COUNT(*)` 用于获取每个组中的元素数量
+- 或者 `AVG(field)` 用于计算组内该字段的平均值
 
 
 <!-- intro -->
-##### Example:
+##### 示例:
 
 <!-- request SQL1 -->
 ```sql
@@ -429,11 +431,11 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 <!-- end -->
 
 <!-- example sort1 -->
-##### Sorting groups
-By default, groups are not sorted, and the next thing you typically want to do is order them by something, like the field you're grouping by:
+##### 对组进行排序
+默认情况下，组没有排序，接下来您通常希望根据某些内容对它们进行排序，比如按您分组的字段进行排序：
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -453,14 +455,15 @@ SELECT release_year, count(*) from films GROUP BY release_year ORDER BY release_
 ```
 <!-- end -->
 <!-- example sort2 -->
-Alternatively, you can sort by the aggregation:
 
-* by `count(*)` to display groups with the most elements first
-* by `avg(rental_rate)` to show the highest-rated movies first. Note that in the example, it's done via an alias: `avg(rental_rate)` is first mapped to `avg` in the `SELECT` list, and then we simply do `ORDER BY avg`
+或者，您可以按聚合结果进行排序：
+
+- 按 `count(*)` 排序，以首先显示包含最多元素的组
+- 按 `avg(rental_rate)` 排序，以首先显示评分最高的电影。请注意，在示例中，这是通过别名完成的：`avg(rental_rate)` 首先在 `SELECT` 列表中映射为 `avg`，然后我们简单地执行 `ORDER BY avg`
 
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL1 -->
 ```sql
@@ -498,11 +501,11 @@ SELECT release_year, AVG(rental_rate) avg FROM films GROUP BY release_year ORDER
 <!-- end -->
 
 <!-- example group3 -->
-##### GROUP BY multiple fields at once
-In some cases, you might want to group not just by a single field, but by multiple fields at once, such as a movie's category and year:
+##### 同时按多个字段分组
+在某些情况下，您可能希望不仅按一个字段分组，还可以同时按多个字段分组，例如按电影的类别和年份：
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -615,11 +618,11 @@ POST /search -d '
 <!-- end -->
 
 <!-- example group4 -->
-##### Give me N rows
-Sometimes it's useful to see not just a single element per group, but multiple. This can be easily achieved with the help of `GROUP N BY`. For example, in the following case, we get two movies for each year rather than just one, which a simple `GROUP BY release_year` would have returned.
+##### 返回 N 行
+有时查看每组中的多个元素而不仅仅是一个是很有用的。可以通过使用 `GROUP N BY` 来轻松实现。例如，在以下情况下，我们为每个年份返回两部电影，而不是仅通过 `GROUP BY release_year` 返回的一部。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -641,17 +644,17 @@ SELECT release_year, title FROM films GROUP 2 BY release_year ORDER BY release_y
 <!-- end -->
 
 <!-- example group5 -->
-##### Sorting inside a group
-Another crucial analytics requirement is to sort elements within a group. To achieve this, use the `WITHIN GROUP ORDER BY ... {ASC|DESC}` clause. For example, let's get the highest-rated film for each year. Note that it works in parallel with just `ORDER BY`:
+##### 在组内排序
+另一个关键的分析需求是对组内的元素进行排序。要实现此功能，可以使用 `WITHIN GROUP ORDER BY ... {ASC|DESC}` 子句。例如，我们可以获取每年评分最高的电影。需要注意的是，它与 `ORDER BY` 并行工作：
 
-* `WITHIN GROUP ORDER BY` sorts results **inside a group**
-* while just `GROUP BY` **sorts the groups themselves**
+- `WITHIN GROUP ORDER BY` 对 **组内** 的结果进行排序
+- 而 `GROUP BY` 则对 **组本身** 进行排序
 
-These two work entirely independently.
+这两者是完全独立运行的。
 
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -672,11 +675,11 @@ SELECT release_year, title, rental_rate FROM films GROUP BY release_year WITHIN 
 <!-- end -->
 
 <!-- example group6 -->
-##### Filter groups
-`HAVING expression` is a helpful clause for filtering groups. While `WHERE` is applied before grouping, `HAVING` works with the groups. For example, let's keep only those years when the average rental rate of the films for that year was higher than 3. We get only four years:
+##### 过滤组
+`HAVING expression` 是一个用于过滤组的有用子句。`WHERE` 在分组之前应用，而 `HAVING` 则用于处理分组后的结果。例如，我们可以保留那些电影年均租赁费率高于 3 的年份。结果只返回了四个年份：
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -695,18 +698,19 @@ SELECT release_year, avg(rental_rate) avg FROM films GROUP BY release_year HAVIN
 ```
 <!-- end -->
 
-Note that `HAVING` does not affect `total_found` in the [search query meta info](../Node_info_and_management/SHOW_META.md#SHOW-META).
+请注意，`HAVING` 不会影响 [查询元信息中的 `total_found`](../Node_info_and_management/SHOW_META.md#SHOW-META)。
 
 <!-- example group7 -->
+
 ##### GROUPBY()
-There is a function `GROUPBY()` which returns the key of the current group. It's useful in many cases, especially when you [GROUP BY an MVA](../Searching/Grouping.md#Grouping-by-MVA-%28multi-value-attributes%29) or a [JSON value](../Searching/Grouping.md#Grouping-by-a-JSON-node).
+`GROUPBY()` 是一个返回当前组键的函数，在许多情况下非常有用，尤其是在您[按 MVA（多值属性）分组](../Searching/Grouping.md#Grouping-by-MVA-(multi-value-attributes))或[按JSON 值分组](../Searching/Grouping.md#Grouping-by-a-JSON-node)时。
 
-It can also be used in `HAVING`, for example, to keep only years 2000 and 2002.
+它也可以在 `HAVING` 中使用，例如，仅保留年份为 2000 和 2002 的组。
 
-Note that `GROUPBY()`is not recommended for use when you GROUP BY multiple fields at once. It will still work, but since the group key in this case is a compound of field values, it may not appear the way you expect.
+请注意，当您同时按多个字段分组时，不建议使用 `GROUPBY()`。尽管它仍然可以工作，但由于此时组键是字段值的复合体，可能不会按您预期的方式显示。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -723,13 +727,13 @@ SELECT release_year, count(*) FROM films GROUP BY release_year HAVING GROUPBY() 
 ```
 <!-- end -->
 <!-- example mva -->
-##### Grouping by MVA (multi-value attributes)
-Manticore supports grouping by [MVA](../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29). To demonstrate how it works, let's create a table "shoes" with MVA "sizes" and insert a few documents into it:
+##### 按 MVA（多值属性）分组
+Manticore 支持按 [MVA](../Creating_a_table/Data_types.md#Multi-value-integer-(MVA)) 分组。为了演示其工作原理，我们可以创建一个包含 MVA 字段 "sizes" 的表 "shoes"，并向其中插入一些文档：
 ```sql
 create table shoes(title text, sizes multi);
 insert into shoes values(0,'nike',(40,41,42)),(0,'adidas',(41,43)),(0,'reebook',(42,43));
 ```
-so we have:
+因此，我们有以下数据：
 ```sql
 SELECT * FROM shoes;
 +---------------------+----------+---------+
@@ -740,10 +744,10 @@ SELECT * FROM shoes;
 | 1657851069130080267 | 42,43    | reebook |
 +---------------------+----------+---------+
 ```
-If we now GROUP BY "sizes", it will process all our multi-value attributes and return an aggregation for each, in this case just the count:
+现在如果我们按 "sizes" 进行分组，它将处理所有的多值属性，并为每个值返回一个聚合结果，在这个例子中仅返回计数：
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -1026,13 +1030,13 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 <!-- end -->
 
 <!-- example json -->
-##### Grouping by a JSON node
-If you have a field of type [JSON](../Creating_a_table/Data_types.md#JSON), you can GROUP BY any node from it. To demonstrate this, let's create a table "products" with a few documents, each having a color in the "meta" JSON field:
+##### 按 JSON 节点分组
+如果您有一个 [JSON](../Creating_a_table/Data_types.md#JSON) 类型的字段，您可以按其中的任何节点进行分组。为了演示这一点，我们可以创建一个表 "products"，并插入几个文档，每个文档在 "meta" JSON 字段中都有一个颜色信息：
 ```sql
 create table products(title text, meta json);
 insert into products values(0,'nike','{"color":"red"}'),(0,'adidas','{"color":"red"}'),(0,'puma','{"color":"green"}');
 ```
-This gives us:
+这会生成以下结果：
 ```sql
 SELECT * FROM products;
 +---------------------+-------------------+--------+
@@ -1043,10 +1047,10 @@ SELECT * FROM products;
 | 1657851069130080270 | {"color":"green"} | puma   |
 +---------------------+-------------------+--------+
 ```
-To group the products by color, we can simply use `GROUP BY meta.color`, and to display the corresponding group key in the `SELECT` list, we can use `GROUPBY()`:
+要按颜色对产品进行分组，只需使用 `GROUP BY meta.color`，并在 `SELECT` 列表中使用 `GROUPBY()` 显示相应的分组键：
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -1307,17 +1311,19 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- end -->
 
-## Aggregation functions
-Besides `COUNT(*)`, which returns the number of elements in each group, you can use various other aggregation functions:
+## 聚合函数
+除了 `COUNT(*)` 返回每个组中的元素数量之外，您还可以使用其他各种聚合函数：
 <!-- example distinct -->
+
 ##### COUNT(DISTINCT field)
-While `COUNT(*)` returns the number of all elements in the group, `COUNT(DISTINCT field)` returns the number of unique values of the field in the group, which may be completely different from the total count. For instance, you can have 100 elements in the group, but all with the same value for a certain field. `COUNT(DISTINCT field)` helps to determine that. To demonstrate this, let's create a table "students" with the student's name, age, and major:
+`COUNT(*)` 返回组中所有元素的数量，而 `COUNT(DISTINCT field)` 返回组中特定字段的唯一值数量，这可能与总数完全不同。例如，组中可能有 100 个元素，但某个字段的值相同。`COUNT(DISTINCT field)` 有助于确定这一点。为了演示这一点，我们创建一个包含学生姓名、年龄和专业的 "students" 表：
+
 ```sql
 CREATE TABLE students(name text, age int, major string);
 INSERT INTO students values(0,'John',21,'arts'),(0,'William',22,'business'),(0,'Richard',21,'cs'),(0,'Rebecca',22,'cs'),(0,'Monica',21,'arts');
 ```
 
-so we have:
+我们有以下数据：
 
 ```sql
 MySQL [(none)]> SELECT * from students;
@@ -1332,24 +1338,25 @@ MySQL [(none)]> SELECT * from students;
 +---------------------+------+----------+---------+
 ```
 
-In the example, you can see that if we GROUP BY major and display both `COUNT(*)` and `COUNT(DISTINCT age)`, it becomes clear that there are two students who chose the major "cs" with two unique ages, but for the major "arts", there are also two students, yet only one unique age.
+在这个例子中，您可以看到如果我们按 `major` 分组并显示 `COUNT(*)` 和 `COUNT(DISTINCT age)`，就可以发现专业为 "cs" 的两名学生有两个不同的年龄，而专业为 "arts" 的两名学生只有一个唯一的年龄。
 
-There can be at most one `COUNT(DISTINCT)` per query.
+每个查询最多只能有一个 `COUNT(DISTINCT)`。
 
-** By default, counts are approximate **
+**默认情况下，计数是近似的**
 
-Actually, some of them are exact, while others are approximate. More on that below.
+实际上，某些计数是精确的，而另一些是近似的。下面会详细说明。
 
-Manticore supports two algorithms for computing counts of distinct values. One is a legacy algorithm that uses a lot of memory and is usually slow. It collects `{group; value}` pairs, sorts them, and periodically discards duplicates. The benefit of this approach is that it guarantees exact counts within a plain table. You can enable it by setting the [distinct_precision_threshold](../Searching/Options.md#distinct_precision_threshold) option to `0`.
+Manticore 支持两种算法来计算唯一值的计数。一种是传统算法，使用大量内存，通常较慢。它收集 `{group; value}` 对，将其排序，并定期丢弃重复项。这种方法的好处是可以在普通表中保证精确计数。您可以通过将 [distinct_precision_threshold](../Searching/Options.md#distinct_precision_threshold) 选项设置为 `0` 来启用此算法。
 
-The other algorithm (enabled by default) loads counts into a hash table and returns its size. If the hash table becomes too large, its contents are moved into a `HyperLogLog`. This is where the counts become approximate since `HyperLogLog` is a probabilistic algorithm. The advantage is that the maximum memory usage per group is fixed and depends on the accuracy of the `HyperLogLog`. The overall memory usage also depends on the [max_matches](../Searching/Options.md#max_matches) setting, which reflects the number of groups.
+另一种算法（默认启用）将计数加载到哈希表中并返回其大小。如果哈希表变得过大，其内容会转移到 `HyperLogLog` 中。此时，计数变为近似值，因为 `HyperLogLog` 是一种概率算法。它的优势在于每组的最大内存使用是固定的，并且取决于 `HyperLogLog` 的精度设置。
 
-The [distinct_precision_threshold](../Searching/Options.md#distinct_precision_threshold) option sets the threshold below which counts are guaranteed to be exact. The `HyperLogLog` accuracy setting and the threshold for the "hash table to HyperLogLog" conversion are derived from this setting. It's important to use this option with caution because doubling it will double the maximum memory required for count calculations. The maximum memory usage can be roughly estimated using this formula: `64 * max_matches * distinct_precision_threshold`. Note that this is the worst-case scenario, and in most cases, count calculations will use significantly less RAM.
+[distinct_precision_threshold](../Searching/Options.md#distinct_precision_threshold) 选项设置了确保计数精确的阈值。`HyperLogLog` 的精度设置以及从哈希表转换为 `HyperLogLog` 的阈值取决于此设置。谨慎使用此选项，因为将其值加倍将使计算计数所需的最大内存加倍。最大内存使用可以使用以下公式大致估算：`64 * max_matches * distinct_precision_threshold`。请注意，这只是最坏情况下的估算，在大多数情况下，计算计数会使用显著更少的内存。
 
-**`COUNT(DISTINCT)` against a distributed table or a real-time table consisting of multiple disk chunks may return inaccurate results**, but the result should be accurate for a distributed table consisting of local plain or real-time tables with the same schema (identical set/order of fields, but may have different tokenization settings).
+在包含多个磁盘块的实时表或分布式表中，`COUNT(DISTINCT)` 的结果可能不准确，但对于由具有相同架构的本地普通表或实时表组成的分布式表，结果应是准确的。
 
 <!-- intro -->
-##### Example:
+
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -1370,12 +1377,12 @@ SELECT major, count(*), count(distinct age) FROM students GROUP BY major;
 <!-- example concat -->
 ##### GROUP_CONCAT(field)
 
-Often, you want to better understand the contents of each group. You can use [GROUP N BY](../Searching/Grouping.md#Give-me-N-rows) for that, but it would return additional rows you might not want in the output. `GROUP_CONCAT()` enriches your grouping by concatenating values of a specific field in the group. Let's take the previous example and improve it by displaying all the ages in each group.
+通常，您可能希望更好地了解每个组的内容。可以使用 [GROUP N BY](../Searching/Grouping.md#Give-me-N-rows)，但这会返回您可能不希望在输出中显示的其他行。`GROUP_CONCAT()` 可以通过将特定字段的值连接在一起来丰富您的分组。例如，使用之前的例子，可以显示每个组中的所有年龄。
 
-`GROUP_CONCAT(field)` returns the list as comma-separated values.
+`GROUP_CONCAT(field)` 以逗号分隔的形式返回字段值列表。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -1394,10 +1401,10 @@ SELECT major, count(*), count(distinct age), group_concat(age) FROM students GRO
 <!-- end -->
 <!-- example sum -->
 ##### SUM(), MIN(), MAX(), AVG()
-Of course, you can also obtain the sum, average, minimum, and maximum values within a group.
+当然，您还可以获得组内的总和、平均值、最小值和最大值。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql
@@ -1418,18 +1425,18 @@ SELECT release_year year, sum(rental_rate) sum, min(rental_rate) min, max(rental
 <!-- end -->
 
 <!-- example accuracy -->
-## Grouping accuracy
+## 分组精度
 
-Grouping is done in fixed memory, which depends on the [max_matches](../Searching/Options.md#max_matches) setting. If `max_matches` allows for storage of all found groups, the results will be 100% accurate. However, if the value of `max_matches` is lower, the results will be less accurate.
+分组在固定内存中进行，内存的使用取决于 [max_matches](../Searching/Options.md#max_matches) 设置。如果 `max_matches` 允许存储所有找到的组，结果将是 100% 准确的。然而，如果 `max_matches` 的值较低，结果的准确性将降低。
 
-When parallel processing is involved, it can become more complicated. When `pseudo_sharding` is enabled and/or when using an RT table with several disk chunks, each chunk or pseudo shard gets a result set that is no larger than `max_matches`. This can lead to inaccuracies in aggregates and group counts when the result sets from different threads are merged. To fix this, either a larger `max_matches` value or disabling parallel processing can be used.
+当涉及并行处理时，情况可能会变得更加复杂。当启用了 `pseudo_sharding` 和/或使用包含多个磁盘块的实时表时，每个块或伪分片的结果集不会超过 `max_matches`。这可能会导致合并不同线程的结果集时聚合和组计数不准确。为了解决这个问题，可以使用更大的 `max_matches` 值，或者禁用并行处理。
 
-Manticore will try to increase `max_matches` up to [max_matches_increase_threshold](../Searching/Options.md#max_matches_increase_threshold) if it detects that groupby may return inaccurate results. Detection is based on the number of unique values of the groupby attribute, which is retrieved from secondary indexes (if present).
+如果 Manticore 检测到 groupby 可能返回不准确的结果，它会尝试将 `max_matches` 增加到 [max_matches_increase_threshold](../Searching/Options.md#max_matches_increase_threshold)。该检测基于从辅助索引中获取的 groupby 属性的唯一值数量（如果存在）。
 
-To ensure accurate aggregates and/or group counts when using RT tables or `pseudo_sharding`, `accurate_aggregation` can be enabled. This will try to increase `max_matches` up to the threshold, and if the threshold is not high enough, Manticore will disable parallel processing for the query.
+要确保使用实时表或 `pseudo_sharding` 时的精确聚合和/或组计数，可以启用 `accurate_aggregation`。这将尝试将 `max_matches` 增加到阈值，如果阈值不够高，Manticore 将禁用该查询的并行处理。
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request SQL -->
 ```sql

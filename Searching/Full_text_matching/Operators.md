@@ -1,191 +1,190 @@
-# Full text operators
+# 全文搜索操作符
 
-The query string can include specific operators that define the conditions for how the words from the query string should be matched.
+查询字符串可以包含特定的操作符，这些操作符定义了查询字符串中的单词应如何匹配的条件。
 
-### Boolean operators
+### 布尔操作符
 
-#### AND operator
+#### AND 操作符
 
-An implicit logical AND operator is always present, so "hello world" implies that both "hello" and "world" must be found in the matching document.
+一个隐式的逻辑 AND 操作符总是存在，所以 "hello world" 意味着匹配的文档必须同时包含 "hello" 和 "world"。
 
 ```sql
 hello  world
 ```
 
-Note: There is no explicit `AND` operator.
+注意：没有显式的 `AND` 操作符。
 
-#### OR operator
+#### OR 操作符
 
-The logical OR operator `|` has a higher precedence than AND, so `looking for cat | dog | mouse` means `looking for (cat | dog | mouse)` rather than `(looking for cat) | dog | mouse`.
+逻辑 OR 操作符 | 的优先级高于 AND，所以 `looking for cat | dog | mouse` 表示 `looking for (cat | dog | mouse)` 而不是 `(looking for cat) | dog | mouse`。
 
 ```sql
 hello | world
 ```
 
-Note: There is no operator `OR`. Please use `|` instead.
+注意：没有 `OR` 操作符，请使用 `|` 代替。
 
-### MAYBE operator
+### MAYBE 操作符
 
 ```sql
 hello MAYBE world
 ```
 
-The `MAYBE` operator functions similarly to the `|` operator, but it does not return documents that match only the right subtree expression.
+`MAYBE` 操作符类似于 `|` 操作符，但它不会返回仅匹配右侧子表达式的文档。
 
-### Negation operator
+### 否定操作符
 
 ```sql
 hello -world
 hello !world
 ```
 
-The negation operator enforces a rule for a word to not exist.
+否定操作符强制规则，即某个单词不应存在。
 
-Queries containing **only** negations are **not** supported by default. To enable, use the server option [not_terms_only_allowed](../../Server_settings/Searchd.md#not_terms_only_allowed).
+**仅**包含否定操作符的查询默认**不**支持。若要启用此功能，请使用服务器选项 [not_terms_only_allowed](../../Server_settings/Searchd.md#not_terms_only_allowed)。
 
-### Field search operator
+### 字段搜索操作符
 
 ```sql
 @title hello @body world
 ```
 
-The field limit operator restricts subsequent searches to a specified field. By default, the query will fail with an error message if the given field name does not exist in the searched table. However, this behavior can be suppressed by specifying the `@@relaxed` option at the beginning of the query:
+字段限制操作符将后续搜索限制在指定字段中。默认情况下，如果给定字段名在搜索的表中不存在，查询将失败并返回错误信息。然而，这种行为可以通过在查询开头指定 `@@relaxed` 选项来抑制：
 
 ```sql
 @@relaxed @nosuchfield my query
 ```
 
-This can be useful when searching through heterogeneous tables with different schemas.
+这在通过不同模式的异构表进行搜索时非常有用。
 
-Field position limits additionally constrain the search to the first N positions within a given field (or fields). For example, `@body [50] hello` will not match documents where the keyword `hello` appears at position 51 or later in the body.
+字段位置限制进一步将搜索限制在给定字段的前 N 个位置。例如，`@body [50] hello` 将不会匹配那些关键词 hello 出现在 body 字段中的第 51 位或更后的文档。
 
 ```sql
 @body[50] hello
 ```
 
-Multiple-field search operator:
+多字段搜索操作符：
 
 ```sql
 @(title,body) hello world
 ```
 
-Ignore field search operator (ignores any matches of 'hello world' from the 'title' field):
+忽略字段搜索操作符（忽略来自 ‘title’ 字段的 ‘hello world’ 匹配）：
 
 ```sql
 @!title hello world
 ```
 
-Ignore multiple-field search operator (if there are fields 'title', 'subject', and 'body', then `@!(title)` is equivalent to `@(subject,body)`):
+忽略多字段搜索操作符（如果有字段 ‘title’，‘subject’，‘body’，则 `@!(title)` 等价于 `@(subject,body)`）：
 
 ```sql
 @!(title,body) hello world
 ```
 
-All-field search operator:
+全字段搜索操作符：
 
 ```sql
 @* hello
 ```
 
-### Phrase search operator
+### 短语搜索操作符
 
 ```sql
 "hello world"
 ```
 
-The phrase operator mandates that the words be adjacent to each other.
+短语操作符要求单词彼此相邻。
 
-The phrase search operator can incorporate a `match any term` modifier. Within the phrase operator, terms are positionally significant. When the 'match any term' modifier is employed, the positions of the subsequent terms in that phrase query will be shifted. As a result, the 'match any' modifier does not affect search performance.
+短语搜索操作符可以包含一个 “匹配任意词” 修饰符。在短语操作符内，词语的位置很重要。当使用 “匹配任意词” 修饰符时，短语查询中的后续词语的位置将被移动。因此，“匹配任意词” 修饰符不会影响搜索性能。
 
 ```sql
 "exact * phrase * * for terms"
 ```
 
-###  Proximity search operator
+###  近邻搜索操作符
 
 ```sql
 "hello world"~10
 ```
 
-Proximity distance is measured in words, accounting for word count, and applies to all words within quotes. For example, the query `"cat dog mouse"~5` indicates that there must be a span of fewer than 8 words containing all 3 words. Therefore, a document with `CAT aaa bbb ccc DOG eee fff MOUSE` will not match this query, as the span is exactly 8 words long.
+近邻距离以词数来衡量，适用于引号内的所有词语。例如，查询 `"cat dog mouse"`~5 表示必须有少于 8 个词语的范围包含所有 3 个词。因此，一个包含 `CAT aaa bbb ccc DOG eee fff MOUSE` 的文档不会匹配此查询，因为该范围恰好是 8 个词长。
 
-###  Quorum matching operator
+###  多数匹配操作符
 
 ```sql
 "the world is a wonderful place"/3
 ```
 
-The quorum matching operator introduces a type of fuzzy matching. It will match only those documents that meet a given threshold of specified words. In the example above (`"the world is a wonderful place"/3`), it will match all documents containing at least 3 of the 6 specified words. The operator is limited to 255 keywords. Instead of an absolute number, you can also provide a value between 0.0 and 1.0 (representing 0% and 100%), and Manticore will match only documents containing at least the specified percentage of given words. The same example above could also be expressed as `"the world is a wonderful place"/0.5`, and it would match documents with at least 50% of the 6 words.
+多数匹配操作符引入了一种模糊匹配类型。它只会匹配满足指定词语数量阈值的文档。在上述示例 (`"the world is a wonderful place"/3`) 中，它将匹配包含至少 6 个指定词中 3 个的文档。该操作符的限制是最多 255 个关键词。你还可以提供 0.0 到 1.0 之间的值（分别表示 0% 和 100%），Manticore 仅匹配包含至少指定百分比词语的文档。同样的例子也可以表示为 `"the world is a wonderful place"/0.5`，它将匹配至少包含 6 个词中 50% 的文档。
 
-### Strict order operator
+### 严格顺序操作符
 
 ```sql
 aaa << bbb << ccc
 ```
 
-The strict order operator (also known as the "before" operator) matches a document only if its argument keywords appear in the document precisely in the order specified in the query. For example, the query `black << cat` will match the document "black and white cat" but not the document "that cat was black". The order operator has the lowest priority. It can be applied to both individual keywords and more complex expressions. For instance, this is a valid query:
+严格顺序操作符（也称为 "之前" 操作符）仅在其参数关键词出现在文档中的顺序与查询中指定的顺序完全一致时才匹配文档。例如，查询 `black << cat` 将匹配文档 "black and white cat"，但不会匹配文档 "that cat was black"。顺序操作符优先级最低，它可以应用于单个关键词以及更复杂的表达式。例如，这是一个有效查询：
 
 ```sql
 (bag of words) << "exact phrase" << red|green|blue
 ```
 
-### Exact form modifier
+### 精确形式修饰符
 
 ```sql
 raining =cats and =dogs
 ="exact phrase"
 ```
 
-The exact form keyword modifier matches a document only if the keyword appears in the exact form specified. By default, a document is considered a match if the stemmed/lemmatized keyword matches. For instance, the query "runs" will match both a document containing "runs" and one containing "running", because both forms stem to just "run". However, the `=runs` query will only match the first document. The exact form operator requires the [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words) option to be enabled.
+精确形式关键词修饰符仅在文档中的关键词与指定的精确形式一致时才匹配文档。默认情况下，文档在关键词的词干/词形化形式匹配时视为匹配。例如，查询 "runs" 将匹配包含 "runs" 和 "running" 的文档，因为这两种形式的词干都为 "run"。然而，查询 `=runs` 只会匹配包含 "runs" 的文档。精确形式操作符需要启用 [index_exact_words](../../Creating_a_table/NLP_and_tokenization/Morphology.md#index_exact_words) 选项。
 
-Another use case is to prevent [expanding](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#expand_keywords) a keyword to its `*keyword*` form. For example, with `index_exact_words=1` + `expand_keywords=1/star`, `bcd` will find a document containing `abcde`, but `=bcd` will not.
+另一个使用场景是防止 [扩展](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#expand_keywords) 关键词为 `*keyword*` 形式。例如，使用 `index_exact_words=1` 和 `expand_keywords=1/star`，`bcd` 会找到包含 `abcde` 的文档，但 `=bcd` 不会。
 
-As a modifier affecting the keyword, it can be used within operators such as phrase, proximity, and quorum operators. Applying an exact form modifier to the phrase operator is possible, and in this case, it internally adds the exact form modifier to all terms in the phrase.
+作为影响关键词的修饰符，它可以在操作符中使用，例如短语、近邻和多数匹配操作符。将精确形式修饰符应用于短语操作符时，它会自动将该修饰符添加到短语中的所有词语上。
 
-### Wildcard operators
+### 通配符操作符
 
 ```sql
 nation* *nation* *national
 ```
 
-Requires [min_infix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) for prefix (expansion in trail) and/or suffix (expansion in head). If only prefixing is desired, [min_prefix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) can be used instead.
+需要 [min_infix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) 用于前缀（尾部扩展）和/或后缀（首部扩展）。如果只需要前缀，[min_prefix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) 也可使用。
 
-The search will attempt to find all expansions of the wildcarded tokens, and each expansion is recorded as a matched hit. The number of expansions for a token can be controlled with the [expansion_limit](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#expansion_limit) table setting. Wildcarded tokens can have a significant impact on query search time, especially when tokens have short lengths. In such cases, it is desirable to use the expansion limit.
+搜索将尝试找到通配符标记的所有扩展，并将每个扩展记录为一个匹配结果。可以通过 [expansion_limit](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#expansion_limit) 表设置控制标记的扩展数量。通配符标记可能对查询时间有显著影响，尤其是标记长度较短时。在这种情况下，使用扩展限制是有利的。
 
-The wildcard operator can be automatically applied if the [expand_keywords](../../Searching/Options.md#expand_keywords) table setting is used.
+如果使用 [expand_keywords](../../Searching/Options.md#expand_keywords) 表设置，通配符操作符可自动应用。
 
-In addition, the following inline wildcard operators are supported:
+此外，支持以下内联通配符操作符：
 
-* `?` can match any single character: `t?st` will match `test`, but not `teast`
-* `%` can match zero or one character: `tes%` will match `tes` or `test`, but not `testing`
+- `?` 匹配任意单个字符：`t?st` 将匹配 `test`，但不匹配 `teast`
+- `%` 匹配零个或一个字符：`tes%` 将匹配 `tes` 或 `test`，但不匹配 `testing`
 
-The inline operators require `dict=keywords` and infixing enabled.
+内联操作符需要 `dict=keywords` 和已启用的 infixing。
 
-### REGEX operator
+### 正则表达式操作符
 
 ```sql
 REGEX(/t.?e/)
 ```
 
-Requires the [min_infix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) or [min_prefix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) and [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords options to be set (which is a default).
+需要设置 [min_infix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_infix_len) 或 [min_prefix_len](../../Creating_a_table/NLP_and_tokenization/Wildcard_searching_settings.md#min_prefix_len) 和 [dict](../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#dict)=keywords（这是默认设置）。
 
-Similarly to the [wildcard operators](../../Searching/Full_text_matching/Operators.md#Wildcard-operators), the REGEX operator attempts to find all tokens matching the provided pattern, and each expansion is recorded as a matched hit. Note, this can have a significant impact on query search time, as the entire dictionary is scanned, and every term in the dictionary undergoes matching with the REGEX pattern.
+类似于 [通配符操作符](../../Searching/Full_text_matching/Operators.md#Wildcard-operators)，正则表达式操作符尝试找到所有与提供的模式匹配的标记，并将每个扩展记录为一个匹配结果。请注意，这可能对查询时间有显著影响，因为整个字典会被扫描，每个词条都会与正则表达式模式进行匹配。
 
-The patterns should adhere to the [RE2 syntax](https://github.com/google/re2/wiki/Syntax). The REGEX expression delimiter is the first symbol after the open bracket. In other words, all text between the open bracket followed by the delimiter and the delimiter and the closed bracket is considered as a RE2 expression.
-Please note that the terms stored in the dictionary undergo `charset_table` transformation, meaning that for example, REGEX may not be able to match uppercase characters if all characters are lowercased according to the `charset_table` (which happens by default). To successfully match a term using a REGEX expression, the pattern must correspond to the entire token. To achieve partial matching, place `.*` at the beginning and/or end of your pattern.
+这些模式应符合 [RE2 语法](https://github.com/google/re2/wiki/Syntax)。正则表达式分隔符是左括号后的第一个符号。换句话说，所有文本位于左括号后紧跟分隔符和右括号之间，都被视为 RE2 表达式。 请注意，存储在字典中的词条会经过 `charset_table` 转换，这意味着例如如果根据 `charset_table` 的设置所有字符都被转为小写（默认情况下会发生这种情况），则正则表达式可能无法匹配大写字符。若要通过正则表达式成功匹配某个词条，模式必须与整个标记一致。要实现部分匹配，请在模式的开头和/或结尾添加 `.*`。
 
 ```sql
 REGEX(/.{3}t/)
 REGEX(/t.*\d*/)
 ```
 
-### Field-start and field-end modifier
+### 字段开头与字段结尾修饰符
 
 ```sql
 ^hello world$
 ```
 
-Field-start and field-end keyword modifiers ensure that a keyword only matches if it appears at the very beginning or the very end of a full-text field, respectively. For example, the query `"^hello world$"` (enclosed in quotes to combine the phrase operator with the start/end modifiers) will exclusively match documents containing at least one field with these two specific keywords.
+字段开头与字段结尾关键词修饰符确保关键词仅在它出现在全文字段的最开头或最结尾时匹配。例如，查询 `"^hello world$"`（使用引号将短语操作符与开头/结尾修饰符结合）将仅匹配至少有一个字段包含这两个特定关键词的文档。
 
 ### IDF boost modifier
 
@@ -193,28 +192,28 @@ Field-start and field-end keyword modifiers ensure that a keyword only matches i
 boosted^1.234 boostedfieldend$^1.234
 ```
 
-The boost modifier raises the word [IDF](../../Searching/Options.md#idf)_score by the indicated factor in ranking scores that incorporate IDF into their calculations. It does not impact the matching process in any manner.
+提升修饰符通过在包含 IDF 的计算中按指定系数提升单词 [IDF](../../Searching/Options.md#idf)_score。它不会以任何方式影响匹配过程。
 
-### NEAR operator
+### NEAR 操作符
 
 ```sql
 hello NEAR/3 world NEAR/4 "my test"
 ```
 
-The `NEAR` operator is a more generalized version of the proximity operator. Its syntax is `NEAR/N`, which is case-sensitive and does not allow spaces between the `NEAR` keywords, slash sign, and distance value.
+`NEAR` 操作符是一个更通用的近邻操作符。其语法为 `NEAR/N`，区分大小写，不允许在 `NEAR` 关键词、斜杠符号和距离值之间有空格。
 
-While the original proximity operator works only on sets of keywords, `NEAR` is more versatile and can accept arbitrary subexpressions as its two arguments. It matches a document when both subexpressions are found within N words of each other, regardless of their order. `NEAR` is left-associative and shares the same (lowest) precedence as [BEFORE](../../Searching/Full_text_matching/Operators.md#Strict-order-operator).
+虽然原始的近邻操作符仅适用于关键词集，但 `NEAR` 更加灵活，它可以接受任意子表达式作为其两个参数。当这两个子表达式在 N 个词内出现时，`NEAR` 就会匹配文档，无论它们的顺序如何。`NEAR` 是左结合的，并且具有与 [BEFORE](../../Searching/Full_text_matching/Operators.md#Strict-order-operator) 相同的（最低）优先级。
 
-It is important to note that `one NEAR/7 two NEAR/7 three` is not exactly equivalent to `"one two three"~7`. The key difference is that the proximity operator allows up to 6 non-matching words between all three matching words, while the version with `NEAR` is less restrictive: it permits up to 6 words between `one` and `two`, and then up to 6 more between that two-word match and `three`.
+需要注意的是，`one NEAR/7 two NEAR/7 three` 并不完全等同于 `"one two three"~7`。关键区别在于，近邻操作符允许在三个匹配词之间最多出现 6 个不匹配词，而使用 `NEAR` 的版本则更不严格：它允许 `one` 和 `two` 之间最多有 6 个词，然后 `two` 和 `three` 之间再允许最多 6 个词。
 
-### NOTNEAR operator
+### NOTNEAR 操作符
 
 ```sql
 Church NOTNEAR/3 street
 ```
-The `NOTNEAR` operator serves as a negative assertion. It matches a document when the left argument is present and either the right argument is absent from the document or the right argument is a specified distance away from the end of the left matched argument. The distance is denoted in words. The syntax is `NOTNEAR/N`, which is case-sensitive and does not permit spaces between the `NOTNEAR` keyword, slash sign, and distance value. Both arguments of this operator can be terms or any operators or group of operators.
+`NOTNEAR` 操作符作为一种否定断言。当左参数存在，并且右参数要么不存在于文档中，要么与左匹配参数末尾相隔指定距离时，它会匹配文档。距离以词语为单位表示。语法为 `NOTNEAR/N`，区分大小写，并且不允许在 `NOTNEAR` 关键词、斜杠符号和距离值之间有空格。该操作符的两个参数可以是词语、任意操作符或操作符组。
 
-### SENTENCE and PARAGRAPH operators
+### SENTENCE 和 PARAGRAPH 操作符
 
 ```sql
 all SENTENCE words SENTENCE "in one sentence"
@@ -224,12 +223,12 @@ all SENTENCE words SENTENCE "in one sentence"
 ```sql
 "Bill Gates" PARAGRAPH "Steve Jobs"
 ```
-The `SENTENCE` and `PARAGRAPH` operators match a document when both of their arguments are within the same sentence or the same paragraph of text, respectively. These arguments can be keywords, phrases, or instances of the same operator.
+`SENTENCE` 和 `PARAGRAPH` 操作符在其两个参数位于同一段落或同一句话中时匹配文档。这些参数可以是关键词、短语或相同操作符的实例。
 
-The order of the arguments within the sentence or paragraph is irrelevant. These operators function only with tables built with [index_sp](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_sp) (sentence and paragraph indexing feature) enabled and revert to a simple AND operation otherwise. For information on what constitutes a sentence and a paragraph, refer to the [index_sp](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_sp) directive documentation.
+在句子或段落中的参数顺序无关紧要。这些操作符仅在使用启用了 [index_sp](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_sp)（句子和段落索引功能）构建的表时有效，否则会回退为简单的 AND 操作。有关句子和段落的定义，请参考 [index_sp](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_sp) 指令文档。
 
 
-### ZONE limit operator
+### ZONE 限制操作符
 
 ```sql
 ZONE:(h3,h4)
@@ -237,7 +236,7 @@ ZONE:(h3,h4)
 only in these titles
 ```
 
-The `ZONE limit` operator closely resembles the field limit operator but limits matching to a specified in-field zone or a list of zones. It is important to note that subsequent subexpressions do not need to match within a single continuous span of a given zone and may match across multiple spans. For example, the query `(ZONE:th hello world)` will match the following sample document:
+`ZONE 限制` 操作符与字段限制操作符相似，但将匹配限制在指定的字段区域或区域列表中。需要注意的是，后续子表达式不需要在给定区域的单个连续跨度内匹配，可以跨越多个跨度匹配。例如，查询 `(ZONE:th hello world)` 将匹配以下示例文档：
 
 ```html
 <th>Table 1. Local awareness of Hello Kitty brand.</th>
@@ -245,9 +244,9 @@ The `ZONE limit` operator closely resembles the field limit operator but limits 
 <th>Table 2. World-wide brand awareness.</th>
 ```
 
-The `ZONE` operator influences the query until the next field or `ZONE` limit operator, or until the closing parenthesis. It functions exclusively with tables built with zone support (refer to [index_zones](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_zones)) and will be disregarded otherwise.
+`ZONE` 操作符影响查询，直到下一个字段或 `ZONE` 限制操作符，或直到关闭的括号。它仅在使用启用区域支持（请参考 [index_zones](../../Creating_a_table/NLP_and_tokenization/Advanced_HTML_tokenization.md#index_zones)）构建的表时有效，否则将被忽略。
 
-### ZONESPAN limit operator
+### ZONESPAN 限制操作符
 
 ```sql
 ZONESPAN:(h2)
@@ -255,6 +254,6 @@ ZONESPAN:(h2)
 only in a (single) title
 ```
 
-The `ZONESPAN` limit operator resembles the `ZONE` operator but mandates that the match occurs within a single continuous span. In the example provided earlier, `ZONESPAN:th hello world` would not match the document, as "hello" and "world" do not appear within the same span.
+`ZONESPAN` 限制操作符类似于 `ZONE` 操作符，但要求匹配发生在单个连续跨度内。在前面的示例中，`ZONESPAN:th hello world` 不会匹配文档，因为 "hello" 和 "world" 没有出现在同一个跨度内。
 
 <!-- proofread -->

@@ -1,9 +1,9 @@
-# Search results
+# 搜索结果
 
 ## SQL
 
 <!-- example sql1 -->
-When you run a query via SQL over the MySQL protocol, you receive the requested columns as a result or an empty result set if nothing is found.
+当你通过 MySQL 协议运行 SQL 查询时，结果将包含所请求的列，如果没有找到任何内容，则返回一个空的结果集。
 
 <!-- request SQL -->
 ```sql
@@ -24,7 +24,7 @@ SELECT * FROM tbl;
 <!-- end -->
 
 <!-- example sql2 -->
-Additionally, you can use the [SHOW META](../Node_info_and_management/SHOW_META.md) call to see extra meta-information about the latest query.
+此外，你可以使用 [SHOW META](../Node_info_and_management/SHOW_META.md) 查看最近一次查询的额外元信息。
 
 <!-- request SQL -->
 ```sql
@@ -55,7 +55,7 @@ SELECT id,story_author,comment_author FROM hn_small WHERE story_author='joe' LIM
 <!-- end -->
 
 <!-- example sql3 -->
-In some cases, such as when performing a [faceted search](../Searching/Faceted_search.md), you may receive multiple result sets as a response to your SQL query.
+在某些情况下，例如执行 [分面搜索](../Searching/Faceted_search.md) 时，SQL 查询的响应可能包含多个结果集。
 
 <!-- request SQL -->
 ```sql
@@ -81,8 +81,9 @@ SELECT * FROM tbl WHERE MATCH('joe') FACET age;
 <!-- end -->
 
 <!-- example sql4 -->
-In case of a warning, the result set will include a warning flag, and you can see the warning using [SHOW WARNINGS](../Node_info_and_management/SHOW_WARNINGS.md).
+如果查询中出现警告，结果集将包含一个警告标志，你可以使用 [SHOW WARNINGS](../Node_info_and_management/SHOW_WARNINGS.md) 查看警告信息。
 <!-- request SQL -->
+
 ```sql
 SELECT * from tbl where match('"joe"/3'); show warnings;
 ```
@@ -106,7 +107,7 @@ SELECT * from tbl where match('"joe"/3'); show warnings;
 <!-- end -->
 
 <!-- example sql5 -->
-If your query fails, you will receive an error:
+如果查询失败，你将收到一个错误
 
 <!-- request SQL -->
 ```sql
@@ -123,7 +124,7 @@ ERROR 1064 (42000): index idx: query error: no field 'surname' found in schema
 
 ## HTTP
 
-Via the HTTP JSON interface, the query result is sent as a JSON document. Example:
+通过 HTTP JSON 接口，查询结果将以 JSON 文档的形式发送。示例：
 
 ```json
 {
@@ -149,23 +150,23 @@ Via the HTTP JSON interface, the query result is sent as a JSON document. Exampl
 }
 ```
 
-* `took`: time in milliseconds it took to execute the search
-* `timed_out`: whether the query timed out or not
-* `hits`: search results, with the following properties:
-  - `total`: total number of matching documents
-  - `hits`: an array containing matches
+* `took`: 执行搜索所用的时间（毫秒）
+* `timed_out`: 查询是否超时
+* `hits`: 搜索结果，包含以下属性：
+  - `total`: 匹配文档的总数
+  - `hits`: 包含匹配项的数组
 
-The query result can also include query profile information. See [Query profile](../Node_info_and_management/Profiling/Query_profile.md).
+查询结果还可以包含查询的剖析信息。请参阅 [查询剖析](../Node_info_and_management/Profiling/Query_profile.md)。
 
-Each match in the `hits` array has the following properties:
+`hits` 数组中的每个匹配项包含以下属性：
 
-* `_id`: match id
-* `_score`: match weight, calculated by the ranker
-* `_source`: an array containing the attributes of this match
+* `_id`: 匹配项 ID
+* `_score`: 匹配项权重，由排序器计算
+* _source`: 包含该匹配项属性的数组
 
-### Source selection
+### 源选择
 
-By default, all attributes are returned in the `_source` array. You can use the `_source` property in the request payload to select the fields you want to include in the result set. Example:
+默认情况下，所有属性都会返回在 `_source` 数组中。您可以在请求负载中使用 `_source` 属性选择要包含在结果集中的字段。示例：
 
 ```json
 {
@@ -175,9 +176,9 @@ By default, all attributes are returned in the `_source` array. You can use the 
 }
 ```
 
-You can specify the attributes you want to include in the query result as a string (`"_source": "attr*"`) or as an array of strings (`"_source": [ "attr1", "attri*" ]"`). Each entry can be an attribute name or a wildcard (`*`, `%` and `?` symbols are supported).
+您可以通过字符串（`"_source": "attr*"`）或字符串数组（`"_source": [ "attr1", "attri*" ]"`）来指定要包含在查询结果中的属性。每个条目可以是属性名或通配符（支持 `*`、`%` 和 `?` 符号）。
 
-You can also explicitly specify which attributes you want to include and which to exclude from the result set using the `includes` and `excludes` properties:
+您还可以通过 `includes` 和 `excludes` 属性明确指定要包含或排除的属性：
 
 ```json
 "_source":
@@ -187,7 +188,7 @@ You can also explicitly specify which attributes you want to include and which t
 }
 ```
 
-An empty list of includes is interpreted as "include all attributes," while an empty list of excludes does not match anything. If an attribute matches both the includes and excludes, then the excludes win.
+空的 `includes` 列表表示“包含所有属性”，而空的 `excludes` 列表则不会匹配任何内容。如果某个属性同时匹配 `includes` 和 `excludes`，那么以 `excludes` 为准。
 
 <!-- proofread -->
 

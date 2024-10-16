@@ -151,7 +151,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
     * [• 分页](Searching/Pagination.md)
     * [• 分布式搜索](Searching/Distributed_searching.md)
     * [• 多查询](Searching/Multi-queries.md)
-    * [• 子选择](Searching/Sub-selects.md)
+    * [• 子查询](Searching/Sub-selects.md)
     * [• 分组](Searching/Grouping.md)
     * [• 分面搜索](Searching/Faceted_search.md)
     * [• 地理（Geo）搜索](Searching/Geo_search.md)
