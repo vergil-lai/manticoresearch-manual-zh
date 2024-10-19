@@ -1,26 +1,27 @@
-# Filters
+# 过滤器
 
 ## WHERE
 
-`WHERE` is an SQL clause that works for both full-text matching and additional filtering. The following operators are available:
+`WHERE` 是一个 SQL 子句，用于全文本匹配和附加过滤。支持以下操作符：
 
-* [Comparison operators](../Searching/Expressions.md#Comparison-operators) `<, >, <=, >=, =, <>, BETWEEN, IN, IS NULL`
-* [Boolean operators](../Searching/Full_text_matching/Operators.md#Boolean-operators) `AND, OR, NOT`
+- [比较操作符](../Searching/Expressions.md#Comparison-operators) `<, >, <=, >=, =, <>, BETWEEN, IN, IS NULL`
+- [布尔操作符](../Searching/Full_text_matching/Operators.md#Boolean-operators) `AND, OR, NOT`
 
-`MATCH('query')` is supported and maps to a [full-text query](../Searching/Full_text_matching/Operators.md).
+支持 `MATCH('query')`，它映射到 [全文查询](../Searching/Full_text_matching/Operators.md)。
 
-The `{col_name | expr_alias} [NOT] IN @uservar` condition syntax is supported. Refer to the [SET](../Server_settings/Setting_variables_online.md#SET) syntax for a description of global user variables.
+支持 `{col_name | expr_alias} [NOT] IN @uservar` 条件语法。请参阅 [SET](../Server_settings/Setting_variables_online.md#SET) 语法了解全局用户变量的描述。
 
 ## HTTP JSON
 
-If you prefer the HTTP JSON interface, you can also apply filtering. It might seem more complex than SQL, but it is recommended for cases when you need to prepare a query programmatically, such as when a user fills out a form in your application.
+如果您更喜欢使用 HTTP JSON 接口，也可以进行过滤。虽然看起来比 SQL 更复杂，但在需要编程生成查询时，推荐使用这种方法，比如当用户在您的应用中填写表单时。
 
 <!-- example json1 -->
-Here's an example of several filters in a `bool` query.
+以下是 `bool` 查询中几个过滤器的示例。
 
-This full-text query matches all documents containing `product` in any field. These documents must have a price greater than or equal to 500 (`gte`) and less than or equal to 1000 (`lte`). All of these documents must not have a revision less than 15 (`lt`).
+这个全文查询匹配在任何字段中包含`product`的所有文档。这些文档的价格必须大于或等于 500（`gte`）且小于或等于 1000（`lte`）。所有这些文档的修订版本都不能小于 15（`lt`）。
 
 <!-- request JSON -->
+
 ```json
 POST /search
 {
@@ -41,12 +42,13 @@ POST /search
 <!-- end -->
 
 
-### bool query
+### bool 查询
 
 <!-- example bool -->
-The `bool` query matches documents based on boolean combinations of other queries and/or filters. Queries and filters must be specified in `must`, `should`, or `must_not` sections and can be [nested](../Searching/Filters.md#Nested-bool-query).
+`bool` 查询基于其他查询和/或过滤器的布尔组合匹配文档。查询和过滤器必须在 `must`、`should` 或 `must_not` 部分中指定，并且可以[嵌套](../Searching/Filters.md#Nested-bool-query)。
 
 <!-- request JSON -->
+
 ```json
 POST /search
 {
@@ -65,7 +67,7 @@ POST /search
 
 <!-- example must_not -->
 ### must
-Queries and filters specified in the `must` section are required to match the documents. If multiple fulltext queries or filters are specified, all of them must match. This is the equivalent of `AND` queries in SQL. Note that if you want to match against an array ([multi-value attribute](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29)), you can specify the attribute multiple times. The result will be positive only if all the queried values are found in the array, e.g.:
+在 `must` 部分中指定的查询和过滤器必须匹配文档。如果指定了多个全文查询或过滤器，它们必须全部匹配。这等同于 SQL 中的 `AND` 查询。请注意，如果要匹配数组（[多值属性](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA))），可以多次指定该属性。只有在数组中找到所有查询的值，结果才会为正，例如：
 
 ```json
 "must": [
@@ -74,14 +76,14 @@ Queries and filters specified in the `must` section are required to match the do
 ]
 ```
 
-Note also, it may be better in terms of performance to use:
+另外，出于性能考虑，可能更适合使用：
 ```json
   {"in" : { "all(product_codes)": [5,6] }}
 ```
-(see details below).
+（见下文详细说明）。
 
 ### should
-Queries and filters specified in the `should` section should match the documents. If some queries are specified in `must` or `must_not`, `should` queries are ignored. On the other hand, if there are no queries other than `should`, then at least one of these queries must match a document for it to match the bool query. This is the equivalent of `OR` queries. Note, if you want to match against an array ([multi-value attribute](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29)) you can specify the attribute multiple times, e.g.:
+在 `should` 部分中指定的查询和过滤器应匹配文档。如果在 `must` 或 `must_not` 中指定了一些查询，则会忽略 `should` 查询。另一方面，如果除了 `should` 没有其他查询，那么至少其中一个查询必须匹配文档，文档才能匹配该 bool 查询。这等同于 SQL 中的 `OR` 查询。请注意，如果要匹配数组（[多值属性](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA))），可以多次指定该属性，例如：
 
 ```json
 "should": [
@@ -90,14 +92,14 @@ Queries and filters specified in the `should` section should match the documents
 ]
 ```
 
-Note also, it may be better in terms of performance to use:
+另外，出于性能考虑，可能更适合使用：
 ```json
   {"in" : { "any(product_codes)": [7,8] }}
 ```
-(see details below).
+（见下文详细说明）。
 
 ### must_not
-Queries and filters specified in the `must_not` section must not match the documents. If several queries are specified under `must_not`, the document matches if none of them match.
+在 `must_not` 部分中指定的查询和过滤器不能匹配文档。如果在 `must_not` 下指定了多个查询，文档如果都不匹配这些查询，则视为匹配。
 
 <!-- request JSON -->
 ```json
@@ -136,16 +138,16 @@ POST /search
 ```
 <!-- end -->
 
-### Nested bool query
+### 嵌套布尔查询
 
 <!-- example eq_and_or -->
-A bool query can be nested inside another bool so you can make more complex queries. To make a nested boolean query just use another `bool` instead of `must`, `should` or `must_not`. Here is how this query:
+一个布尔查询可以嵌套在另一个布尔查询中，从而构建更复杂的查询。要创建嵌套的布尔查询，只需在 `must`、`should` 或 `must_not` 中使用另一个 `bool`。以下是如何将此查询：
 
 ```
 a = 2 and (a = 10 or b = 0)
 ```
 
-should be presented in JSON.
+表示为JSON格式。
 
 <!-- request JSON -->
 a = 2 and (a = 10 or b = 0)
@@ -186,7 +188,8 @@ POST /search
 <!-- end -->
 
 <!-- example complex -->
-More complex query:
+更复杂的查询：
+
 ```
 (a = 1 and b = 1) or (a = 10 and b = 2) or (b = 0)
 ```
@@ -252,9 +255,9 @@ POST /search
 ```
 <!-- end -->
 
-### Queries in SQL format
+### SQL格式的查询
 <!-- example query_string -->
-Queries in SQL format (`query_string`) can also be used in bool queries.
+SQL格式的查询（`query_string`）也可以用于布尔查询中。
 
 <!-- request JSON -->
 ```json
@@ -273,11 +276,11 @@ POST /search
 ```
 <!-- end -->
 
-## Various filters
+## 各种过滤器
 
-### Equality filters
+### 等式过滤器
 <!-- example equals -->
-Equality filters are the simplest filters that work with integer, float and string attributes.
+等式过滤器是最简单的过滤器，适用于整数、浮点数和字符串属性。
 
 <!-- request JSON -->
 ```json
@@ -292,9 +295,11 @@ POST /search
 <!-- end -->
 
 <!-- example equals_any -->
-Filter `equals` can be applied to a [multi-value attribute](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29) and you can use:
-* `any()` which will be positive if the attribute has at least one value which equals to the queried value;
-* `all()` which will be positive if the attribute has a single value and it equals to the queried value
+
+`equals` 过滤器可以应用于[多值属性](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA))，你可以使用：
+
+- `any()`，当属性中至少有一个值等于查询值时，结果为正；
+- `all()`，当属性只有一个值且它等于查询值时，结果为正。
 
 <!-- request JSON -->
 ```json
@@ -309,11 +314,12 @@ POST /search
 <!-- end -->
 
 
-### Set filters
+### 集合过滤器
 <!-- example set -->
-Set filters check if attribute value is equal to any of the values in the specified set.
 
-Set filters support integer, string and multi-value attributes.
+集合过滤器检查属性值是否等于指定集合中的任意一个值。
+
+集合过滤器支持整数、字符串和多值属性。
 
 <!-- request JSON -->
 ```json
@@ -330,9 +336,11 @@ POST /search
 <!-- end -->
 
 <!-- example set_any -->
-When applied to a [multi-value attribute](../../Creating_a_table/Data_types.md#Multi-value-integer-%28MVA%29) you can use:
-* `any()` (equivalent to no function) which will be positive if there's at least one match between the attribute values and the queried values;
-* `all()` which will be positive if all the attribute values are in the queried set
+
+当应用于[多值属性](../../Creating_a_table/Data_types.md#Multi-value-integer-(MVA))时，你可以使用：
+
+- `any()`（等同于不使用函数），当属性值与查询值集中的至少一个匹配时，结果为正；
+- `all()`，当所有属性值都在查询值集中时，结果为正。
 
 <!-- request JSON -->
 ```json
@@ -348,15 +356,17 @@ POST /search
 ```
 <!-- end -->
 
-### Range filters
+### 范围过滤器
 <!-- example range -->
-Range filters match documents that have attribute values within a specified range.
 
-Range filters support the following properties:
-* `gte`: greater than or equal to
-* `gt`: greater than
-* `lte`: less than or equal to
-* `lt`: less than
+范围过滤器匹配具有指定范围内属性值的文档。
+
+范围过滤器支持以下属性：
+
+- `gte`：大于或等于
+- `gt`：大于
+- `lte`：小于或等于
+- `lt`：小于
 
 <!-- request JSON -->
 ```json
@@ -375,40 +385,40 @@ POST /search
 ```
 <!-- end -->
 
-### Geo distance filters
+### 地理距离过滤器
 
 <!-- example geo -->
-`geo_distance` filters are used to filter the documents that are within a specific distance from a geo location.
+`geo_distance` 过滤器用于筛选距离指定地理位置一定范围内的文档。
 
 ##### location_anchor
-Specifies the pin location, in degrees. Distances are calculated from this point.
+指定锚点位置，单位为度。距离是从这个点计算的。
 
 ##### location_source
-Specifies the attributes that contain latitude and longitude.
+指定包含纬度和经度的属性。
 
 ##### distance_type
-Specifies distance calculation function. Can be either adaptive or haversine. adaptive is faster and more precise, for more details see `GEODIST()`. Optional, defaults to adaptive.
+指定距离计算函数。可以是 adaptive 或 haversine。adaptive 更快且更精确，详情请参阅 `GEODIST()`。此选项为可选项，默认为 adaptive。
 
 ##### distance
-Specifies the maximum distance from the pin locations. All documents within this distance match. The distance can be specified in various units. If no unit is specified, the distance is assumed to be in meters. Here is a list of supported distance units:
+指定与锚点位置的最大距离。在此距离内的所有文档都会匹配。距离可以以多种单位指定。如果没有指定单位，默认以米为单位。以下是支持的距离单位列表：
 
-* Meter: `m` or `meters`
-* Kilometer: `km` or `kilometers`
-* Centimeter: `cm` or `centimeters`
-* Millimeter: `mm` or `millimeters`
-* Mile: `mi` or `miles`
-* Yard: `yd` or `yards`
-* Feet: `ft` or `feet`
-* Inch: `in` or `inch`
-* Nautical mile: `NM`, `nmi` or `nauticalmiles`
+- 米：`m` 或 `meters`
+- 千米：`km` 或 `kilometers`
+- 厘米：`cm` 或 `centimeters`
+- 毫米：`mm` 或 `millimeters`
+- 英里：`mi` 或 `miles`
+- 码：`yd` 或 `yards`
+- 英尺：`ft` 或 `feet`
+- 英寸：`in` 或 `inch`
+- 海里：`NM`，`nmi` 或 `nauticalmiles`
 
-`location_anchor` and `location_source` properties accept the following latitude/longitude formats:
+`location_anchor` 和 `location_source` 属性接受以下纬度/经度格式：
 
-* an object with lat and lon keys: `{ "lat": "attr_lat", "lon": "attr_lon" }`
-* a string of the following structure: `"attr_lat, attr_lon"`
-* an array with the latitude and longitude in the following order: `[attr_lon, attr_lat]`
+- 带有 lat 和 lon 键的对象：`{ "lat": "attr_lat", "lon": "attr_lon" }`
+- 具有以下结构的字符串：`"attr_lat, attr_lon"`
+- 以经度和纬度为顺序的数组：`[attr_lon, attr_lat]`
 
-Latitude and longitude are specified in degrees.
+纬度和经度的单位为度。
 
 
 <!-- request Basic example -->
@@ -428,7 +438,7 @@ POST /search
 ```
 
 <!-- request Advanced example -->
-`geo_distance` can be used as a filter in bool queries along with matches or other attribute filters.
+`geo_distance` 可以与布尔查询中的匹配查询或其他属性过滤器一起用作过滤器。
 
 ```json
 POST /search

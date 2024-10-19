@@ -1,44 +1,44 @@
-# Expressions in search
+# 搜索中的表达式
 
-Manticore enables the use of arbitrary arithmetic expressions through both SQL and HTTP, incorporating attribute values, internal attributes (document ID and relevance weight), arithmetic operations, several built-in functions, and user-defined functions. Below is the complete reference list for quick access.
+Manticore 允许通过 SQL 和 HTTP 使用任意算术表达式，这些表达式可以结合属性值、内部属性（文档 ID 和相关性权重）、算术操作、多个内置函数以及用户定义的函数。以下是完整的参考列表，方便快速查阅。
 
-## Arithmetic operators
+## 算术运算符
 ```sql
 +, -, *, /, %, DIV, MOD
 ```
 
-Standard arithmetic operators are available. Arithmetic calculations involving these operators can be executed in three different modes:
+提供标准的算术运算符。涉及这些运算符的算术计算可以在三种模式下执行：
 
-1. using single-precision, 32-bit IEEE 754 floating point values (default),
-2. using signed 32-bit integers,
-3. using 64-bit signed integers.
+1. 使用单精度 32 位 IEEE 754 浮点值（默认模式），
+2. 使用带符号的 32 位整数，
+3. 使用 64 位带符号整数。
 
-The expression parser automatically switches to integer mode if no operations result in a floating point value. Otherwise, it uses the default floating point mode. For example, a+b will be computed using 32-bit integers if both arguments are 32-bit integers; or using 64-bit integers if both arguments are integers but one of them is 64-bit; or in floats otherwise. However, `a/b` or `sqrt(a)` will always be computed in floats, as these operations return a non-integer result. To avoid this, you can use `IDIV(a,b)` or a `DIV b` form. Additionally, `a*b` will not automatically promote to 64-bit when arguments are 32-bit. To enforce 64-bit results, use [BIGINT()](../Functions/Type_casting_functions.md#BIGINT%28%29), but note that if non-integer operations are present, BIGINT() will simply be ignored.
+如果没有操作结果为浮点值，表达式解析器会自动切换到整数模式。否则，将使用默认的浮点模式。例如，如果 `a` 和 `b` 都是 32 位整数，那么 `a+b` 将使用 32 位整数计算；如果其中一个是 64 位整数，则使用 64 位整数计算；否则使用浮点数计算。然而，`a/b` 或 `sqrt(a)` 将始终以浮点数计算，因为这些操作返回非整数结果。要避免这种情况，您可以使用 `IDIV(a,b)` 或 `a DIV b`。此外，`a*b` 不会自动提升为 64 位结果。要强制得到 64 位结果，可以使用 [BIGINT()](../Functions/Type_casting_functions.md#BIGINT())，但请注意，如果存在非整数操作，`BIGINT()` 将被忽略。
 
-## Comparison operators
+## 比较运算符
 ```sql
 <, > <=, >=, =, <>
 ```
 
-The comparison operators return 1.0 when the condition is true and 0.0 otherwise. For example, `(a=b)+3` evaluates to 4 when attribute `a` is equal to attribute `b`, and to 3 when `a` is not. Unlike MySQL, the equality comparisons (i.e., `=` and `<>` operators) include a small equality threshold (1e-6 by default). If the difference between the compared values is within the threshold, they are considered equal.
+比较运算符在条件为真时返回 `1.0`，否则返回 `0.0`。例如，`(a=b)+3` 在属性 `a` 等于属性 `b` 时，返回 4；如果 `a` 不等于 `b`，则返回 3。与 MySQL 不同，等值比较（即 `=` 和 `<>` 运算符）包括一个小的等值阈值（默认为 1e-6）。如果比较值之间的差异在该阈值内，它们将被视为相等。
 
-The `BETWEEN` and `IN` operators, in the case of multi-value attributes, return true if at least one value matches the condition (similar to [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY%28%29)). The `IN` operator does not support JSON attributes. The `IS (NOT) NULL` operator is supported only for JSON attributes.
+`BETWEEN` 和 `IN` 运算符在多值属性的情况下，如果至少有一个值匹配条件，则返回 true（类似于 [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY())）。`IN` 运算符不支持 JSON 属性。`IS (NOT) NULL` 运算符仅支持 JSON 属性。
 
-## Boolean operators
+## 布尔运算符
 ```sql
 AND, OR, NOT
 ```
 
-Boolean operators (AND, OR, NOT) behave as expected. They are left-associative and have the lowest priority compared to other operators. NOT has higher priority than AND and OR but still less than any other operator. AND and OR share the same priority, so using parentheses is recommended to avoid confusion in complex expressions.
+布尔运算符（AND、OR、NOT）的行为如预期。它们是左结合的，并且优先级低于其他运算符。NOT 的优先级高于 AND 和 OR，但仍然低于任何其他运算符。AND 和 OR 的优先级相同，因此在复杂表达式中建议使用括号以避免混淆。
 
-## Bitwise operators
+## 位运算符
 ```sql
 &, |
 ```
 
-These operators perform bitwise AND and OR respectively. The operands must be of integer types.
+这些运算符分别执行按位与和按位或。操作数必须是整数类型。
 
-## Functions:
+## 函数：
 * [ABS()](../Functions/Mathematical_functions.md#ABS%28%29)
 * [ALL()](../Functions/Arrays_and_conditions_functions.md#ALL%28%29)
 * [ANY()](../Functions/Arrays_and_conditions_functions.md#ANY%28%29)
@@ -101,9 +101,9 @@ These operators perform bitwise AND and OR respectively. The operands must be of
 * [YEARMONTHDAY()](../Functions/Date_and_time_functions.md#YEARMONTHDAY%28%29)
 * [WEIGHT()](../Functions/Searching_and_ranking_functions.md#WEIGHT%28%29)
 
-## Expressions in HTTP JSON
+## HTTP JSON中的表达式
 
-In the HTTP JSON interface, expressions are supported via `script_fields` and `expressions`.
+在 HTTP JSON 接口中，表达式通过 `script_fields` 和 `expressions` 支持。
 
 ### script_fields
 
@@ -128,11 +128,11 @@ In the HTTP JSON interface, expressions are supported via `script_fields` and `e
 }
 ```
 
-In this example, two expressions are created: `add_all` and `title_len`. The first expression calculates `( gid * 10 ) | crc32(title)` and stores the result in the `add_all` attribute. The second expression calculates `crc32(title)` and stores the result in the `title_len` attribute.
+在这个例子中，创建了两个表达式：`add_all` 和 `title_len`。第一个表达式计算 `( gid * 10 ) | crc32(title)` 并将结果存储在 `add_all` 属性中。第二个表达式计算 `crc32(title)` 并将结果存储在 `title_len` 属性中。
 
-Currently, only `inline` expressions are supported. The value of the `inline` property (the expression to compute) has the same syntax as SQL expressions.
+目前，仅支持 `inline` 表达式。`inline` 属性的值（要计算的表达式）语法与 SQL 表达式相同。
 
-The expression name can be utilized in filtering or sorting.
+表达式名称可以用于过滤或排序。
 
 
 <!-- intro -->
@@ -195,13 +195,13 @@ The expression name can be utilized in filtering or sorting.
 
 <!-- end -->
 
-By default, expression values are included in the `_source` array of the result set. If the source is selective (see [Source selection](../Searching/Search_results.md#Source-selection)), the expression name can be added to the `_source` parameter in the request. Note, the names of the expressions must be in lowercase.
+默认情况下，表达式值会包含在结果集的 `_source` 数组中。如果源选择是选择性的（参见 [源选择](../Searching/Search_results.md#Source-selection)），表达式名称可以添加到请求中的 `_source` 参数中。请注意，表达式的名称必须为小写。
 
 ### expressions
 
 <!-- example expressions -->
 
-`expressions` is an alternative to `script_fields` with a simpler syntax. The example request adds two expressions and stores the results into `add_all` and `title_len` attributes. Note, the names of the expressions must be in lowercase.
+`expressions` 是 `script_fields` 的替代方法，语法更为简单。示例请求添加了两个表达式，并将结果存储在 `add_all` 和 `title_len` 属性中。请注意，表达式的名称必须为小写。
 
 <!-- request expressions -->
 ```json

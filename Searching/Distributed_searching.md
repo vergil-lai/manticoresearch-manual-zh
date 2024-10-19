@@ -1,29 +1,29 @@
-# Distributed searching
+# 分布式搜索
 
-Manticore is designed to scale effectively through its distributed searching capabilities. Distributed searching is beneficial for improving query latency (i.e., search time) and throughput (i.e., max queries/sec) in multi-server, multi-CPU, or multi-core environments. This is crucial for applications that need to search through vast amounts of data (i.e., billions of records and terabytes of text).
+Manticore 通过其分布式搜索功能有效地扩展了系统的能力。分布式搜索在多服务器、多 CPU 或多核环境中有助于改善查询延迟（即搜索时间）和吞吐量（即最大查询/秒）。对于需要处理海量数据（如数十亿条记录和数 TB 文本）的应用程序来说，这至关重要。
 
-The primary concept is to horizontally partition the searched data across search nodes and process it in parallel.
+其核心概念是将搜索数据水平划分到不同的搜索节点上，并进行并行处理。
 
-Partitioning is done manually. To set it up, you should:
+分区需要手动设置。设置步骤如下：
 
-* Set up multiple instances of Manticore on different servers
-* Distribute different parts of your dataset to different instances
-* Configure a special [distributed table](../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md) on some of the `searchd` instances
-* Route your queries to the distributed table
+- 在不同的服务器上设置多个 Manticore 实例
+- 将数据集的不同部分分配给不同的实例
+- 在某些 `searchd` 实例上配置一个特殊的[分布式表](../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md)
+- 将查询路由到分布式表上
 
-This type of table only contains references to other local and remote tables - so it cannot be directly reindexed. Instead, you should reindex the tables that it references.
+这种类型的表只包含对其他本地或远程表的引用，因此不能直接重新索引。您应当重新索引它所引用的表。
 
-When Manticore receives a query against a distributed table, it performs the following steps:
+当 Manticore 收到针对分布式表的查询时，会执行以下步骤：
 
-1. Connects to the configured remote agents
-2. Sends the query to them
-3. Simultaneously searches the configured local tables (while the remote agents are searching)
-4. Retrieves the search results from the remote agents
-5. Merges all the results together, removing duplicates
-6. Sends the merged results to the client
+1. 连接到已配置的远程代理
+2. 将查询发送给它们
+3. 同时搜索配置的本地表（远程代理也在搜索）
+4. 从远程代理检索搜索结果
+5. 合并所有结果，删除重复项
+6. 将合并后的结果发送给客户端
 
-From the application's perspective, there are no differences between searching through a regular table or a distributed table. In other words, distributed tables are fully transparent to the application, and there's no way to tell whether the table you queried was distributed or local.
+从应用程序的角度来看，使用普通表或分布式表进行搜索没有任何区别。换句话说，分布式表对应用程序是完全透明的，无法判断查询的表是分布式表还是本地表。
 
-Learn more about [remote nodes](../Creating_a_cluster/Remote_nodes.md).
+了解更多关于[远程节点](../Creating_a_cluster/Remote_nodes.md)的信息。
 
 <!-- proofread -->

@@ -1,16 +1,28 @@
-# Introduction into searching with Manticore Search
+# Manticore Search 搜索入门
 
-Searching is a core feature of Manticore Search. You can:
-* Perform [full-text search](../Searching/Full_text_matching/Basic_usage.md#MATCH) and implement search result [highlighting](../Searching/Highlighting.md)
-* Perform [k-nearest neighbor search](../Searching/KNN.md)
-* Apply [non-full-text filtering](../Searching/Filters.md)
-* Use [expressions](../Searching/Expressions.md) for filtering
-* Utilize various [search options](../Searching/Options.md)
-* Employ [multi-queries](../Searching/Multi-queries.md) and [sub-selects](../Searching/Sub-selects.md)
-* Conduct [aggregations](../Searching/Grouping.md) and [faceting](../Searching/Faceted_search.md) of search results
-* And much more
+搜索是 Manticore Search 的核心功能。你可以：
 
-## General syntax
+
+
+ 执行[全文搜索](../Searching/Full_text_matching/Basic_usage.md#MATCH)并实现搜索结果的[高亮显示](../Searching/Highlighting.md)
+
+* 执行[k-最近邻搜索](../Searching/KNN.md)
+
+* 应用[非全文过滤](../Searching/Filters.md)
+
+* 使用[表达式](../Searching/Expressions.md)进行过滤
+
+* 利用各种[搜索选项](../Searching/Options.md)
+
+* 使用[多查询](../Searching/Multi-queries.md)和[子查询](../Searching/Sub-selects.md)
+
+* 进行搜索结果的[聚合](../Searching/Grouping.md)和[分面搜索](../Searching/Faceted_search.md)
+
+* 以及更多功能
+
+
+
+**通用语法**
 
 **SQL**:
 ```sql

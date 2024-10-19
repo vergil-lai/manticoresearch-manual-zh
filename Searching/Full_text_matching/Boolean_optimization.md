@@ -1,17 +1,18 @@
-# Boolean optimization
-Queries can be automatically optimized if `OPTION boolean_simplify=1` is specified. Some transformations performed by this optimization include:
+# 布尔优化
+如果指定 `OPTION boolean_simplify=1`，查询可以自动优化。此优化执行的一些转换包括：
 
-* Excess brackets: `((A | B) | C)` becomes `(A | B | C)`; `((A B) C)` becomes `(A B C)`
-* Excess AND NOT: `((A !N1) !N2)` becomes `(A !(N1 | N2))`
-* Common NOT: `((A !N) | (B !N))` becomes `((A | B) !N)`
-* Common Compound NOT: `((A !(N AA)) | (B !(N BB)))` becomes `(((A | B) !N) | (A !AA) | (B !BB))` if the cost of evaluating N is greater than the sum of evaluating A and B
-* Common subterm: `((A (N | AA)) | (B (N | BB)))` becomes `(((A | B) N) | (A AA) | (B BB))` if the cost of evaluating N is greater than the sum of evaluating A and B
-* Common keywords: `(A | "A B"~N)` becomes `A`; `("A B" | "A B C")` becomes `"A B"`; `("A B"~N | "A B C"~N)` becomes `("A B"~N)`
-* Common phrase: `("X A B" | "Y A B")` becomes `("("X"|"Y") A B")`
-* Common AND NOT: `((A !X) | (A !Y) | (A !Z))` becomes `(A !(X Y Z))`
-* Common OR NOT: `((A !(N | N1)) | (B !(N | N2)))` becomes `(( (A !N1) | (B !N2) ) !N)`
-Note that optimizing queries consumes CPU time, so for simple queries or hand-optimized queries, you'll achieve better results with the default `boolean_simplify=0` value. Simplifications often benefit complex queries or algorithmically generated queries.
+- 多余的括号：`((A | B) | C)` 变为 `(A | B | C)`；`((A B) C)` 变为 `(A B C)`
+- 多余的 AND NOT：`((A !N1) !N2)` 变为 `(A !(N1 | N2))`
+- 共同的 NOT：`((A !N) | (B !N))` 变为 `((A | B) !N)`
+- 共同的复合 NOT：`((A !(N AA)) | (B !(N BB)))` 变为 `(((A | B) !N) | (A !AA) | (B !BB))`，如果评估 N 的成本大于评估 A 和 B 的成本总和
+- 共同的子项：`((A (N | AA)) | (B (N | BB)))` 变为 `(((A | B) N) | (A AA) | (B BB))`，如果评估 N 的成本大于评估 A 和 B 的成本总和
+- 共同的关键词：`(A | "A B"~N)` 变为 `A`；`("A B" | "A B C")` 变为 `"A B"`；`("A B"~N | "A B C"~N)` 变为 `("A B"~N)`
+- 共同的短语：`("X A B" | "Y A B")` 变为 `("("X"|"Y") A B")`
+- 共同的 AND NOT：`((A !X) | (A !Y) | (A !Z))` 变为 `(A !(X Y Z))`
+- 共同的 OR NOT：`((A !(N | N1)) | (B !(N | N2)))` 变为 `(( (A !N1) | (B !N2) ) !N)`
 
-Queries like `-dog`, which could potentially include all documents from the collection are not allowed by default. To allow them, you must specify `not_terms_only_allowed=1` either as a [global setting](../../Server_settings/Searchd.md#not_terms_only_allowed) or as a [search option](../../Server_settings/Searchd.md#not_terms_only_allowed).
+请注意，优化查询会消耗 CPU 时间，因此对于简单查询或手动优化的查询，使用默认的 `boolean_simplify=0` 会获得更好的结果。简化通常对复杂查询或算法生成的查询有益。
+
+像 `-dog` 这样的查询，可能会包含集合中的所有文档，默认情况下是不允许的。要允许它们，您必须在 [全局设置](../../Server_settings/Searchd.md#not_terms_only_allowed)或 [搜索选项](../../Server_settings/Searchd.md#not_terms_only_allowed) 中指定 `not_terms_only_allowed=1`。
 
 <!-- proofread -->

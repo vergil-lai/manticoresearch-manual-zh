@@ -1,10 +1,10 @@
-# Joining tables
+# 表连接
 
-**WARNING: This functionality is in beta stage. Use it with caution.**
+**警告：此功能处于测试阶段。请谨慎使用。**
 
-Table joins in Manticore Search enable you to combine documents from two tables by matching related columns. This functionality allows for more complex queries and enhanced data retrieval across multiple tables.
+Manticore Search中的表连接允许您通过匹配相关列将两个表中的文档结合起来。此功能支持更复杂的查询，并增强了跨多个表的数据检索能力。
 
-## General syntax
+## 通用语法
 
 ### SQL
 
@@ -25,9 +25,9 @@ join_condition: {
 }
 ```
 
-For more information on select options, refer to the [SELECT](../Searching/Intro.md#General-syntax) section.
+有关选择选项的更多信息，请参阅 [SELECT](../Searching/Intro.md#General-syntax) 部分。
 
-When joining by a value from a JSON attribute, you need to explicitly specify the value's type using the `int()` or `string()` function.
+当通过JSON属性的值进行连接时，您需要使用 `int()` 或 `string()` 函数显式指定值的类型。
 
 <!-- request String JSON attribute -->
 ```sql
@@ -83,17 +83,18 @@ on.type: {
 	| string
 }
 ```
-Note, there is the `type` field in the `left` operand section which you should use when joining two tables using json attributes. The allowed values are `string` and `int`.
+请注意，在使用JSON属性连接两个表时，`left` 操作数部分中有一个 `type` 字段。允许的值为 `string` 和 `int`。
 
-## Types of Joins
+## 连接类型
 
-Manticore Search supports two types of joins:
+Manticore Search 支持两种类型的连接：
 
 <!-- example inner_basic -->
 
-1. **INNER JOIN**: Returns only the rows where there is a match in both tables. For example, the query performs an INNER JOIN between the `orders` and `customers` tables, including only the orders that have matching customers.
+1. **INNER JOIN**：仅返回两个表中都有匹配项的行。例如，该查询在 `orders` 和 `customers` 表之间执行一个 INNER JOIN，仅包含具有匹配客户的订单。
 
 <!-- request SQL -->
+
 ```sql
 SELECT product, customers.email, customers.name, customers.address
 FROM orders
@@ -185,7 +186,7 @@ POST /search
 
 <!-- example left_basic -->
 
-2. **LEFT JOIN**: Returns all rows from the left table and the matched rows from the right table. If there is no match, NULL values are returned for the right table's columns. For example, this query retrieves all customers along with their corresponding orders using a LEFT JOIN. If no corresponding order exists, NULL values will appear. The results are sorted by the customer's email, and only the customer's name and the order quantity are selected.
+2. **LEFT JOIN**：返回左表中的所有行以及右表中匹配的行。如果没有匹配项，则右表的列返回 NULL 值。例如，该查询使用 LEFT JOIN 检索所有客户及其对应的订单。如果没有对应的订单，则会显示 NULL 值。结果按照客户的电子邮件进行排序，并且只选择客户的姓名和订单数量。
 
 <!-- request SQL -->
 ```sql
@@ -359,11 +360,11 @@ POST /search
 
 <!-- end -->
 
-### Complex Join with Faceting
+### 带有分面功能的复杂连接
 
 <!-- example basic_complex -->
 
-This query retrieves products, customer names, product prices, and product tags from the `orders` and `customers` tables. It performs a `LEFT JOIN`, ensuring all customers are included even if they have not made an order. The query filters the results to include only orders with a price greater than `500` and matches the products to the terms 'laptop', 'phone', or 'monitor'. The results are ordered by the `id` of the orders in ascending order. Additionally, the query facets the results based on the warranty details from the JSON attributes of the joined `orders` table.
+此查询从 `orders` 和 `customers` 表中检索产品、客户姓名、产品价格和产品标签。它执行了一个 `LEFT JOIN`，确保即使客户没有下订单也会被包含在内。该查询过滤结果，仅包含价格大于 `500` 的订单，并将产品匹配为“laptop”、“phone”或“monitor”。结果按订单的 `id` 以升序排列。此外，查询还根据连接的 `orders` 表的 JSON 属性中的保修详情对结果进行分面处理。
 
 <!-- request SQL -->
 ```sql
@@ -507,28 +508,30 @@ POST /search
 
 <!-- end -->
 
-## Caveats and Best Practices
+## 注意事项和最佳实践
 
-When using JOINs in Manticore Search, keep the following points in mind:
+在 Manticore Search 中使用 JOIN 时，请注意以下几点：
 
-1. **Field selection**: When selecting fields from two tables in a JOIN, do not prefix fields from the left table, but do prefix fields from the right table. For example:
+1. **字段选择**：在 JOIN 中从两个表中选择字段时，不要为左表的字段加前缀，但要为右表的字段加前缀。例如：
+   
    ```sql
    SELECT field_name, right_table.field_name FROM ...
    ```
-
-2. **JOIN conditions**: Always explicitly specify the table names in your JOIN conditions:
+   
+2. **JOIN 条件**：在 JOIN 条件中始终显式指定表名：
    ```sql
    JOIN ON table_name.some_field = another_table_name.some_field
    ```
 
-3. **Expressions with JOINs**: When using expressions that combine fields from both joined tables, alias the result of the expression:
+3. **带有 JOIN 的表达式**：当使用结合两个连接表字段的表达式时，给表达式的结果起别名：
    ```sql
    SELECT *, (nums2.n + 3) AS x, x * n FROM nums LEFT JOIN nums2 ON nums2.id = nums.num2_id
    ```
 
-4. **Filtering on aliased expressions**: You cannot use aliases for expressions involving fields from both tables in the WHERE clause.
+4. **对别名表达式进行过滤**：在 WHERE 子句中，不能对涉及两个表字段的表达式别名进行过滤。
 
-5. **Using ANY with MVA**: When using the `ANY()` function with multi-valued attributes in JOINs, alias the multi-valued attribute from the joined table:
+5. **在 MVA 中使用 ANY**：在 JOIN 中使用多值属性的 `ANY()` 函数时，为连接表中的多值属性起别名：
+   
    ```sql
    SELECT *, t2.m AS alias
    FROM t
@@ -536,6 +539,6 @@ When using JOINs in Manticore Search, keep the following points in mind:
    WHERE ANY(alias) IN (3, 5)
    ```
 
-By following these guidelines, you can effectively use JOINs in Manticore Search to combine data from multiple indexes and perform complex queries.
+通过遵循这些指南，您可以有效地在 Manticore Search 中使用 JOIN 来结合多个索引的数据并执行复杂的查询。
 
 <!-- proofread -->

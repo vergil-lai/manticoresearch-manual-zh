@@ -2,9 +2,9 @@
 
 <!-- example highlighting -->
 
-Highlighting enables you to obtain highlighted text fragments (referred to as snippets) from documents containing matching keywords.
+高亮显示使您能够从包含匹配关键字的文档中获取高亮的文本片段（称为摘要）。
 
-The SQL `HIGHLIGHT()` function, the `"highlight"` property in JSON queries via HTTP, and the `highlight()` function in the PHP client all utilize the built-in document storage to retrieve the original field contents (enabled by default).
+SQL 的 `HIGHLIGHT()` 函数、通过 HTTP 的 JSON 查询中的 `"highlight"` 属性，以及 PHP 客户端中的 `highlight()`函数都利用内置的文档存储来检索原始字段内容（默认启用）。
 
 <!-- intro -->
 ##### SQL:
@@ -279,68 +279,85 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- end -->
 
-When using SQL for highlighting search results, you will receive snippets from various fields combined into a single string due to the limitations of the MySQL protocol. You can adjust the concatenation separators with the `field_separator` and `snippet_separator` options, as detailed below.
+在使用 SQL 进行高亮显示搜索结果时，由于 MySQL 协议的限制，您将从多个字段中接收的摘要片段组合为一个字符串。您可以通过 `field_separator` 和 `snippet_separator` 选项调整这些连接分隔符，详细信息如下。
 
-When executing JSON queries through HTTP or using the PHP client, there are no such constraints, and the result set includes an array of fields containing arrays of snippets (without separators).
+通过 HTTP 执行 JSON 查询或使用 PHP 客户端时，不存在此类限制，结果集中包含字段数组，每个字段包含片段数组（无分隔符）。
 
-Keep in mind that snippet generation options like `limit`, `limit_words`, and `limit_snippets` apply to each field individually by default. You can alter this behavior using the `limits_per_field` option, but it could lead to unwanted results. For example, one field may have matching keywords, but no snippets from that field are included in the result set because they didn't rank as high as snippets from other fields in the highlighting engine.
+请注意，像 `limit`、`limit_words` 和 `limit_snippets` 这样的片段生成选项默认会单独应用于每个字段。您可以使用 `limits_per_field` 选项更改此行为，但这可能会导致不希望的结果。例如，一个字段可能包含匹配的关键字，但由于在高亮引擎中的排名不如其他字段的片段，因此未将该字段中的片段包含在结果集中。
 
-The highlighting algorithm currently prioritizes better snippets (with closer phrase matches) and then snippets with keywords not yet included in the result. Generally, it aims to highlight the best match for the query and to highlight all query keywords, as allowed by the limits. If no matches are found in the current field, the beginning of the document will be trimmed according to the limits and returned by default. To return an empty string instead, set the `allow_empty` option to 1.
+目前，高亮算法优先考虑更好的片段（包含更紧密的短语匹配），然后是包含尚未包含在结果中的关键字的片段。通常，它的目标是为查询高亮最佳匹配，并尽可能高亮所有查询关键字，受限于设置的限制。如果在当前字段中未找到匹配项，则默认情况下会根据限制对文档的开头进行裁剪并返回。要改为返回空字符串，可以将 `allow_empty` 选项设置为 1。
 
-Highlighting is performed during the so-called `post limit` stage, which means that snippet generation is deferred not only until the entire final result set is prepared but also after the LIMIT clause is applied. For instance, with a LIMIT 20,10 clause, the `HIGHLIGHT()` function will be called a maximum of 10 times.
+高亮显示在所谓的 `post limit` 阶段执行，这意味着片段生成不仅会延迟到准备好整个最终结果集之后，还会在应用 LIMIT 子句后执行。例如，使用 `LIMIT 20,10` 子句时，`HIGHLIGHT()` 函数最多调用 10 次。
 
-## Highlighting options
+## 高亮选项
 
 <!-- example highlighting options -->
 
-There are several optional highlighting options that can be used to fine-tune snippet generation, which are common to SQL, HTTP, and PHP clients.
+高亮显示提供了一些可选的选项，用于微调片段生成，适用于 SQL、HTTP 和 PHP 客户端。
 
 #### before_match
-A string to insert before a keyword match. The `%SNIPPET_ID%` macro can be used in this string. The first occurrence of the macro is replaced with an incrementing snippet number within the current snippet. Numbering starts at 1 by default but can be overridden with the `start_snippet_id` option. %SNIPPET_ID% restarts at the beginning of each new document. The default is `<b>`.
+
+在匹配关键字之前插入的字符串。可以在此字符串中使用 `%SNIPPET_ID%` 宏。该宏的第一个出现位置将替换为当前片段中的递增编号。默认情况下，编号从 1 开始，但可以使用 `start_snippet_id` 选项覆盖。%SNIPPET_ID% 在每个新文档的开始处重置。默认值为 `<b>`。
 
 #### after_match
-A string to insert after a keyword match. The default is `</b>`.
+
+在匹配关键字之后插入的字符串。默认值为 `</b>`。
 
 #### limit
-The maximum snippet size, in symbols (codepoints). The default is 256. This is applied per-field by default, see `limits_per_field`.
+
+片段的最大大小，以符号（代码点）为单位。默认值为 256。此选项默认应用于每个字段，参见 `limits_per_field`。
 
 #### limit_words
-Limits the maximum number of words that can be included in the result. Note that this limit applies to all words, not just the matched keywords to highlight. For example, if highlighting `Mary` and a snippet `Mary had a little lamb` is selected, it contributes 5 words to this limit, not just 1. The default is 0 (no limit). This is applied per-field by default, see `limits_per_field`.
+
+限制结果中可以包含的最大单词数。请注意，此限制适用于所有单词，而不仅仅是匹配的高亮关键字。例如，如果高亮显示 `Mary`，并选择片段 `Mary had a little lamb`，则它将为此限制贡献 5 个单词，而不仅仅是 1 个。默认值为 0（无限制）。此选项默认应用于每个字段，参见 `limits_per_field`。
 
 #### limit_snippets
-Limits the maximum number of snippets that can be included in the result. The default is 0 (no limit). This is applied per-field by default, see `limits_per_field`.
+
+限制结果中可以包含的片段的最大数量。默认值为 0（无限制）。此选项默认应用于每个字段，参见 `limits_per_field`。
 
 #### limits_per_field
-Determines whether `limit`, `limit_words`, and `limit_snippets` operate as individual limits in each field of the document being highlighted or as global limits for the entire document. Setting this option to 0 means that all combined highlighting results for one document must be within the specified limits. The downside is that you may have several snippets highlighted in one field and none in another if the highlighting engine decides they are more relevant. The default is 1 (use per-field limits).
+
+确定 `limit`、`limit_words` 和 `limit_snippets` 是作为每个字段的单独限制，还是作为整个文档的全局限制。如果此选项设置为 0，则单个文档的所有高亮结果必须在指定限制内。缺点是如果高亮引擎认为某些片段更相关，则可能在一个字段中高亮多个片段，而另一个字段中没有任何片段。默认值为 1（使用每字段限制）。
+
 #### around
-The number of words to select around each matching keyword block. The default is 5.
+
+选择每个匹配关键字块周围的单词数。默认值为 5。
 
 #### use_boundaries
-Determines whether to additionally break snippets by phrase boundary characters, as configured in table settings with the [phrase_boundary](../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#phrase_boundary) directive. The default is 0 (don't use boundaries).
+
+确定是否通过短语边界字符（根据表设置中的 [phrase_boundary](../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#phrase_boundary) 指令配置）进一步拆分片段。默认值为 0（不使用边界）。
 
 #### weight_order
-Specifies whether to sort the extracted snippets in order of relevance (decreasing weight) or in order of appearance in the document (increasing position). The default is 0 (don't use weight order).
+
+指定是否按相关性（递减权重）对提取的片段进行排序，还是按文档中的出现顺序（递增位置）进行排序。默认值为 0（不按权重排序）。
 
 #### force_all_words
-Ignores the length limit until the result includes all keywords. The default is 0 (don't force all keywords).
+
+忽略长度限制，直到结果包含所有关键字。默认值为 0（不强制包含所有关键字）。
 
 #### start_snippet_id
-Sets the starting value of the `%SNIPPET_ID%` macro (which is detected and expanded in `before_match`, `after_match` strings). The default is 1.
+
+设置 `%SNIPPET_ID%` 宏的起始值（在 `before_match`、`after_match` 字符串中检测并扩展）。默认值为 1。
 
 #### html_strip_mode
-Defines the HTML stripping mode setting. Defaults to `index`, meaning that table settings will be used. Other values include `none` and `strip`, which forcibly skip or apply stripping regardless of table settings; and `retain`, which retains HTML markup and protects it from highlighting. The `retain` mode can only be used when highlighting full documents and therefore requires that no snippet size limits are set. The allowed string values are `none`, `strip`, `index`, and `retain`.
+
+定义 HTML 去除模式设置。默认值为 `index`，表示使用表设置。其他值包括 `none` 和 `strip`，它们分别强制跳过或应用去除，无论表设置如何；`retain` 则保留 HTML 标记并保护其不被高亮显示。`retain` 模式只能在高亮显示完整文档时使用，因此要求未设置任何片段大小限制。允许的字符串值为 `none`、`strip`、`index` 和 `retain`。
 
 #### allow_empty
-Permits an empty string to be returned as the highlighting result when no snippets could be generated in the current field (no keyword match or no snippets fit the limit). By default, the beginning of the original text would be returned instead of an empty string. The default is 0 (don't allow an empty result).
+
+允许在当前字段中未能生成片段时返回空字符串（没有关键字匹配或没有片段符合限制）。默认情况下，将返回原始文本的开头，而不是空字符串。默认值为 0（不允许空结果）。
 
 #### snippet_boundary
-Ensures that snippets do not cross a sentence, paragraph, or zone boundary (when used with a table that has the respective indexing settings enabled). The allowed values are `sentence`, `paragraph`, and `zone`.
+
+确保片段不跨越句子、段落或区域边界（在使用启用了相应索引设置的表时）。允许的值为 `sentence`、`paragraph` 和 `zone`。
 
 #### emit_zones
-Emits an HTML tag with the enclosing zone name before each snippet. The default is 0 (don't emit zone names).
+
+在每个片段之前发出一个包含区域名称的 HTML 标签。默认值为 0（不发出区域名称）。
 
 #### force_snippets
-Determines whether to force snippet generation even if limits allow highlighting the entire text. The default is 0 (don't force snippet generation).
+
+确定是否强制生成片段，即使限制允许高亮显示全文。默认值为 0（不强制生成片段）。
 
 <!-- intro -->
 ##### SQL:
@@ -713,16 +730,16 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 <!-- end -->
 
 
-## Highlighting via SQL
+## 通过 SQL 实现高亮
 
-The `HIGHLIGHT()` function can be used to highlight search results. Here's the syntax:
+`HIGHLIGHT()` 函数可用于高亮搜索结果。其语法如下：
 
 ```sql
 HIGHLIGHT([options], [field_list], [query] )
 ```
 
 <!-- example highlight() no args -->
-By default, it works with no arguments.
+默认情况下，它可以在没有参数的情况下使用。
 
 <!-- intro -->
 ##### SQL:
@@ -747,7 +764,7 @@ SELECT HIGHLIGHT() FROM books WHERE MATCH('before');
 
 <!-- example highlight() field syntax -->
 
-`HIGHLIGHT()` retrieves all available full-text fields from document storage and highlights them against the provided query. Field syntax in queries is supported. Field text is separated by `field_separator`, which can be modified in the options.
+`HIGHLIGHT()` 从文档存储中检索所有可用的全文字段，并根据提供的查询对其进行高亮。查询中支持字段语法。字段文本由 `field_separator` 分隔，您可以在选项中对其进行修改。
 
 <!-- intro -->
 ##### SQL:
@@ -771,9 +788,10 @@ SELECT HIGHLIGHT() FROM books WHERE MATCH('@title one');
 <!-- end -->
 
 <!-- example highlight() options -->
-Optional first argument in `HIGHLIGHT()` is the list of options.
+`HIGHLIGHT()` 中的可选第一个参数是选项列表。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -796,9 +814,10 @@ SELECT HIGHLIGHT({before_match='[match]',after_match='[/match]'}) FROM books WHE
 
 <!-- example highlight() field list -->
 
-The optional second argument is a string containing a single field or a comma-separated list of fields. If this argument is present, only the specified fields will be fetched from document storage and highlighted. An empty string as the second argument signifies "fetch all available fields."
+第二个可选参数是一个包含单个字段或逗号分隔的字段列表的字符串。如果提供了此参数，则仅从文档存储中获取并高亮指定的字段。空字符串作为第二个参数表示“获取所有可用字段”。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -822,7 +841,7 @@ SELECT HIGHLIGHT({},'title,content') FROM books WHERE MATCH('one|robots');
 
 <!-- example highlight() string attr -->
 
-Alternatively, you can use the second argument to specify a string attribute or field name without quotes. In this case, the supplied string will be highlighted against the provided query, but field syntax will be ignored.
+或者，您可以使用第二个参数指定一个不带引号的字符串属性或字段名。在这种情况下，提供的字符串将根据提供的查询进行高亮，但字段语法将被忽略。
 
 <!-- intro -->
 ##### SQL:
@@ -848,7 +867,7 @@ SELECT HIGHLIGHT({}, title) FROM books WHERE MATCH('one');
 
 <!-- example highlight() query -->
 
-The optional third argument is the query. This is used to highlight search results against a query different from the one used for searching.
+第三个可选参数是查询，用于根据与用于搜索的查询不同的查询来高亮显示搜索结果。
 
 <!-- intro -->
 ##### SQL:
@@ -874,7 +893,7 @@ SELECT HIGHLIGHT({},'title', 'five') FROM books WHERE MATCH('one');
 
 <!-- example HIGHLIGHT TO_STRING -->
 
-Although `HIGHLIGHT()` is designed to work with stored full-text fields and string attributes, it can also be used to highlight arbitrary text. Keep in mind that if the query contains any field search operators (e.g., `@title hello @body world`), the field part of them is ignored in this case.
+尽管 `HIGHLIGHT()` 设计用于处理存储的全文字段和字符串属性，但它也可以用于高亮任意文本。请注意，如果查询包含任何字段搜索运算符（例如，`@title hello @body world`），此时将忽略它们的字段部分。
 
 <!-- intro -->
 ##### SQL:
@@ -897,26 +916,26 @@ SELECT HIGHLIGHT({},TO_STRING('some text to highlight'), 'highlight') FROM books
 
 <!-- end -->
 
-Several options are relevant only when generating a single string as a result (not an array of snippets). This applies exclusively to the SQL `HIGHLIGHT()` function:
+几个选项仅在生成单个字符串作为结果时适用（而不是片段数组）。这仅适用于 SQL 的 `HIGHLIGHT()` 函数：
 
 #### snippet_separator
-A string to insert between snippets. The default is ` ... `.
+用于插入片段之间的字符串。默认值为 ` ... `。
 #### field_separator
-A string to insert between fields. The default is `|`.
+用于插入字段之间的字符串。默认值为 `|`。
+
+另一种高亮文本的方式是使用 [CALL SNIPPETS](../Searching/Highlighting.md#CALL-SNIPPETS) 语句。这在大多数情况下与 `HIGHLIGHT()` 功能相同，但无法使用内置的文档存储。然而，它可以从文件中加载源文本。
 
 
-Another way to highlight text is to use the [CALL SNIPPETS](../Searching/Highlighting.md#CALL-SNIPPETS) statement. This mostly duplicates the `HIGHLIGHT()` functionality but cannot use built-in document storage. However, it can load source text from files.
-
-
-## Highlighting via HTTP
+## 通过 HTTP 实现高亮
 
 <!-- example highlight in JSON -->
 
-To highlight full-text search results in JSON queries via HTTP, field contents must be stored in document storage (enabled by default). In the example, full-text fields `content` and `title` are fetched from document storage and highlighted against the query specified in the `query` clause.
+要在通过 HTTP 的 JSON 查询中高亮全文搜索结果，字段内容必须存储在文档存储中（默认启用）。在示例中，全文字段 `content` 和 `title` 从文档存储中获取，并根据 `query` 子句中指定的查询进行高亮。
 
-Highlighted snippets are returned in the `highlight` property of the `hits` array.
+高亮的片段在 `hits` 数组的 `highlight` 属性中返回。
 
 <!-- intro -->
+
 ##### JSON:
 
 <!-- request JSON -->
@@ -1179,9 +1198,10 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example highlight JSON all field  -->
 
-To highlight all possible fields, pass an empty object as the `highlight` property.
+要高亮所有可能的字段，请将一个空对象传递给 `highlight` 属性。
 
 <!-- intro -->
+
 ##### JSON:
 <!-- request JSON -->
 
@@ -1451,19 +1471,19 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- end -->
 
-In addition to common highlighting options, several synonyms are available for JSON queries via HTTP:
+除了常见的高亮选项外，JSON 查询通过 HTTP 还提供了一些同义选项：
 
 #### fields
-The `fields` object contains attribute names with options. It can also be an array of field names (without any options).
+`fields` 对象包含带有选项的属性名称。它也可以是字段名称的数组（没有任何选项）。
 
-Note that by default, highlighting attempts to highlight the results following the full-text query. In a general case, when you don't specify fields to highlight, the highlight is based on your full-text query. However, if you specify fields to highlight, it highlights only if the full-text query matches the selected fields.
+请注意，默认情况下，高亮会根据全文查询的结果进行高亮。在一般情况下，当您未指定要高亮的字段时，高亮基于全文查询。然而，如果您指定了要高亮的字段，则只有在全文查询匹配所选字段时才会进行高亮。
 
 #### encoder
-The `encoder` can be set to `default` or `html`. When set to `html`, it retains HTML markup when highlighting. This works similarly to the `html_strip_mode=retain` option.
+`encoder` 可以设置为 `default` 或 `html`。当设置为 `html` 时，它在高亮时保留 HTML 标记。其作用类似于 `html_strip_mode=retain` 选项。
 
 <!-- example highlight_query -->
 #### highlight_query
-The `highlight_query` option allows you to highlight against a query other than your search query. The syntax is the same as in the main `query`.
+`highlight_query` 选项允许您根据与搜索查询不同的查询进行高亮。其语法与主 `query` 中的语法相同。
 
 <!-- intro -->
 ##### JSON:
@@ -1680,8 +1700,8 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example pre_tags  -->
 
-#### pre_tags and post_tags
-`pre_tags` and `post_tags` set the opening and closing tags for highlighted text snippets. They function similarly to the `before_match` and `after_match` options. These are optional, with default values of `<b>` and `</b>`.
+#### pre_tags 和 post_tags
+`pre_tags` 和 `post_tags` 用于设置高亮文本片段的开始和结束标签。它们的功能类似于 `before_match` 和 `after_match` 选项。这些选项是可选的，默认值分别为 `<b>` 和 `</b>`。
 
 <!-- intro -->
 ##### JSON:
@@ -1901,7 +1921,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example no_match_size  -->
 #### no_match_size
-`no_match_size` functions similarly to the `allow_empty` option. If set to 0, it acts as `allow_empty=1`, allowing an empty string to be returned as a highlighting result when a snippet could not be generated. Otherwise, the beginning of the field will be returned. This is optional, with a default value of 1.
+`no_match_size` 类似于 `allow_empty` 选项。如果设置为 0，它的作用等同于 `allow_empty=1`，当无法生成片段时允许返回空字符串作为高亮结果。否则，将返回字段的开头部分。此选项是可选的，默认值为 1。
 
 <!-- intro -->
 ##### JSON:
@@ -2113,7 +2133,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example order  -->
 #### order
-`order` sets the sorting order of extracted snippets. If set to `"score"`, it sorts the extracted snippets in order of relevance. This is optional and works similarly to the `weight_order` option.
+`order` 用于设置提取片段的排序顺序。如果设置为 `"score"`，它会按相关性顺序对提取的片段进行排序。此选项是可选的，功能类似于 `weight_order` 选项。
 
 <!-- intro -->
 ##### JSON:
@@ -2324,7 +2344,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example fragment_size -->
 #### fragment_size
-`fragment_size` sets the maximum snippet size in symbols. It can be global or per-field. Per-field options override global options. This is optional, with a default value of 256. It works similarly to the `limit` option.
+`fragment_size` 设置片段的最大大小（以符号为单位）。它可以是全局设置或按字段设置。按字段设置会覆盖全局设置。此选项是可选的，默认值为 256，功能类似于 `limit` 选项。
 
 <!-- intro -->
 ##### JSON:
@@ -2529,7 +2549,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example number_of_fragments -->
 #### number_of_fragments
-`number_of_fragments` limits the maximum number of snippets in the result. Like `fragment_size`, it can be global or per-field. This is optional, with a default value of 0 (no limit). It works similarly to the `limit_snippets` option.
+`number_of_fragments` 限制结果中片段的最大数量。像 `fragment_size` 一样，它可以是全局的，也可以是按字段的。此选项是可选的，默认值为 0（无限制），功能类似于 `limit_snippets` 选项。
 
 <!-- intro -->
 ##### JSON:
@@ -2740,7 +2760,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 <!-- example highlight json per-field limits -->
 
 #### limit, limit_words, limit_snippets
-Options like `limit`, `limit_words`, and `limit_snippets` can be set as global or per-field options. Global options are used as per-field limits unless per-field options override them. In the example, the `title` field is highlighted with default limit settings, while the `content` field uses a different limit.
+选项如 `limit`、`limit_words` 和 `limit_snippets` 可以设置为全局或按字段设置。全局设置用于每个字段，除非按字段设置覆盖它们。在示例中，`title` 字段使用默认的限制设置，而 `content` 字段使用不同的限制。
 
 <!-- intro -->
 ##### JSON:
@@ -2960,7 +2980,7 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 <!-- example highlight json global limits -->
 
 #### limits_per_field
-Global limits can also be enforced by specifying `limits_per_field=0`. Setting this option means that all combined highlighting results must be within the specified limits. The downside is that you may get several snippets highlighted in one field and none in another if the highlighting engine decides that they are more relevant.
+可以通过指定 `limits_per_field=0` 来强制执行全局限制。设置此选项意味着所有组合的高亮结果必须在指定的限制内。缺点是如果高亮引擎认为某些片段更相关，您可能会在一个字段中看到多个高亮片段，而在另一个字段中没有任何片段。
 
 <!-- intro -->
 ##### JSON:
@@ -3114,22 +3134,28 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example CALL SNIPPETS -->
 
-The `CALL SNIPPETS` statement builds a snippet from provided data and query using specified table settings. It can't access built-in document storage, which is why it's recommended to use the [HIGHLIGHT() function](../Searching/Highlighting.md) instead.
+`CALL SNIPPETS` 语句根据提供的数据和查询，使用指定的表设置构建一个片段。它无法访问内置的文档存储，因此推荐使用 [HIGHLIGHT() 函数](../Searching/Highlighting.md)。
 
-The syntax is:
+其语法为：
 
 ```sql
 CALL SNIPPETS(data, table, query[, opt_value AS opt_name[, ...]])
 ```
 
 #### data
-`data` serves as the source from which a snippet is extracted. It can either be a single string or a list of strings enclosed in curly brackets.
+`data` 用作提取片段的源。它可以是单个字符串，也可以是用大括号括起来的字符串列表。
+
 #### table
-`table` refers to the name of the table that provides the text processing settings for snippet generation.
+
+`table` 指的是用于片段生成的文本处理设置的表名称。
+
 #### query
-`query` is the full-text query used to build the snippets.
-#### opt_value and opt_name
-`opt_value` and `opt_name` represent the [snippet generation options](../Searching/Highlighting.md).
+
+`query` 是用于构建片段的全文查询。
+
+#### opt_value 和 opt_name
+
+`opt_value` 和 `opt_name` 表示[片段生成选项](../Searching/Highlighting.md)。
 
 <!-- intro -->
 ##### SQL:
@@ -3151,18 +3177,19 @@ CALL SNIPPETS(('this is my document text','this is my another text'), 'forum', '
 
 <!-- end -->
 
-Most options are the same as in the [HIGHLIGHT() function](../Searching/Highlighting.md). There are, however, several options that can only be used with `CALL SNIPPETS`.
+大多数选项与 [HIGHLIGHT() 函数](../Searching/Highlighting.md) 相同。然而，有几个选项只能用于 `CALL SNIPPETS`。
 
-<!-- example CALL SNIPPETS load files -->
-The following options can be used to highlight text stored in separate files:
+<!-- example CALL SNIPPETS load files -->以下选项可以用于高亮存储在独立文件中的文本：
 
 #### load_files
-This option, when enabled, treats the first argument as file names instead of data to extract snippets from. The specified files on the server side will be loaded for data. Up to [max_threads_per_query](../Server_settings/Searchd.md#max_threads_per_query) worker threads per request will be used to parallelize the work when this flag is enabled. Default is 0 (no limit). To distribute snippet generation between remote agents, invoke snippets generation in a distributed table containing only one(!) local agent and several remotes. The [snippets_file_prefix](../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#snippets_file_prefix) option is used to generate the final file name. For example, when searchd is configured with `snippets_file_prefix = /var/data_` and `text.txt` is provided as a file name, snippets will be generated from the content of `/var/data_text.txt`.
+
+启用此选项时，第一个参数将被视为文件名，而不是数据，用于提取片段。服务器端将加载指定的文件以获取数据。启用此标志时，每个请求最多可使用 [max_threads_per_query](../Server_settings/Searchd.md#max_threads_per_query) 个工作线程并行处理工作。默认值为 0（无限制）。要在远程代理之间分配片段生成工作，可在包含一个本地代理和多个远程代理的分布式表中调用片段生成。使用 [snippets_file_prefix](../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#snippets_file_prefix) 选项生成最终文件名。例如，当 `searchd` 配置为 `snippets_file_prefix = /var/data_` 并提供 `text.txt` 作为文件名时，片段将从 `/var/data_text.txt` 的内容中生成。
 
 #### load_files_scattered
-This option only works with distributed snippets generation with remote agents. Source files for snippet generation can be distributed among different agents, and the main server will merge all non-erroneous results. For example, if one agent of the distributed table has `file1.txt`, another agent has `file2.txt`, and you use `CALL SNIPPETS` with both of these files, searchd will merge agent results, so you will get results from both `file1.txt` and `file2.txt`. Default is 0.
 
-If the `load_files` option is also enabled, the request will return an error if any of the files is not available anywhere. Otherwise (if `load_files` is not enabled), it will return empty strings for all absent files. Searchd does not pass this flag to agents, so agents do not generate a critical error if the file does not exist. If you want to be sure that all source files are loaded, set both `load_files_scattered` and `load_files` to 1. If the absence of some source files on some agent is not critical, set only `load_files_scattered` to 1.
+此选项仅适用于与远程代理的分布式片段生成。片段生成的源文件可以分布在不同的代理中，主服务器将合并所有无错误的结果。例如，如果分布式表的一个代理有 `file1.txt`，另一个代理有 `file2.txt`，并且您使用 `CALL SNIPPETS` 包含这两个文件，`searchd` 将合并代理结果，因此您将获得来自 `file1.txt` 和 `file2.txt` 的结果。默认值为 0。
+
+如果 `load_files` 选项也启用，那么如果任何文件在任何地方不可用，请求将返回错误。否则（如果未启用 `load_files`），对于所有不存在的文件，它将返回空字符串。`searchd` 不会将此标志传递给代理，因此如果文件不存在，代理不会生成严重错误。如果您希望确保所有源文件都已加载，请将 `load_files_scattered` 和 `load_files` 都设置为 1。如果某些代理上的某些源文件不存在并不重要，则只设置 `load_files_scattered` 为 1。
 
 <!-- intro -->
 ##### SQL:
