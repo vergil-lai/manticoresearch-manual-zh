@@ -1,18 +1,19 @@
-# Adding rules to a percolate table
+# 向渗透表添加规则
 
 <!-- example -->
-In a [percolate table](../../Creating_a_table/Local_tables/Percolate_table.md) documents that are percolate query rules are stored and must follow the exact schema of four fields:
 
-| field | type | description |
-| - | - | - |
-| id | bigint | PQ rule identifier (if omitted, it will be assigned automatically) |
-| query | string | Full-text query (can be empty) compatible with the [percolate table](../../Creating_a_table/Local_tables/Percolate_table.md) |
-| filters | string | Additional filters by non-full-text fields (can be empty) compatible with the [percolate table](../../Creating_a_table/Local_tables/Percolate_table.md) |
-| tags   | string | A string with one or many comma-separated tags, which may be used to selectively show/delete saved queries |
+在 [渗透表](../../Creating_a_table/Local_tables/Percolate_table.md) 中，存储的是渗透查询规则文档，且这些文档必须遵循以下四个字段的精确模式：
 
-Any other field names are not supported and will trigger an error.
+| 字段    | 类型   | 描述                                                         |
+| ------- | ------ | ------------------------------------------------------------ |
+| id      | bigint | PQ 规则标识符（如果省略，将自动分配）                        |
+| query   | string | 全文查询（可以为空），与 [渗透表](../../Creating_a_table/Local_tables/Percolate_table.md) 兼容 |
+| filters | string | 非全文字段的附加过滤条件（可以为空），与 [渗透表](../../Creating_a_table/Local_tables/Percolate_table.md) 兼容 |
+| tags    | string | 一个或多个逗号分隔的标签字符串，可以用于有选择地显示/删除已保存的查询 |
 
-**Warning:** Inserting/replacing JSON-formatted PQ rules via SQL will not work. In other words, the JSON-specific operators (`match` etc) will be considered just parts of the rule's text that should match with documents. If you prefer JSON syntax, use the HTTP endpoint instead of `INSERT`/`REPLACE`.
+不支持其他字段名称，否则会触发错误。
+
+**警告：** 通过 SQL 插入/替换 JSON 格式的 PQ 规则是无效的。换句话说，JSON 特定操作符（如 `match` 等）将被视为规则文本的一部分，应该与文档匹配。如果您更喜欢使用 JSON 语法，请使用 HTTP 端点，而不是 `INSERT`/`REPLACE`。
 
 <!-- intro -->
 ##### SQL
@@ -36,8 +37,9 @@ SELECT * FROM pq;
 <!-- intro -->
 ##### JSON
 <!-- request JSON -->
-There are two ways you can add a percolate query into a percolate table:
-* Query in JSON /search compatible format, described at [json/search](../../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON)
+有两种方式可以将渗透查询添加到渗透表中：
+
+* 兼容 JSON /search 格式的查询，详见 [json/search](../../Searching/Full_text_matching/Basic_usage.md#HTTP-JSON)
 ```json
 PUT /pq/pq_table/doc/1
 {
@@ -55,7 +57,7 @@ PUT /pq/pq_table/doc/1
 }
 ```
 
-* Query in SQL format, described at [search query syntax](../../Searching/Filters.md#Queries-in-SQL-format)
+* SQL 格式的查询，详见 [search query syntax](../../Searching/Filters.md#Queries-in-SQL-format)
 ```json
 PUT /pq/pq_table/doc/2
 {
@@ -136,9 +138,9 @@ indexApi.Insert(newdoc);
 <!-- end -->
 
 <!-- example noid -->
-## Auto ID provisioning
+## 自动 ID 分配
 
-If you don't specify an ID, it will be assigned automatically. You can read more about auto-ID [here](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID).
+如果您没有指定 ID，则会自动分配。您可以在[这里](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID)了解更多关于自动 ID 的信息。
 
 <!-- intro -->
 ##### SQL:
@@ -297,12 +299,14 @@ indexApi.Insert(newdoc);
 <!-- end -->
 
 <!-- example noschema -->
-## No schema in SQL
-In case of omitted schema in SQL `INSERT` command, the following parameters are expected:
-1. ID. You can use `0` as the ID to trigger auto-ID generation.
-2. Query - Full-text query.
-3. Tags - PQ rule tags string.
-4. Filters - Additional filters by attributes.
+## SQL 中无模式
+
+在 SQL `INSERT` 命令中省略模式时，期望的参数如下：
+
+1. ID。您可以使用 `0` 作为 ID 以触发自动 ID 生成。
+2. Query - 全文查询。
+3. Tags - PQ 规则标签字符串。
+4. Filters - 根据属性的附加过滤条件。
 
 <!-- request SQL -->
 
@@ -324,9 +328,9 @@ SELECT * FROM pq;
 <!-- end -->
 
 <!-- example replace -->
-## Replacing rules in a PQ table
+## 替换渗透表中的规则
 
-To replace an existing PQ rule with a new one in SQL, just use a regular [REPLACE](../../Data_creation_and_modification/Updating_documents/REPLACE.md) command. There's a special syntax `?refresh=1` to replace a PQ rule **defined in JSON mode** via the HTTP JSON interface.
+要在 SQL 中用新规则替换现有的 PQ 规则，只需使用常规的 [REPLACE](../../Data_creation_and_modification/Updating_documents/REPLACE.md) 命令。对于通过 HTTP JSON 接口以 **JSON 模式** 定义的 PQ 规则，使用特殊语法 `?refresh=1` 来替换规则。
 
 
 <!-- intro -->

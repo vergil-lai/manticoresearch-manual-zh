@@ -1,15 +1,16 @@
-# Fetching from XML streams
+# 从 XML 流中获取数据
 
-The `xmlpipe2` source type allows for passing custom full-text and attribute data to Manticore in a custom XML format, with the schema (i.e., set of fields and attributes) specified in either the XML stream itself or in the source settings.
+`xmlpipe2` 源类型允许将自定义的全文和属性数据以自定义 XML 格式传递给 Manticore，模式（即字段和属性的集合）可以在 XML 流中指定，也可以在源设置中指定。
 
-## Declaration of XML stream
-To declare the XML stream, the `xmlpipe_command` directive is mandatory and contains the shell command that produces the XML stream to be indexed. This can be a file, but it can also be a program that generates XML content on-the-fly.
+## 声明 XML 流
 
-## XML file format
+声明 XML 流时，`xmlpipe_command` 指令是必需的，包含了生成要索引的 XML 流的 shell 命令。该命令可以读取文件，也可以是一个动态生成 XML 内容的程序。
 
-When indexing an xmlpipe2 source, the indexer runs the specified command, opens a pipe to its stdout, and expects a well-formed XML stream. 
+## XML 文件格式
 
-Here's an example of what the XML stream data might look like:
+在索引 `xmlpipe2` 源时，索引器运行指定的命令，打开一个管道连接到其标准输出，并期望接收格式正确的 XML 流。
+
+以下是 XML 流数据的示例：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -48,56 +49,56 @@ that in-document field order must not matter, sir</content>
 </sphinx:docset>
 ```
 
-Arbitrary fields and attributes are allowed. They can also occur in the stream in arbitrary order within each document; the order is ignored. There is a restriction on the maximum field length; fields longer than 2 MB will be truncated to 2 MB (this limit can be changed in the source).
+任意字段和属性都是允许的。它们可以在每个文档内的任意顺序中出现，顺序会被忽略。字段长度有限制，超过 2 MB 的字段将会被截断至 2 MB（此限制可以在源中更改）。
 
-The schema, i.e., complete fields and attributes list, must be declared before any document can be parsed. This can be done either in the configuration file by using `xmlpipe_field` and `xmlpipe_attr_XXX` settings, or right in the stream using `<sphinx:schema>` element. `<sphinx:schema>` is optional. It is only allowed to occur as the very first sub-element in `<sphinx:docset>`. If there is no in-stream schema definition, settings from the configuration file will be used. Otherwise, stream settings take precedence. Note that the document id should be specified as a property  `id` of tag `<sphinx:document>` (e.g. `<sphinx:document id="1235">`) and is supposed to be a unique-signed positive non-zero 64-bit integer.
+在解析任何文档之前，必须声明模式，即完整的字段和属性列表。可以通过在配置文件中使用 `xmlpipe_field` 和 `xmlpipe_attr_XXX` 设置，或直接在流中使用 `<sphinx:schema>` 元素来完成声明。`<sphinx:schema>` 是可选的，只允许作为 `<sphinx:docset>` 的第一个子元素出现。如果流中没有定义模式，将使用配置文件中的设置，否则流中的设置优先。请注意，文档 ID 应该作为 `<sphinx:document>` 标签的 `id` 属性来指定（例如 `<sphinx:document id="1235">`），并且应为唯一的带符号正整数，64 位且非零。
 
-Unknown tags (which were not declared neither as fields nor as attributes) will be ignored with a warning. In the example above, `<misc>` will be ignored. All embedded tags and their attributes (such as `<strong>` in `<subject>` in the example above) will be silently ignored.
+未知的标签（未声明为字段或属性的标签）将被忽略，并伴有警告。例如，上述例子中的 `<misc>` 将被忽略。所有嵌入的标签及其属性（如例子中的 `<subject>` 中的 `<strong>`）将被静默忽略。
 
-Support for incoming stream encodings depends on whether `iconv` is installed on the system. xmlpipe2 is parsed using the `libexpat` parser, which understands US-ASCII, ISO-8859-1, UTF-8, and a few UTF-16 variants natively. Manticore's `configure` script will also check for `libiconv` presence and utilize it to handle other encodings. `libexpat` also enforces the requirement to use the UTF-8 charset on the Manticore side because the parsed data it returns is always in UTF-8.
+对传入流编码的支持取决于系统是否安装了 `iconv`。`xmlpipe2` 使用 `libexpat` 解析器进行解析，`libexpat` 原生支持 US-ASCII、ISO-8859-1、UTF-8 以及一些 UTF-16 变体。Manticore 的 `configure` 脚本还会检查是否存在 `libiconv`，并利用它来处理其他编码格式。`libexpat` 还强制要求 Manticore 端使用 UTF-8 字符集，因为它返回的解析数据始终为 UTF-8。
 
-XML elements (tags) recognized by xmlpipe2 (and their attributes where applicable) are:
+xmlpipe2 支持的 XML 元素（及其适用时的属性）如下：
 
-* `sphinx:docset` - Mandatory top-level element, denotes and contains the xmlpipe2 document set.
-* `sphinx:schema` -  Optional element, must either occur as the very first child of sphinx:docset or never occur at all. Declares the document schema and contains field and attribute declarations. If present, it overrides per-source settings from the configuration file.
-* `sphinx:field` - Optional element, child of sphinx:schema. Declares a full-text field. Known attributes are:
-    *   "name", specifies the XML element name that will be treated as a full-text field in the subsequent documents.
-    *   attr", specifies whether to also index this field as a string. Possible value is "string".
-* `sphinx:attr` - Optional element, child of sphinx:schema. Declares an attribute. Known attributes are:
-    *   "name", specifies the element name that should be treated as an attribute in the subsequent documents.
-    *   "type", specifies the attribute type. Possible values are "int", "bigint", "timestamp", "bool", "float", "multi" and "json".
-    *   "bits", specifies the bit size for the "int" attribute type. Valid values are 1 to 32.
-    *   "default", specifies the default value for this attribute that should be used if the attribute's element is not present in the document.
-* `sphinx:document` - Mandatory element, must be a child of sphinx:docset. Contains arbitrary other elements with field and attribute values to be indexed, as declared either using sphinx:field and sphinx:attr elements or in the configuration file. The only known attribute is "id" that must contain the unique integer document ID.
-* `sphinx:killlist` - Optional element, child of sphinx:docset. Contains a number of "id" elements whose contents are document IDs to be put into a kill-list of the table. The kill-list is used in multi-table searches to suppress documents found in other tables of the search.
+* `sphinx:docset` -  必需的顶级元素，表示并包含 xmlpipe2 文档集。
+* `sphinx:schema` -  可选元素，必须作为 `sphinx:docset` 的第一个子元素出现，否则不得出现。声明文档模式并包含字段和属性声明。如果存在，它将覆盖配置文件中的每个源设置。
+* `sphinx:field` - 可选元素，`sphinx:schema` 的子元素。声明一个全文字段。已知属性：
+    *   `"name"`，指定将作为全文字段处理的 XML 元素名称。
+    *   `"attr"`，指定是否将此字段作为字符串索引。可能的值为 "string"。
+* `sphinx:attr` - 可选元素，`sphinx:schema` 的子元素。声明一个属性。已知属性：
+    *   `"name"`，指定在后续文档中作为属性处理的元素名称。
+    *   `"type"`，指定属性类型。可能的值为 "int"、"bigint"、"timestamp"、"bool"、"float"、"multi" 和 "json"。
+    *   `"bits"`，指定 "int" 属性类型的位大小。有效值为 1 到 32。
+    *   `"default"`，指定当文档中缺少该属性时使用的默认值。
+* `sphinx:document` - 必需元素，必须为 `sphinx:docset` 的子元素。包含将被索引的字段和属性值，已在 `sphinx:field` 和 `sphinx:attr` 元素中或配置文件中声明。唯一已知的属性是 "id"，必须包含唯一的整数文档 ID。
+* `sphinx:killlist` - 可选元素，`sphinx:docset` 的子元素。包含若干 "id" 元素，其内容为需要放入表的 kill-list 中的文档 ID。kill-list 在多表搜索中用于抑制在其他表中找到的文档。
 
-## Data definition in source configuration
+## 在源配置中定义数据
 
-If the XML doesn't define a schema, the data types of tables elements must be defined in the source configuration.
+如果 XML 没有定义模式，表元素的数据类型必须在源配置中定义。
 
-* `xmlpipe_field` -  declares a `text` field.
-* `xmlpipe_field_string` - declares a text field/string attribute. The column will be both indexed as a text field but also stored as a string attribute.
-* `xmlpipe_attr_uint` - declares an integer attribute
-* `xmlpipe_attr_timestamp` - declares a timestamp attribute
-* `xmlpipe_attr_bool` -  declares a boolean attribute
-* `xmlpipe_attr_float` - declares a float attribute
-* `xmlpipe_attr_bigint` - declares a big integer attribute
-* `xmlpipe_attr_multi` - declares a multi-value attribute with integers
-* `xmlpipe_attr_multi_64` - declares a multi-value attribute with 64-bit integers
-* `xmlpipe_attr_string` - declares a string attribute
-* `xmlpipe_attr_json` - declares a JSON attribute
+- `xmlpipe_field` - 声明一个 `text` 字段。
+- `xmlpipe_field_string` - 声明一个文本字段/字符串属性。该列既作为文本字段索引，也作为字符串属性存储。
+- `xmlpipe_attr_uint` - 声明一个整数属性。
+- `xmlpipe_attr_timestamp` - 声明一个时间戳属性。
+- `xmlpipe_attr_bool` - 声明一个布尔属性。
+- `xmlpipe_attr_float` - 声明一个浮点属性。
+- `xmlpipe_attr_bigint` - 声明一个大整数属性。
+- `xmlpipe_attr_multi` - 声明一个带有整数的多值属性。
+- `xmlpipe_attr_multi_64` - 声明一个带有 64 位整数的多值属性。
+- `xmlpipe_attr_string` - 声明一个字符串属性。
+- `xmlpipe_attr_json` - 声明一个 JSON 属性。
 
-### Specific XML source settings
+### 特定的 XML 源设置
 
-If `xmlpipe_fixup_utf8` is set it will enable Manticore-side UTF-8 validation and filtering to prevent XML parser from choking on non-UTF-8 documents. By default, this option is disabled.
+如果设置了 `xmlpipe_fixup_utf8`，将启用 Manticore 端的 UTF-8 验证和过滤，以防止 XML 解析器因非 UTF-8 文档崩溃。默认情况下，此选项是禁用的。
 
-Under certain occasions it might be hard or even impossible to guarantee that the incoming XMLpipe2 document bodies are in perfectly valid and conforming UTF-8 encoding. For instance, documents with national single-byte encodings could sneak into the stream. libexpat XML parser is fragile, meaning that it will stop processing in such cases. UTF8 fixup feature lets you avoid that. When fixup is enabled, Manticore will preprocess the incoming stream before passing it to the XML parser and replace invalid UTF-8 sequences with spaces.
+在某些情况下，可能很难甚至无法保证传入的 XMLpipe2 文档主体是完全有效且符合 UTF-8 编码的。例如，使用单字节编码的文档可能会混入流中。`libexpat` XML 解析器相对脆弱，遇到这种情况时将停止处理。启用 UTF-8 修复功能可以避免这种情况。当启用修复时，Manticore 将在将传入流传递给 XML 解析器之前进行预处理，并将无效的 UTF-8 序列替换为空格。
 
 ```ini
 xmlpipe_fixup_utf8 = 1
 ```
 
-Example of XML source without schema in configuration:
+没有在配置中定义模式的 XML 源示例：
 
 ```ini
 source xml_test_1
@@ -107,7 +108,7 @@ source xml_test_1
 }
 ```
 
-Example of XML source with schema in configuration:
+在配置中定义模式的 XML 源示例：
 
 ```ini
 source xml_test_2

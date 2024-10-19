@@ -1,175 +1,177 @@
-# Plain tables creation
+# 创建普通表
 
-Plain tables are tables that are created one-time by fetching data at creation from one or several sources. A plain table is immutable as documents cannot be added or deleted during its lifespan. It is only possible to update values of numeric attributes (including MVA). Refreshing the data is only possible by recreating the whole table.
+普通表是一次性创建的，通过从一个或多个源获取数据构建而成。在其生命周期内，普通表是不可变的，不能添加或删除文档。唯一可以更新的是数值属性（包括多值属性 MVA）。要刷新数据，唯一的方式是重新创建整个表。
 
-Plain tables are available only in the [Plain mode](../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain mode%29) and their definition is made up of a table declaration and one or several source declarations. The data gathering and table creation are not made by the `searchd` server but by the auxiliary tool `indexer`.
+普通表仅在[普通模式](../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-(Plain-mode))下可用，定义包括一个表声明以及一个或多个源声明。数据的收集与表的创建不是由 `searchd` 服务端完成，而是通过辅助工具 `indexer` 来进行。
 
-**Indexer** is a command-line tool that can be called directly from the command line or from shell scripts.
+**Indexer** 是一个命令行工具，可以直接从命令行或脚本中调用。
 
-It can accept a number of arguments when called, but there are also several settings of its own in the Manticore configuration file.
+在调用时可以接受多个参数，同时在 Manticore 配置文件中也有一些特定的设置。
 
-In the typical scenario, indexer does the following:
-* Fetches the data from the source
-* Builds the plain table
-* Writes the table files
-* (Optional) Informs the search server about the new table which triggers table rotation
+在典型的场景下，indexer 进行以下操作：
 
-## Indexer tool
-The `indexer` tool is used to create plain tables in Manticore Search. It has a general syntax of:
+- 从源获取数据
+- 构建普通表
+- 写入表文件
+- （可选）通知搜索服务关于新表的信息，并触发表旋转
+
+## Indexer 工具
+`indexer` 工具用于在 Manticore Search 中创建普通表。其基本语法为：
 
 ```shell
 indexer [OPTIONS] [table_name1 [table_name2 [...]]]
 ```
 
-When creating tables with `indexer`, the generated table files must be made with permissions that allow `searchd` to read, write, and delete them. In case of the official Linux packages, `searchd` runs under the `manticore` user. Therefore, `indexer` must also run under the `manticore` user:
+使用 `indexer` 创建表时，生成的表文件必须设置适当的权限，以允许 `searchd` 读取、写入和删除文件。在官方的 Linux 包中，`searchd` 以 `manticore` 用户身份运行。因此，`indexer` 也必须以 `manticore` 用户身份运行：
 
 ```shell
 sudo -u manticore indexer ...
 ```
 
-If you are running `searchd` differently, you might need to omit `sudo -u manticore`. Just make sure that the user under which your `searchd` instance is running has read/write permissions to the tables generated using `indexer`.
+如果你以其他方式运行 `searchd`，可能不需要 `sudo -u manticore`。只需确保运行 `searchd` 实例的用户具有读取/写入 `indexer` 生成表的权限即可。
 
-To create a plain table, you need to list the table(s) you want to process. For example, if your `manticore.conf` file contains details on two tables, `mybigindex` and `mysmallindex`, you could run:
+要创建普通表，你需要列出要处理的表。例如，如果你的 `manticore.conf` 文件中包含了两个表 `mybigindex` 和 `mysmallindex` 的详细信息，你可以运行：
 
 ```shell
 sudo -u manticore indexer mysmallindex mybigindex
 ```
 
-You can also use wildcard tokens to match table names:
+你还可以使用通配符来匹配表名：
 
-* `?` matches any single character
-* `*` matches any count of any characters
-* `%` matches none or any single character
+- `?` 匹配任意单个字符
+- `*` 匹配任意数量的字符
+- `%` 匹配零个或一个字符
 
 ```shell
 sudo -u manticore indexer indexpart*main --rotate
 ```
 
-The exit codes for indexer are as follows:
+indexer 的退出代码如下：
 
-* 0: everything went OK
-* 1: there was a problem while indexing (and if `--rotate` was specified, it was skipped) or an operation emitted a warning
-* 2: indexing went OK, but the `--rotate` attempt failed
+- 0：一切正常
+- 1：索引过程中出现问题（如果指定了 `--rotate`，则跳过旋转）或操作发出警告
+- 2：索引成功，但 `--rotate` 尝试失败
 
-### Indexer systemd service
+### Indexer systemd 服务
 
-You can also start `indexer` using the following systemctl unit file:
+你还可以通过以下 systemctl 单元文件启动 `indexer`：
 
 ```shell
 systemctl start --no-block manticore-indexer
 ```
 
-Or, in case you want to build a specific table:
+或者，如果你想构建特定表：
 
 ```shell
 systemctl start --no-block manticore-indexer@specific-table-name
 ```
 
-Use the `systemctl set-environment INDEXER_CONFIG` command to run the Indexer with a custom configuration, which replaces the default settings.
+使用 `systemctl set-environment INDEXER_CONFIG` 命令可以用自定义配置运行 Indexer，替换默认设置。
 
-The `systemctl set-environment INDEXER_ARGS` command lets you add custom startup options for the Indexer. For a complete list of command-line options, see [here](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-command-line-arguments).
+`systemctl set-environment INDEXER_ARGS` 命令允许添加自定义启动选项。有关完整的命令行选项列表，请参阅[此处](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#Indexer-command-line-arguments)。
 
-For instance, to start the Indexer in quiet mode, run:
+例如，要以安静模式启动 Indexer，可以运行：
+
 ```bash
 systemctl set-environment INDEXER_ARGS='--quiet'
 systemctl restart manticore-indexer
 ```
 
-To revert the changes, run:
+要恢复更改，请运行：
 ```bash
 systemctl set-environment INDEXER_ARGS=''
 systemctl restart manticore-indexer
 ```
 
-### Indexer command line arguments
-* `--config <file>` (`-c <file>` for short) tells `indexer` to use the given file as its configuration. Normally, it will look for `manticore.conf` in the installation directory (e.g. `/etc/manticoresearch/manticore.conf`), followed by the current directory you are in when calling `indexer` from the shell. This is most useful in shared environments where the binary files are installed in a global folder, e.g. `/usr/bin/`, but you want to provide users with the ability to make their own custom Manticore set-ups, or if you want to run multiple instances on a single server. In cases like those you could allow them to create their own `manticore.conf` files and pass them to `indexer` with this option. For example:
+### Indexer 命令行参数
+* `--config <file>` (`-c <file>` 简写) 告诉 `indexer` 使用给定的配置文件。通常，它会在安装目录（例如 `/etc/manticoresearch/manticore.conf`）中查找 `manticore.conf`，其次是你从 shell 调用 `indexer` 时的当前目录。如果你在共享环境中运行，或希望允许用户创建自己的 Manticore 设置，可以为每个用户提供自己的 `manticore.conf` 文件并通过此选项传递给 `indexer`。
 
   ```shell
   sudo -u manticore indexer --config /home/myuser/manticore.conf mytable
   ```
 
-* `--all` tells `indexer` to update every table listed in `manticore.conf` instead of listing individual tables. This would be useful in small configurations or cron-kind or maintenance jobs where the entire table set will get rebuilt each day or week or whatever period is best. Please note that since `--all` tries to update all found tables in the configuration, it will issue a warning if it encounters RealTime tables and the exit code of the command will be `1` not `0` even if the plain tables finished without issue. Example usage:
+* `--all` 命令会更新 `manticore.conf` 中列出的所有表，而不是单独列出表。这在小型配置或定期维护任务中非常有用。请注意，如果配置中包含实时表，它将发出警告并退出代码为 `1`，即使普通表已成功完成也会如此。
 
   ```shell
   sudo -u manticore indexer --config /home/myuser/manticore.conf --all
   ```
 
-* `--rotate` is used for rotating tables. Unless you have the situation where you can take the search function offline without troubling users you will almost certainly need to keep search running whilst indexing new documents. `--rotate` creates a second table, parallel to the first (in the same place, simply including `.new` in the filenames). Once complete, `indexer` notifies `searchd` via sending the `SIGHUP` signal, and the `searchd` will attempt to rename the tables (renaming the existing ones to include `.old` and renaming the `.new` to replace them), and then will start serving from the newer files. Depending on the setting of [seamless_rotate](../../Server_settings/Searchd.md#seamless_rotate) there may be a slight delay in being able to search the newer tables. In case multiple tables are rotated at once which are chained by [killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target) relations rotation will start with the tables that are not targets and finish with the ones at the end of target chain. Example usage:
+* `--rotate` 用于表旋转。除非你可以在不影响用户的情况下使搜索功能离线，否则你几乎肯定需要在索引新文档时保持搜索运行。`--rotate` 会创建一个与原始表平行的第二个表（在同一位置，文件名中包含 `.new`）。一旦完成，`indexer` 会通过发送 `SIGHUP` 信号通知 `searchd`，`searchd` 会尝试重命名这些表（将现有表重命名为 `.old`，并将 `.new` 文件重命名替换它们），然后开始使用新的文件进行服务。具体取决于 [seamless_rotate](../../Server_settings/Searchd.md#seamless_rotate) 的设置，在搜索新表之前可能会有轻微的延迟。如果多个表通过 [killlist_target](../../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#killlist_target) 关系链接在一起，旋转将从非目标表开始，并在目标链的末端完成。使用示例：
 
   ```shell
   sudo -u manticore indexer --rotate --all
   ```
-* `--quiet` tells `indexer` ot to output anything, unless there is an error. This is mostly used for cron-type or other scripted jobs where the output is irrelevant or unnecessary, except in the event of some kind of error. Example usage:
+* `--quiet` 命令告诉 `indexer` 在除非出现错误的情况下不输出任何信息。这主要用于定时任务或其他脚本化的工作，在这些情况下输出信息是多余的，除非出现问题。使用示例：
 
   ```shell
   sudo -u manticore indexer --rotate --all --quiet
   ```
-* `--noprogress` does not display progress details as they occur. Instead, the final status details (such as documents indexed, speed of indexing and so on are only reported at completion of indexing. In instances where the script is not being run on a console (or 'tty'), this will be on by default. Example usage:
+* `--noprogress` 禁止在索引时显示进度详情，直到索引完成后才显示最终状态（例如已索引文档数量、索引速度等）。在非控制台（或 ‘tty’）环境中运行脚本时，此选项将默认启用。使用示例：
 
   ```shell
   sudo -u manticore indexer --rotate --all --noprogress
   ```
-* `--buildstops <outputfile.text> <N>` reviews the table source, as if it were indexing the data, and produces a list of the terms that are being indexed. In other words, it produces a list of all the searchable terms that are becoming part of the table. Note, it does not update the table in question, it simply processes the data as if it were indexing, including running queries defined with [sql_query_pre](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Execution_of_fetch_queries.md#sql_query_pre) or [sql_query_post](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Execution_of_fetch_queries.md#sql_query_post). `outputfile.txt` will contain the list of words, one per line, sorted by frequency with most frequent first, and `N` specifies the maximum number of words that will be listed. If it's sufficiently large to encompass every word in the table, only that many words will be returned. Such a dictionary list could be used for client application features around "Did you mean…" functionality, usually in conjunction with `--buildfreqs`, below. Example:
+* `--buildstops <输出文件.txt> <N>` 处理表源，如同它在为数据创建索引，生成即将被索引的术语列表，换句话说，它生成表中成为索引一部分的所有可搜索术语列表。注意，它并不更新表，仅处理数据以生成词频列表。`outputfile.txt` 会包含每行一个词，并按频率排序，最常见的词排在前面。`N` 指定列表中的最大词数。可以与 `--buildfreqs` 一起使用，如下所示。示例：
 
   ```shell
   sudo -u manticore indexer mytable --buildstops word_freq.txt 1000
   ```
 
-  This would produce a document in the current directory, `word_freq.txt`, with the 1,000 most common words in 'mytable', ordered by most common first. Note that the file will pertain to the last table indexed when specified with multiple tables or `--all` (i.e. the last one listed in the configuration file)
+  此命令会在当前目录中生成一个名为 `word_freq.txt` 的文件，列出 `mytable` 中最常见的 1000 个词，按出现频率排序。
 
-* `--buildfreqs` works with `--buildstops` (and is ignored if `--buildstops` is not specified). As `--buildstops` provides the list of words used within the table, `--buildfreqs` adds the quantity present in the table, which would be useful in establishing whether certain words should be considered stopwords if they are too prevalent. It will also help with developing "Did you mean…" features where you need to know how much more common a given word compared to another, similar one. For example:
+* `--buildfreqs` 仅与 `--buildstops` 一起使用，并在结果中添加每个词在表中出现的次数。这有助于判断某个词是否过于频繁，是否应该被视为停用词。示例：
 
   ```shell
   sudo -u manticore indexer mytable --buildstops word_freq.txt 1000 --buildfreqs
   ```
 
-  This would produce the `word_freq.txt` as above, however after each word would be the number of times it occurred in the table in question.
+  此命令会生成 `word_freq.txt` 文件，并在每个词后面列出其在表中出现的次数。
 
-* `--merge <dst-table> <src-table>` is used for physically merging tables together, for example if you have a [main+delta scheme](../../Creating_a_table/Local_tables/Plain_table.md#Main+delta-scenario), where the main table rarely changes, but the delta table is rebuilt frequently, and `--merge` would be used to combine the two. The operation moves from right to left - the contents of `src-table` get examined and physically combined with the contents of `dst-table` and the result is left in `dst-table`. In pseudo-code, it might be expressed as: `dst-table += src-table` An example:
+* `--merge <目标表> <源表>` 用于物理合并两个表，例如在 [main+delta 方案](../../Creating_a_table/Local_tables/Plain_table.md#Main+delta-scenario) 中，主表很少更改，而增量表经常被重新构建，`--merge` 用于将两者合并。操作从右到左执行——`src-table` 的内容会与 `dst-table` 的内容合并，结果保存在 `dst-table` 中。伪代码表达如下：`dst-table += src-table`。示例：
 
   ```shell
   sudo -u manticore indexer --merge main delta --rotate
   ```
 
-  In the above example, where the main is the master, rarely modified table, and the delta is more frequently modified one, you might use the above to call `indexer` to combine the contents of the delta into the main table and rotate the tables.
+  在上述例子中，主表是主要表，较少修改，增量表则较为频繁更新。你可以使用此命令来合并主表和增量表的内容，并旋转表。
 
-* `--merge-dst-range <attr> <min> <max>` runs the filter range given upon merging. Specifically, as the merge is applied to the destination table (as part of `--merge`, and is ignored if `--merge` is not specified), `indexer` will also filter the documents ending up in the destination table, and only documents will pass through the filter given will end up in the final table. This could be used for example, in a table where there is a 'deleted' attribute, where 0 means 'not deleted'. Such a table could be merged with:
+* `--merge-dst-range <属性> <最小值> <最大值>` 在合并时运行给定的过滤范围。具体来说，此命令作为 `--merge` 的一部分使用（如果没有指定 `--merge` 则忽略），`indexer` 会过滤目标表中的文档，只有通过筛选条件的文档才会保留在最终表中。该命令可用于带有“删除”属性的表，0 表示未删除。示例：
 
   ```shell
   sudo -u manticore indexer --merge main delta --merge-dst-range deleted 0 0
   ```
 
-  Any documents marked as deleted (value 1) will be removed from the newly-merged destination table. It can be added several times to the command line, to add successive filters to the merge, all of which must be met in order for a document to become part of the final table.
+  此命令将移除合并后表中所有被标记为删除的文档（值为 1）。你可以多次在命令行中添加此参数，添加多个筛选条件，所有条件都必须满足，文档才能进入最终表。
 
-* --`merge-killlists` (and its shorter alias `--merge-klists`) changes the way kill lists are processed when merging tables. By default, both kill lists get discarded after a merge. That supports the most typical main+delta merge scenario. With this option enabled, however, kill lists from both tables get concatenated and stored into the destination table. Note that a source (delta) table kill list will be used to suppress rows from a destination (main) table at all times.
-* `--keep-attrs` allows to reuse existing attributes on reindexing. Whenever the table is rebuilt, each new document id is checked for presence in the "old" table, and if it already exists, its attributes are transferred to the "new" table; if not found, attributes from the new table are used. If the user has updated attributes in the table, but not in the actual source used for the table, all updates will be lost when reindexing; using `--keep-attrs` enables saving the updated attribute values from the previous table. It is possible to specify a path for table files to be used instead of the reference path from the config:
+* `--merge-killlists` 或其简写 `--merge-klists` 更改合并时处理删除列表的方式。默认情况下，合并后两个删除列表都会被丢弃，以支持最常见的 main+delta 合并场景。然而，如果启用了此选项，两个表的删除列表会被拼接并存储在目标表中。
+* `--keep-attrs` 允许在重新索引时重用现有的属性。每当重建表时，`indexer` 会检查每个新文档的 ID 是否存在于“旧”表中，如果存在，则其属性将转移到“新”表中；如果不存在，则使用新表的属性。如果用户已经更新了表中的属性，但没有更新用于该表的实际源数据，那么重新索引时所有更新将会丢失。使用 `--keep-attrs` 可以保存之前表中已更新的属性值。你可以指定用于表文件的路径，以替代配置文件中的参考路径：
 
   ```shell
   sudo -u manticore indexer mytable --keep-attrs=/path/to/index/files
   ```
 
-* `--keep-attrs-names=<attributes list>` allows you to specify attributes to reuse from an existing table on reindexing. By default, all attributes from the existing table are reused in the new table:
+* `--keep-attrs-names=<属性列表>` 允许你在重新索引时指定需要重用的属性。默认情况下，所有现有表中的属性都会在新表中重用：
 
   ```shell
   sudo -u manticore indexer mytable --keep-attrs=/path/to/table/files --keep-attrs-names=update,state
   ```
 
-* `--dump-rows <FILE>` dumps rows fetched by SQL source(s) into the specified file, in a MySQL compatible syntax. The resulting dumps are the exact representation of data as received by `indexer` and can help repeat indexing-time issues. The command performs fetching from the source and creates both table files and the dump file.
-* `--print-rt <rt_index> <table>` outputs fetched data from the source as INSERTs for a real-time table. The first lines of the dump will contain the real-time fields and attributes (as a reflection of the plain table fields and attributes). The command performs fetching from the source and creates both table files and the dump output. The command can be used as `sudo -u manticore indexer -c manticore.conf --print-rt indexrt indexplain > dump.sql`. Only SQL-based sources are supported. MVAs are not supported.
-* `--sighup-each`  is useful when you are rebuilding many big tables and want each one rotated into `searchd` as soon as possible. With `--sighup-each`, `indexer` will send the SIGHUP signal to searchd after successfully completing work on each table. (The default behavior is to send a single SIGHUP after all the tables are built).
-* `--nohup` is useful when you want to check your table with indextool before actually rotating it. indexer won't send the SIGHUP if this option is on. Table files are renamed to .tmp. Use indextool to rename table files to .new and rotate it. Example usage:
+* `--dump-rows <文件>` 将 SQL 源提取的行数据导出到指定文件中，使用 MySQL 兼容的语法。生成的导出文件是 `indexer` 接收到的数据的精确表示，可以帮助解决索引期间的问题。此命令从源提取数据，并创建表文件及导出文件。
+* `--print-rt <rt_index> <table>` 将源数据输出为 INSERT 语句，以便用于实时表。导出的第一行会包含实时表的字段和属性（作为普通表字段和属性的映射）。此命令从源提取数据，并创建表文件及导出输出。可以使用此命令 `sudo -u manticore indexer -c manticore.conf --print-rt indexrt indexplain > dump.sql`。仅支持 SQL 源，MVA 不支持。
+* `--sighup-each` 在你重建多个大型表时，每个表完成后立即通知 `searchd` 进行旋转，而不是等待所有表完成后发送单一的 SIGHUP 信号。默认情况下，`indexer` 会在所有表完成构建后发送一次 SIGHUP 信号。
+* `--nohup` 在你希望在旋转表之前通过 indextool 检查表时使用。启用此选项后，`indexer` 不会发送 SIGHUP 信号。表文件将被重命名为 `.tmp`。你可以使用 indextool 将表文件重命名为 `.new`，然后进行旋转。示例使用：
 
   ```shell
   sudo -u manticore indexer --rotate --nohup mytable
   sudo -u manticore indextool --rotate --check mytable
   ```
 
-* `--print-queries` prints out SQL queries that `indexer` sends to the database, along with SQL connection and disconnection events. That is useful to diagnose and fix problems with SQL sources.
-* `--help` (`-h` for short) lists all the parameters that can be called in `indexer`.
-* `-v` shows `indexer` version.
+* `--print-queries` 打印出 `indexer` 发送到数据库的 SQL 查询，以及 SQL 连接和断开的事件。这对于诊断和解决 SQL 源问题非常有用。
+* `--help` (`-h` 为简写) 列出 `indexer` 可以调用的所有参数。
+* `-v` 显示 `indexer` 的版本。
 
-### Indexer configuration settings
-You can also configure indexer behavior in the Manticore configuration file in the `indexer` section:
+### indexer 配置设置
+你还可以在 Manticore 的配置文件中的 `indexer` 部分中配置 `indexer` 的行为：
 
 ```ini
 indexer {
@@ -182,11 +184,11 @@ indexer {
 ```ini
 lemmatizer_cache = 256M
 ```
-Lemmatizer cache size. Optional, default is 256K.
+词干缓存大小。可选，默认值为 256K。
 
-Our [lemmatizer](../../Server_settings/Common.md#lemmatizer_base) implementation uses a compressed dictionary format that enables a space/speed tradeoff. It can either perform lemmatization off the compressed data, using more CPU but less RAM, or it can decompress and precache the dictionary either partially or fully, thus using less CPU but more RAM. The lemmatizer_cache directive lets you control how much RAM exactly can be spent for that uncompressed dictionary cache.
+我们的 [词干库](../../Server_settings/Common.md#lemmatizer_base) 实现使用了一种压缩词典格式，这允许在空间和速度之间进行权衡。它可以直接对压缩数据执行词干化（使用更多的 CPU 但占用更少的内存），也可以部分或完全解压并缓存词典，从而减少 CPU 使用，增加内存使用。`lemmatizer_cache` 选项可以让你控制用于缓存解压词典的内存量。
 
-Currently, the only available dictionaries are [ru.pak, en.pak, and de.pak](https://manticoresearch.com/install/). These are the Russian, English, and German dictionaries. The compressed dictionary is approximately 2 to 10 MB in size. Note that the dictionary stays in memory at all times too. The default cache size is 256 KB. The accepted cache sizes are 0 to 2047 MB. It's safe to raise the cache size too high; the lemmatizer will only use the needed memory. For example, the entire Russian dictionary decompresses to approximately 110 MB; thus setting`lemmatizer_cache` higher than that will not affect the memory use. Even when 1024 MB is allowed for the cache, if only 110 MB is needed, it will only use those 110 MB.
+目前可用的词典有 [ru.pak, en.pak 和 de.pak](https://manticoresearch.com/install/)，即俄语、英语和德语词典。压缩词典大约为 2 至 10 MB。注意，词典始终保留在内存中。默认缓存大小为 256 KB。可接受的缓存大小范围为 0 到 2047 MB。即使设置了较高的缓存值，词典也只会使用所需的内存。
 
 #### max_file_field_buffer
 
@@ -194,11 +196,11 @@ Currently, the only available dictionaries are [ru.pak, en.pak, and de.pak](http
 max_file_field_buffer = 128M
 ```
 
-Maximum file field adaptive buffer size in bytes. Optional, default is 8MB, minimum is 1MB.
+文件字段自适应缓冲区的最大大小，单位为字节。可选，默认值为 8MB，最小值为 1MB。
 
-The file field buffer is used to load files referred to from [sql_file_field](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#sql_file_field) columns. This buffer is adaptive, starting at 1 MB at first allocation, and growing in 2x steps until either the file contents can be loaded or the maximum buffer size, specified by the `max_file_field_buffer` directive, is reached.
+文件字段缓冲区用于加载从 [sql_file_field](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#sql_file_field) 列中引用的文件。此缓冲区是自适应的，初始分配为 1MB，并以 2 倍的步长增长，直到文件内容可以加载或达到 `max_file_field_buffer` 指定的最大缓冲区大小。
 
-Thus, if no file fields are specified, no buffer is allocated at all. If all files loaded during indexing are under (for example) 2 MB in size, but the `max_file_field_buffer` value is 128 MB, the peak buffer usage would still be only 2 MB. However, files over 128 MB would be entirely skipped.
+因此，如果未指定任何文件字段，则不会分配缓冲区。如果索引期间加载的所有文件都小于（例如）2MB，而 `max_file_field_buffer` 值为 128MB，则最大缓冲区使用量仍然只有 2MB。但是，超过 128MB 的文件将被完全跳过。
 
 #### max_iops
 
@@ -206,11 +208,11 @@ Thus, if no file fields are specified, no buffer is allocated at all. If all fil
 max_iops = 40
 ```
 
-Maximum I/O operations per second, for I/O throttling. Optional, default is 0 (unlimited).
+每秒最大 I/O 操作数，用于 I/O 节流。可选，默认值为 0（无限制）。
 
-I/O throttling related option. It limits the maximum count of I/O operations (reads or writes) per any given second. A value of 0 means that no limit is imposed.
+这是与 I/O 节流相关的选项。它限制每秒的最大 I/O 操作次数（读取或写入）。当值为 0 时，表示不进行限制。
 
-`indexer` can cause bursts of intensive disk I/O during building a table, and it might be desirable to limit its disk activity (and reserve something for other programs running on the same machine, such as `searchd`). I/O throttling helps to do that. It works by enforcing a minimum guaranteed delay between subsequent disk I/O operations performed by `indexer`. Throttling I/O can help reduce search performance degradation caused by building. This setting is not effective for other kinds of data ingestion, e.g. inserting data into a real-time table.
+`indexer` 在构建表时可能会导致磁盘 I/O 的高峰，这时可能需要限制其磁盘活动，以保留资源给系统上运行的其他程序（例如 `searchd`）。I/O 节流可以帮助减少构建过程中对搜索性能的影响。此设置对其他数据摄入方式（例如将数据插入实时表）无效。
 
 #### max_iosize
 
@@ -218,9 +220,9 @@ I/O throttling related option. It limits the maximum count of I/O operations (re
 max_iosize = 1048576
 ```
 
-Maximum allowed I/O operation size, in bytes, for I/O throttling. Optional, default is 0 (unlimited).
+每次 I/O 操作的最大大小（字节），用于 I/O 节流。可选，默认值为 0（无限制）。
 
-I/O throttling related option. It limits the maximum file I/O operation (read or write) size for all operations performed by `indexer`. A value of 0 means that no limit is imposed. Reads or writes that are bigger than the limit will be split into several smaller operations, and counted as several operations by the [max_iops](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#max_iops) setting. At the time of this writing, all I/O calls should be under 256 KB (default internal buffer size) anyway, so max_iosize values higher than 256 KB should not have any effect.
+这是另一个与 I/O 节流相关的选项。它限制每次文件 I/O 操作（读取或写入）的最大大小。如果值为 0，则不进行限制。对于大于设置的操作，`indexer` 会将其拆分为较小的操作，并将其计为多个操作（依据 [max_iops](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#max_iops) 设置）。当前默认的内部缓冲区大小为 256KB，因此 `max_iosize` 设置高于 256KB 时不会产生任何效果。
 
 #### max_xmlpipe2_field
 
@@ -228,7 +230,7 @@ I/O throttling related option. It limits the maximum file I/O operation (read or
 max_xmlpipe2_field = 8M
 ```
 
-Maximum allowed field size for XMLpipe2 source type, in bytes. Optional, default is 2 MB.
+XMLpipe2 源类型的字段最大允许大小，单位为字节。可选，默认值为 2MB。
 
 #### mem_limit
 
@@ -238,9 +240,9 @@ mem_limit = 256M
 # mem_limit = 268435456 # same, but in bytes
 ```
 
-Plain table building RAM usage limit. Optional, default is 128 MB. Enforced memory usage limit that the `indexer` will not go above. Can be specified in bytes, or kilobytes (using K postfix), or megabytes (using M postfix); see the example. This limit will be automatically raised if set to an extremely low value causing I/O buffers to be less than 8 KB; the exact lower bound for that depends on the built data size. If the buffers are less than 256 KB, a warning will be produced.
+用于构建普通表时的内存使用限制。可选，默认值为 128 MB。`indexer` 不会超过的内存使用上限。可以用字节、KB（加 K 后缀）或 MB（加 M 后缀）来指定，如例子所示。如果设置的值过低导致 I/O 缓冲区小于 8 KB，`indexer` 会自动提高这个限制，具体的下限取决于生成数据的大小。如果缓冲区小于 256 KB，系统将产生警告。
 
-The maximum possible limit is 2047M. Too low values can hurt plain table building speed, but 256M to 1024M should be enough for most, if not all datasets. Setting this value too high can cause SQL server timeouts. During the document collection phase, there will be periods when the memory buffer is partially sorted and no communication with the database is performed; and the database server can timeout. You can resolve that either by raising timeouts on the SQL server side or by lowering `mem_limit`.
+最大可能的限制是 2047M。设置过低的值会影响普通表的构建速度，但大多数数据集应该可以在 256M 到 1024M 范围内顺利运行。设置过高的值可能导致 SQL 服务器超时。在文档收集阶段，当内存缓冲区部分排序且没有与数据库进行通信时，SQL 服务器可能会超时。可以通过在 SQL 服务器端提高超时时间或通过降低 `mem_limit` 来解决此问题。
 
 #### on_file_field_error
 
@@ -248,15 +250,15 @@ The maximum possible limit is 2047M. Too low values can hurt plain table buildin
 on_file_field_error = skip_document
 ```
 
-How to handle IO errors in file fields. Optional, default is `ignore_field`.
-When there is a problem indexing a file referenced by a file field ([sql_file_field](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#sql_file_field)), `indexer` can either process the document, assuming empty content in this particular field, or skip the document, or fail indexing entirely. `on_file_field_error` directive controls that behavior. The values it takes are:
-* `ignore_field`, process the current document without field;
-* `skip_document`, skip the current document but continue indexing;
-* `fail_index`, fail indexing with an error message.
+当文件字段发生 I/O 错误时的处理方式。可选，默认值为 `ignore_field`。
 
-The problems that can arise are: open error, size error (file too big), and data read error. Warning messages on any problem will be given at all times, regardless of the phase and the `on_file_field_error` setting.
+当文件字段索引时发生问题（[sql_file_field](../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#sql_file_field)），`indexer` 可以选择以下几种方式进行处理：忽略此特定字段的内容继续处理文档、跳过整个文档或完全中断索引操作。`on_file_field_error` 指令控制此行为。可接受的值包括：
 
-Note that with `on_file_field_error = skip_document` documents will only be ignored if problems are detected during an early check phase, and **not** during the actual file parsing phase. `indexer` will open every referenced file and check its size before doing any work, and then open it again when doing actual parsing work. So in case a file goes away between these two open attempts, the document will still be indexed.
+- `ignore_field`，继续处理当前文档，但忽略该字段；
+- `skip_document`，跳过当前文档，继续索引其他文档；
+- `fail_index`，出现错误时中止索引并给出错误消息。
+
+不管具体行为如何，当出现问题时，系统都会发出警告消息。
 
 #### write_buffer
 
@@ -264,7 +266,7 @@ Note that with `on_file_field_error = skip_document` documents will only be igno
 write_buffer = 4M
 ```
 
-Write buffer size, bytes. Optional, default is 1MB. Write buffers are used to write both temporary and final table files when indexing. Larger buffers reduce the number of required disk writes. Memory for the buffers is allocated in addition to [mem_limit](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#mem_limit). Note that several (currently up to 4) buffers for different files will be allocated, proportionally increasing the RAM usage.
+写入缓冲区大小，单位为字节。可选，默认值为 1MB。写入缓冲区用于写入临时和最终的表文件。较大的缓冲区可以减少磁盘写入操作的次数。缓冲区内存的分配是在 [mem_limit](../../Data_creation_and_modification/Adding_data_from_external_storages/Plain_tables_creation.md#mem_limit) 之外进行的。注意，最多会分配 4 个缓冲区，用于不同的文件，这会相应增加 RAM 的使用。
 
 #### ignore_non_plain
 
@@ -272,15 +274,15 @@ Write buffer size, bytes. Optional, default is 1MB. Write buffers are used to wr
 ignore_non_plain = 1
 ```
 
-`ignore_non_plain` allows you to completely ignore warnings about skipping non-plain tables. The default is 0 (not ignoring).
+`ignore_non_plain` 允许你忽略跳过非普通表时发出的警告。默认值为 0（不忽略）。
 <!-- proofread -->
 
 
-### Schedule indexer via systemd
+### 通过 systemd 调度 indexer
 
-There are two approaches to scheduling indexer runs. The first way is the classical method of using crontab. The second way is using a systemd timer with a user-defined schedule. To create the timer unit files, you should place them in the appropriate directory where systemd looks for such unit files. On most Linux distributions, this directory is typically `/etc/systemd/system`. Here's how to do it:
+调度 indexer 运行有两种方法。第一种是经典的 crontab 方法。第二种是使用 systemd 计时器并定义自定义的调度时间。要创建计时器单元文件，需要将它们放置在 systemd 查找单元文件的适当目录中。在大多数 Linux 发行版中，该目录通常是 `/etc/systemd/system`。操作步骤如下：
 
-1. Create a timer unit file for your custom schedule:
+1. 为你的自定义调度创建一个计时器单元文件：
    ```shell
    cat << EOF > /etc/systemd/system/manticore-indexer@.timer
    [Unit]
@@ -293,15 +295,15 @@ There are two approaches to scheduling indexer runs. The first way is the classi
    WantedBy=timers.target
    EOF
    ```
-   More on the `OnCalendar` syntax and examples can be found [here](https://www.freedesktop.org/software/systemd/man/latest/systemd.time.html#Calendar%20Events).
+   关于 `OnCalendar` 语法和更多示例，请查看 [此处](https://www.freedesktop.org/software/systemd/man/latest/systemd.time.html#Calendar Events)。
 
-2. Edit the timer unit for your specific needs.
-3. Enable the timer:
+2. 编辑计时器单元以满足你的特定需求。
+3. 启用计时器：
    ```shell
    systemctl enable manticore-indexer@idx1.timer
    ```
-4. Start the timer:
+4. 启动计时器：
    ```shell
    systemctl start manticore-indexer@idx1.timer
    ```
-5. Repeat steps 2-4 for any additional timers.
+5. 对其他计时器重复步骤 2-4。

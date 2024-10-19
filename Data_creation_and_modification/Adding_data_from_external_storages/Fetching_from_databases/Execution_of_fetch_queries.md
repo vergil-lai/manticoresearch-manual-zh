@@ -1,21 +1,19 @@
-# Execution of fetch queries
+# 执行数据获取查询
 
-With all the SQL drivers, building a plain table generally works as follows.
+使用所有SQL驱动程序时，构建普通表的过程通常如下：
 
-* A connection to the database is established.
-* The `sql_query_pre_all` queries are executed to perform any necessary initial setup, such as setting per-connection encoding with MySQL. These queries run before the entire indexing process, and also after a reconnect for indexing MVA attributes and joined fields.
-* The `sql_query_pre` pre-query is executed to perform any necessary initial setup, such as setting up temporary tables or maintaining counter tables. These queries run once for the entire indexing process.
-* Pre-queries as `sql_query_pre` is executed to perform any necessary initial setup, such as setting up temporary
-  tables, or maintaining counter table. These queries run once per whole indexing.
-* Main query as `sql_query` is executed and the rows it returns are processed.
-* Post-query as `sql_query_post` is executed to perform some necessary cleanup.
-* The connection to the database is closed.
-* Indexer does the sorting phase (to be pedantic, table-type specific post-processing).
-* A connection to the database is established again.
-* Post-processing query as `sql_query_post_index` is executed to perform some necessary final cleanup.
-* The connection to the database is closed again.
+- 建立与数据库的连接。
+- 执行 `sql_query_pre_all` 查询以进行任何必要的初始设置，例如使用MySQL设置每个连接的编码。这些查询在整个索引过程中执行一次，并在重新连接后用于索引MVA属性和连接字段。
+- 执行 `sql_query_pre` 预查询以进行任何必要的初始设置，例如设置临时表或维护计数器表。这些查询在整个索引过程中执行一次。
+- 执行主查询 `sql_query` 并处理其返回的行。
+- 执行 `sql_query_post` 后查询以进行必要的清理。
+- 关闭与数据库的连接。
+- 索引器执行排序阶段（准确地说，是表类型特定的后处理）。
+- 再次建立与数据库的连接。
+- 执行 `sql_query_post_index` 后处理查询以进行最终清理。
+- 再次关闭与数据库的连接。
 
-Example of a source fetching data from MYSQL:
+从MySQL获取数据的源示例如下：
 
 ```ini
 source mysource {
@@ -45,23 +43,22 @@ table mytable {
 
 ## sql_query
 
-This is the query used to retrieve documents from a SQL server. There can be only one sql_query declared, and it's mandatory to have one. See also [Processing fetched data](../../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#Processing-fetched-data)
+这是用于从SQL服务器检索文档的查询。必须声明且只能声明一个 `sql_query`。详细信息请参阅 [处理获取的数据](../../../Data_creation_and_modification/Adding_data_from_external_storages/Fetching_from_databases/Processing_fetched_data.md#Processing-fetched-data)
 
 ## sql_query_pre
 
-Pre-fetch query or pre-query. This is a multi-value, optional setting, with the default being an empty list of queries. The pre-queries are executed before the sql_query in the order they appear in the configuration file. The results of the pre-queries are ignored.
+预取查询或预查询。这是一个多值、可选设置，默认值为空列表。预查询在 `sql_query` 之前按其在配置文件中的顺序执行，预查询的结果会被忽略。
 
-Pre-queries are useful in many ways. They can be used to set up encoding, mark records that are going to be indexed, update internal counters, set various per-connection SQL server options and variables, and so on.
+预查询非常有用，可以用于设置编码、标记将要被索引的记录、更新内部计数器、设置各种每连接SQL服务器选项和变量等。
 
-Perhaps the most frequent use of pre-query is to specify the encoding that the server will use for the rows it returns. Note that Manticore accepts only UTF-8 text. Two MySQL specific examples of setting the encoding are:
+预查询最常见的用途是指定服务器将用于返回行的编码。请注意，Manticore仅接受UTF-8文本。以下是设置编码的两个MySQL特定示例：
 
 ```ini
 sql_query_pre = SET CHARACTER_SET_RESULTS=utf8
 sql_query_pre = SET NAMES utf8
 ```
 
-Also, specific to MySQL sources, it is useful to disable query cache (for indexer connection only) in pre-query, because indexing queries are not going to be re-run frequently anyway, and there's no sense in caching their results.
-That could be achieved with:
+对于MySQL源，关闭查询缓存（仅对索引器连接有效）也是有用的，因为索引查询不会经常重新运行，缓存结果没有意义。这可以通过以下方式实现：
 
 ```ini
 sql_query_pre = SET SESSION query_cache_type=OFF
@@ -69,22 +66,23 @@ sql_query_pre = SET SESSION query_cache_type=OFF
 
 ## sql_query_post
 
-Post-fetch query. This is an optional setting, with the default value being empty.
+后取查询。这是一个可选设置，默认值为空。
 
-This query is executed immediately after sql_query completes successfully. When the post-fetch query produces errors, they are reported as warnings, but indexing is not terminated. Its result set is ignored. Note that indexing is not yet completed at the point when this query gets executed, and further indexing may still fail. Therefore, any permanent updates should not be done from here. For instance, updates on a helper table that permanently change the last successfully indexed ID should not be run from the `sql_query_post` query; they should be run from the `sql_query_post_index` query instead.
+该查询在 `sql_query` 成功完成后立即执行。如果后取查询产生错误，会报告为警告，但不会终止索引，其结果集会被忽略。请注意，在此查询执行时，索引尚未完成，后续的索引过程可能仍会失败。因此，不应在此进行任何永久性更新。例如，不能在 `sql_query_post` 查询中更新最后成功索引的ID，而应在 `sql_query_post_index` 查询中运行这些更新。
 
 ## sql_query_post_index
 
-Post-processing query. This is an optional setting, with the default value being empty.
+后处理查询。这是一个可选设置，默认值为空。
 
-This query is executed when indexing is fully and successfully completed. If this query produces errors, they are reported as warnings, but indexing is not terminated. Its result set is ignored. The `$maxid` macro can be used in its text; it will be expanded to the maximum document ID that was actually fetched from the database during indexing. If no documents were indexed, `$maxid` will be expanded to 0.
+该查询在索引完全成功完成时执行。如果此查询产生错误，会报告为警告，但不会终止索引，其结果集会被忽略。查询的文本中可以使用 `$maxid` 宏；它将扩展为索引期间从数据库实际获取的最大文档ID。如果没有索引文档，`$maxid` 将扩展为0。
 
-Example:
+示例：
+
 ```ini
 sql_query_post_index = REPLACE INTO counters ( id, val ) \
     VALUES ( 'max_indexed_id', $maxid )
 ```
 
-The difference between `sql_query_post` and `sql_query_post_index` is that `sql_query_post` is run immediately when Manticore receives all the documents, but further indexing may still fail for some other reason. On the contrary, by the time the `sql_query_post_index` query gets executed, it is guaranteed that the table was created successfully. Database connection is dropped and re-established because sorting phase can be very lengthy and would just time out otherwise.
+`sql_query_post` 和 `sql_query_post_index` 之间的区别在于，`sql_query_post` 是在Manticore接收到所有文档后立即运行的，但由于其他原因，进一步的索引仍可能失败。而在执行 `sql_query_post_index` 查询时，可以确保表已成功创建。由于排序阶段可能非常耗时，因此会关闭并重新建立数据库连接，否则连接可能会超时。
 
 <!-- proofread -->

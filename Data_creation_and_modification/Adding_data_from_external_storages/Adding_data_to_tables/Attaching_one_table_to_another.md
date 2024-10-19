@@ -1,38 +1,40 @@
-# Attaching one table to another
+# 将一个表附加到另一个表
 
 <!-- example Example_1 -->
 
-A plain table can be converted into a real-time table or added to an existing real-time table.
+普通表可以转换为实时表，或添加到现有的实时表中。
 
-The first case is useful when you need to regenerate a real-time table completely, which may be needed, for example, if tokenization settings need an update. In this situation, preparing a plain table and converting it into a real-time table may be easier than preparing a batch job to perform INSERTs for adding all the data into a real-time table.
+第一种情况在你需要完全重新生成实时表时非常有用，例如，当需要更新分词设置时。在这种情况下，准备一个普通表并将其转换为实时表可能比准备批处理作业以执行INSERT操作更容易。
 
-In the second case, you normally want to add a large bulk of new data to a real-time table, and again, creating a plain table with that data is easier than populating the existing real-time table.
+第二种情况通常是你想要将大量新数据添加到实时表中，再次创建一个包含这些数据的普通表比填充现有的实时表更容易。
 
-You can also attach an existing real-time table to another one.
+你也可以将现有的实时表附加到另一个实时表中。
 
-##### Attaching table - general syntax
-The `ATTACH` statement allows you to convert a plain table to be attached to an existing real-time table. It also enables you to attach the content of one real-time table to another real-time table.
+##### 附加表 - 通用语法
+
+`ATTACH` 语句允许你将普通表转换并附加到现有的实时表中。它也可以用于将一个实时表的内容附加到另一个实时表。
 
 ```sql
 ATTACH TABLE plain_or_rt_table TO TABLE rt_table [WITH TRUNCATE]
 ```
 
-After a successful `ATTACH` the data originally stored in the source plain table becomes a part of the target RT table, and the source plain table becomes unavailable (until the next rebuild). If the source table is an RT table, its content is moved into the destination RT table, and the source RT table remains empty. `ATTACH` does not result in any table data changes. Essentially, it just renames the files (making the source table a new disk chunk of the target RT table) and updates the metadata. So it is generally a quick operation that might (frequently) complete as fast as under a second.
+在成功执行 `ATTACH` 之后，最初存储在源普通表中的数据将成为目标RT表的一部分，源普通表将不可用（直到下一次重建）。如果源表是一个实时表，则其内容将被移动到目标RT表中，而源实时表将变为空表。`ATTACH` 不会导致任何表数据的更改。基本上，它只是重命名文件（将源表变为目标RT表的新磁盘块）并更新元数据。所以通常这是一个快速操作，常常可以在一秒钟内完成。
 
-Note that when a table is attached to an empty RT table, the fields, attributes, and text processing settings (tokenizer, wordforms, etc.) from the *source* table are copied over and take effect. The respective parts of the RT table definition from the configuration file will be ignored.
+需要注意的是，当一个表附加到空的RT表时，字段、属性和文本处理设置（分词器、词形变换等）会从*源表*复制过来并生效。配置文件中RT表定义的相应部分将被忽略。
 
-When the `TRUNCATE` option is used, the RT table gets truncated prior to attaching the source plain table. This allows the operation to be atomic or ensures that the attached source plain table will be the only data in the target RT table.
+当使用 `TRUNCATE` 选项时，RT表在附加源普通表之前将被截断。这允许操作具有原子性，或确保附加的源普通表将成为目标RT表中的唯一数据。
 
-`ATTACH TABLE` comes with a number of restrictions. Most notably, the target RT table is currently required to be either empty or have the same settings as the source table. In case the source table gets attached to a non-empty RT table, the RT table data collected so far gets stored as a regular disk chunk, and the table being attached becomes the newest disk chunk, with documents having the same IDs getting killed. The complete list of restrictions is as follows:
-* The target RT table needs to be either empty or have the same settings as the source table.
-* The source table needs to have [phrase_boundary_step](../../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#phrase_boundary_step) set to 0 and [stopword_step](../../../Creating_a_table/NLP_and_tokenization/Ignoring_stop-words.md#stopword_step) set to 1.
+`ATTACH TABLE` 有许多限制。最显著的是目标RT表当前需要是空的或与源表具有相同的设置。在源表附加到非空的RT表时，RT表中迄今为止收集的数据将被存储为常规磁盘块，并且附加的表将成为最新的磁盘块，具有相同ID的文档将被删除。完整的限制列表如下：
+
+- 目标RT表需要为空或与源表具有相同的设置。
+- 源表需要将 [phrase_boundary_step](../../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#phrase_boundary_step) 设置为 0，并将 [stopword_step](../../../Creating_a_table/NLP_and_tokenization/Ignoring_stop-words.md#stopword_step) 设置为 1。
 
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request Example -->
-Before the ATTACH, the RT table is empty and has 3 fields:
+在 ATTACH 之前，RT 表为空，具有 3 个字段:
 
 ```sql
 mysql> DESC rt;
@@ -49,7 +51,7 @@ mysql> SELECT * FROM rt;
 3 rows in set (0.00 sec)
 ```
 
-The plain table is not empty:
+普通表不为空：
 
 ```sql
 mysql> SELECT * FROM plain WHERE MATCH('test');
@@ -64,13 +66,13 @@ mysql> SELECT * FROM plain WHERE MATCH('test');
 4 rows in set (0.00 sec)
 ```
 
-Attaching the plain table to the RT table:
+将普通表附加到RT表：
 ```sql
 mysql> ATTACH TABLE plain TO TABLE rt;
 Query OK, 0 rows affected (0.00 sec)
 ```
 
-The RT table now has 5 fields:
+现在RT表有5个字段：
 
 ```sql
 mysql> DESC rt;
@@ -86,7 +88,7 @@ mysql> DESC rt;
 5 rows in set (0.00 sec)
 ```
 
-And it's not empty:
+并且它不是空的：
 
 ```sql
 mysql> SELECT * FROM rt WHERE MATCH('test');
@@ -101,7 +103,7 @@ mysql> SELECT * FROM rt WHERE MATCH('test');
 4 rows in set (0.00 sec)
 ```
 
-After the ATTACH, the plain table is removed and no longer available for searching:
+附加操作之后，普通表被移除，不再可用于搜索：
 
 ```sql
 mysql> SELECT * FROM plain WHERE MATCH('test');

@@ -2,34 +2,36 @@
 
 <!-- example replace -->
 
-`REPLACE` works similarly to [INSERT](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md), but it marks the previous document with the same ID as deleted before inserting a new one.
+`REPLACE` 的工作方式类似于 [INSERT](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md)，但它会在插入新文档之前将具有相同ID的先前文档标记为已删除。
 
-If you are looking for in-place updates, please see [this section](../../Data_creation_and_modification/Updating_documents/UPDATE.md).
+如果您想进行原地更新，请参阅 [此部分](../../Data_creation_and_modification/Updating_documents/UPDATE.md)。
 
 ## SQL REPLACE
 
-The syntax of the SQL `REPLACE` statement is as follows:
+SQL `REPLACE` 语句的语法如下：
 
-**To replace the whole document:**
+**替换整个文档：**
+
 ```sql
 REPLACE INTO table [(column1, column2, ...)]
     VALUES (value1, value2, ...)
     [, (...)]
 ```
 
-**To replace only selected fields:**
+**仅替换选定字段：**
+
 ```sql
 REPLACE INTO table
     SET field1=value1[, ..., fieldN=valueN]
     WHERE id = <id>
 ```
-Note, you can filter only by id in this mode.
+请注意，在此模式下只能通过 id 进行过滤。
 
-> NOTE: Partial replace requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：部分替换需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
-Read more about `UPDATE` vs. partial `REPLACE` [here](../../Data_creation_and_modification/Updating_documents/REPLACE_vs_UPDATE.md#UPDATE-vs-partial-REPLACE).
+有关 `UPDATE` 与部分 `REPLACE` 的更多信息，请阅读 [此处](../../Data_creation_and_modification/Updating_documents/REPLACE_vs_UPDATE.md#UPDATE-vs-partial-REPLACE)。
 
-See the examples for more details.
+请参阅示例以获取更多详细信息。
 
 ## JSON REPLACE
 
@@ -47,8 +49,8 @@ See the examples for more details.
     }
   }
   ```
-  `/index` is an alias endpoint and works the same.
-* Elasticsearch-like endpoint `<table>/_doc/<id>`:
+  `/index` 是一个别名端点，工作方式相同。
+* 类似 Elasticsearch 的端点 `<table>/_doc/<id>`:
   ```
   PUT/POST /<table name>/_doc/<id>
   {
@@ -58,7 +60,7 @@ See the examples for more details.
   }
   ```
   > NOTE: Elasticsearch-like replace requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
-* Partial replace:
+* 部分替换：
   ```
   POST /<{table | cluster:table}>/_update/<id>
   {
@@ -67,11 +69,11 @@ See the examples for more details.
     "<fieldN>": <valueN>
   }
   ```
-  The `<table name>` can either be just the table name or in the format `cluster:table`. This allows for updates across a specific cluster if needed.
+   `<table name>`  可以是表名，也可以是 `cluster:table` 格式。如果需要，可以进行跨特定集群的更新。
 
-  > NOTE: Partial replace requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+  > 注意：部分替换需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
-See the examples for more details.
+请参阅示例以获取更多详细信息。
 
 <!-- intro -->
 ##### SQL:
@@ -139,7 +141,7 @@ POST /replace
 
 <!-- request Elasticsearch-like -->
 
-> NOTE: Elasticsearch-like replace requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：部分替换需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
 ```json
 PUT /products/_doc/2
@@ -189,11 +191,11 @@ POST /products/_doc/3
 ```
 
 <!-- intro -->
-##### Elasticsearch-like partial replace:
+##### Elasticsearch-like 部分替换：
 
 <!-- request Elasticsearch-like partial -->
 
-> NOTE: Partial replace requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：部分替换需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保 Buddy 已安装。
 
 ```json
 POST /products/_update/55
@@ -214,7 +216,7 @@ POST /products/_update/55
 ```
 
 <!-- intro -->
-##### Elasticsearch-like partial replace in cluster:
+##### Elasticsearch-like 在集群中进行部分替换：
 
 <!-- request Elasticsearch-like partial in cluster -->
 
@@ -390,15 +392,15 @@ res, _, _ := apiClient.IndexAPI.Replace(context.Background()).InsertDocumentRequ
 
 <!-- end -->
 
-`REPLACE` is available for real-time and percolate tables. You can't replace data in a plain table.
+`REPLACE` 适用于实时表和渗透表。你不能在普通表中替换数据。
 
-When you run a `REPLACE`, the previous document is not removed, but it's marked as deleted, so the table size grows until chunk merging happens. To force a chunk merge, use the [OPTIMIZE statement](../../Securing_and_compacting_a_table/Compacting_a_table.md).
+当你执行 `REPLACE` 时，之前的文档不会被移除，而是被标记为已删除，因此表的大小会随着时间的推移增加，直到发生块合并。要强制进行块合并，请使用 [OPTIMIZE 语句](../../Securing_and_compacting_a_table/Compacting_a_table.md)。
 
-## Bulk replace
+## 批量替换
 
 <!-- example bulk_replace -->
 
-You can replace multiple documents at once. Check [bulk adding documents](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Bulk-adding-documents) for more information.
+你可以一次替换多个文档。查看[批量添加文档](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Bulk-adding-documents)以获取更多信息。
 
 <!-- intro -->
 ##### HTTP:

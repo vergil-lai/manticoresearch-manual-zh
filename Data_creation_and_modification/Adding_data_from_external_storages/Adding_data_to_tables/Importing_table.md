@@ -1,6 +1,6 @@
-# Importing table
+# 导入表
 
-If you decide to migrate from [Plain mode](../../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain mode%29) to [RT mode](../../../Creating_a_table/Local_tables.md#Online-schema-management-%28RT-mode%29) or in some other cases, real-time and percolate tables built in Plain mode can be imported to Manticore running in RT mode using the `IMPORT TABLE` statement. The general syntax is as follows:
+如果你决定从[普通模式](../../../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain mode%29)迁移到[实时模式](../../../Creating_a_table/Local_tables.md#Online-schema-management-(RT-mode))或在其他情况下，可以使用`IMPORT TABLE`语句将以普通模式构建的实时表和渗透表导入到运行实时模式的Manticore中。其一般语法如下：
 
 <!-- example import -->
 
@@ -8,7 +8,7 @@ If you decide to migrate from [Plain mode](../../../Creating_a_table/Local_table
 IMPORT TABLE table_name FROM 'path'
 ```
 
-where the 'path' parameter must be set as: `/your_backup_folder/your_backup_name/data/your_table_name/your_table_name`
+其中'path'参数必须设置为：`/your_backup_folder/your_backup_name/data/your_table_name/your_table_name`
 
 <!-- request -->
 ```bash
@@ -26,22 +26,24 @@ mysql -P9306 -h0 -e "show tables"
 ```
 <!-- end -->
 
-Executing this command makes all the table files of the specified table copied to [data_dir](../../../Server_settings/Searchd.md#data_dir). All the external table files such as wordforms, exceptions and stopwords are also copied to the same `data_dir`.
-`IMPORT TABLE` has the following limitations:
-* paths to the external files that were originally specified in the config file must be absolute
-* only real-time and percolate tables are supported
-* plain tables need to be preliminarily (in the plain mode) converted to real-time tables via [ATTACH TABLE](../../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md)
+执行此命令会将指定表的所有表文件复制到[data_dir](../../../Server_settings/Searchd.md#data_dir)中。所有外部表文件（如词形、例外和停用词文件）也将复制到相同的`data_dir`。
 
-Note, the `IMPORT TABLE` command doesn't support tables created in versions older than 5.0.0.
+`IMPORT TABLE`具有以下限制：
+
+- 原始配置文件中指定的外部文件路径必须是绝对路径。
+- 仅支持实时表和渗透表。
+- 普通表需要预先（在普通模式下）通过[ATTACH TABLE](../../../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md)转换为实时表。
+
+请注意，`IMPORT TABLE`命令不支持5.0.0版本之前创建的表。
 
 ## indexer --print-rt
 
-<!-- example print_rt -->
-If the above method for migrating a plain table to an RT table is not possible, you may use `indexer --print-rt` to dump data from a plain table directly without the need to convert it to an RT type table and then import the dump into an RT table right from the command line.
+<!-- example print_rt -->如果无法使用上述方法将普通表迁移到实时表，则可以使用`indexer --print-rt`直接从普通表中转储数据，而无需将其转换为实时表类型，然后直接从命令行将转储的数据导入到实时表。
 
-This method has a few limitations though:
-* Only SQL-based sources are supported
-* MVAs are not supported
+此方法有一些限制：
+
+- 仅支持基于SQL的数据源。
+- 不支持MVA（多值属性）。
 
 <!-- request -->
 ```bash

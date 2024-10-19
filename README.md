@@ -126,7 +126,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
             * [• 在普通表中使用杀死列表](Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md)
             * [• 将一张表附加到另一张表](Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md)
             * [• 导入实时表](Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Importing_table.md)
-        * [• 旋转表](Data_creation_and_modification/Adding_data_from_external_storages/Rotating_a_table.md)
+        * [• 轮换表](Data_creation_and_modification/Adding_data_from_external_storages/Rotating_a_table.md)
     * [⪢ 更新文档]
         * [• 替换 VS 更新](Data_creation_and_modification/Updating_documents/REPLACE_vs_UPDATE.md)
         * [• 替换](Data_creation_and_modification/Updating_documents/REPLACE.md)
