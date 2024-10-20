@@ -4,7 +4,7 @@
 FLUSH ATTRIBUTES
 ```
 
-The FLUSH ATTRIBUTES command flushes all in-memory attribute updates in all the active disk tables to disk. It returns a tag that identifies the result on-disk state (which is basically a number of actual disk attribute saves performed since the server startup).
+`FLUSH ATTRIBUTES` 命令将所有活动磁盘表中的内存属性更新刷新到磁盘。它返回一个标记，用于识别磁盘上的结果状态（基本上是自服务器启动以来执行的实际磁盘属性保存的数量）。
 
 ```sql
 mysql> UPDATE testindex SET channel_id=1107025 WHERE id=1;

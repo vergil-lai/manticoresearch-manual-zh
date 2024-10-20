@@ -1,58 +1,57 @@
-# Setting up replication
+# 设置复制
 
-With Manticore, write transactions (such as `INSERT`, `REPLACE`, `DELETE`, `TRUNCATE`, `UPDATE`, `COMMIT`) can be replicated to other cluster nodes before the transaction is fully applied on the current node. Currently, replication is supported for `percolate`, `rt` and `distributed` tables in Linux and macOS. However, Manticore Search packages for Windows do not provide replication support.
+在 Manticore 中，写事务（如 `INSERT`、`REPLACE`、`DELETE`、`TRUNCATE`、`UPDATE`、`COMMIT`）可以在当前节点完全应用事务之前，复制到集群中的其他节点。目前，复制支持 `percolate`、`rt` 和 `distributed` 表，并且仅支持 Linux 和 macOS 系统。Manticore Search 的 Windows 版本不提供复制支持。
 
-Manticore's replication is powered by the [Galera library](https://github.com/codership/galera) and boasts several impressive features:
+Manticore 的复制基于 [Galera 库](https://github.com/codership/galera)，具有以下特点：
 
-* True multi-master: read and write to any node at any time.
-* [Virtually synchronous replication](https://galeracluster.com/library/documentation/overview.html) no slave lag and no data loss after a node crash.
-* Hot standby: no downtime during failover (since there is no failover).
-* Tightly coupled: all nodes hold the same state and no diverged data between nodes is allowed.
-* Automatic node provisioning: no need to manually backup the database and restore it on a new node.
-* Easy to use and deploy.
-* Detection and automatic eviction of unreliable nodes.
-* Certification-based replication.
+- 真正的多主架构：可以随时对任意节点进行读写操作。
+- [几乎同步的复制](https://galeracluster.com/library/documentation/overview.html)：无从属节点延迟，无节点崩溃后的数据丢失。
+- 热备：无故障切换期间的停机时间（因为没有故障切换）。
+- 紧密耦合：所有节点保持相同状态，节点之间不允许数据分歧。
+- 自动节点配置：无需手动备份数据库并在新节点上恢复。
+- 易于使用和部署。
+- 自动检测和移除不可靠节点。
+- 基于认证的复制。
 
-To set up replication in Manticore Search:
+要在 Manticore Search 中设置复制：
 
-* The [data_dir](../../Server_settings/Searchd.md#data_dir) option must be set in the "searchd" section of the configuration file. Replication is not supported in plain mode.
-* A [listen](../../Server_settings/Searchd.md#listen)  directive must be specified, containing an IP address accessible by other nodes, or a [node_address](../../Server_settings/Searchd.md#node_address) with an accessible IP address.
-* Optionally, you can set unique values for [server_id](../../Server_settings/Searchd.md#server_id) on each cluster node. If no value is set, the node will attempt to use the MAC address or a random number to generate the `server_id`.
+- 必须在配置文件的 "searchd" 部分中设置 [data_dir](../../Server_settings/Searchd.md#data_dir) 选项。复制不支持 plain 模式。
+- 必须指定包含其他节点可访问的 IP 地址的 [listen](../../Server_settings/Searchd.md#listen) 指令，或具有可访问 IP 地址的 [node_address](../../Server_settings/Searchd.md#node_address)。
+- 可选地，您可以为每个集群节点设置唯一的 [server_id](../../Server_settings/Searchd.md#server_id)。如果未设置此值，节点将尝试使用 MAC 地址或随机数生成 `server_id`。
 
-If there is no `replication` [listen](../../Server_settings/Searchd.md#listen) directive set, Manticore will use the first two free ports in the range of 200 ports after the default protocol listening port for each created cluster. To set replication ports manually, the [listen](../../Server_settings/Searchd.md#listen) directive (of `replication` type) port range must be defined and the address/port range pairs must not intersect between different nodes on the same server. As a rule of thumb, the port range should specify at least two ports per cluster.
+如果未设置 `replication` [listen](../../Server_settings/Searchd.md#listen) 指令，Manticore 将使用默认协议监听端口后 200 个端口中的前两个空闲端口为每个创建的集群分配复制端口。要手动设置复制端口，必须定义 [listen](../../Server_settings/Searchd.md#listen) 指令（`replication` 类型）的端口范围，并确保地址/端口范围对在同一服务器的不同节点之间不冲突。一般建议为每个集群至少指定两个端口。
 
-## Replication cluster
+## 复制集群
 
-A replication cluster is a group of nodes in which a write transaction is replicated. Replication is set up on a per-table basis, meaning that one table can only belong to one cluster. There is no limit on the number of tables that a cluster can have. All transactions such as `INSERT`, `REPLACE`, `DELETE`, `TRUNCATE` on any percolate or real-time table that belongs to a cluster are replicated to all the other nodes in that cluster. [Distributed](../../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md#Creating-a-distributed-table) tables can also be part of the replication process. Replication is multi-master, so writes to any node or multiple nodes simultaneously will work just as well.
+复制集群是一个写事务被复制到其他节点的节点组。复制在每个表的基础上设置，意味着一个表只能属于一个集群。一个集群可以拥有的表的数量没有限制。所有对属于集群的 `percolate` 或实时表的事务操作（如 `INSERT`、`REPLACE`、`DELETE`、`TRUNCATE`）都会复制到集群中的所有其他节点。[分布式](../../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md#Creating-a-distributed-table)表也可以作为复制过程的一部分。复制是多主架构，因此对任意节点或多个节点同时写入都能正常工作。
 
-To create a cluster, you can typically use the command [create cluster](../../Creating_a_cluster/Setting_up_replication/Creating_a_replication_cluster.md#Creating-a-replication-cluster) with `CREATE CLUSTER <cluster name>`, and to join a cluster, you can use [join cluster](../../Creating_a_cluster/Setting_up_replication/Joining_a_replication_cluster.md#Joining-a-replication-cluster) with `JOIN CLUSTER <cluster name> at 'host:port'`. However, in some rare cases, you may want to fine-tune the behavior of `CREATE/JOIN CLUSTER`. The available options are:
+创建集群通常可以使用 `CREATE CLUSTER <cluster name>` 命令，加入集群可以使用 `JOIN CLUSTER <cluster name> at 'host:port'` 命令。然而，在某些罕见情况下，您可能需要微调 `CREATE/JOIN CLUSTER` 的行为。可用的选项如下：
 
 ### name
 
-This option specifies the name of the cluster. It should be unique among all the clusters in the system.
+此选项指定集群的名称。在系统中的所有集群中应是唯一的。
 
-> **Note:** The maximum allowable hostname length for the `JOIN` command is **253** characters. If you exceed this limit, searchd will generate an error.
+> **注意**：`JOIN` 命令的最大主机名长度为 **253** 个字符。如果超出此限制，searchd 将生成错误。
 
 ### path
 
-The path option specifies the data directory for [write-set cache replication](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-gcache) and incoming tables from other nodes. This value should be unique among all the clusters in the system and should be specified as a relative path to the [data_dir](../../Server_settings/Searchd.md#data_dir). directory. By default, it is set to the value of [data_dir](../../Server_settings/Searchd.md#data_dir).
+`path` 选项指定用于[写集缓存复制](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-gcache)和从其他节点接收的表的数据目录。该值应在系统中的所有集群中是唯一的，并应指定为相对于 [data_dir](../../Server_settings/Searchd.md#data_dir) 的路径。默认情况下，它设置为 [data_dir](../../Server_settings/Searchd.md#data_dir) 的值。
 
 ### nodes
 
-The `nodes` option is a list of address:port pairs for all the nodes in the cluster, separated by commas. This list should be obtained using the node's API interface and can include the address of the current node as well. It is used to join the node to the cluster and to rejoin it after a restart.
+`nodes` 选项是集群中所有节点的地址:端口对列表，地址之间用逗号分隔。此列表应通过节点的 API 接口获取，并可包括当前节点的地址。它用于将节点加入集群，并在重新启动后重新加入。
 
 ### options
 
-The `options` option allows you to pass additional options directly to the Galera replication plugin, as described in the [Galera Documentation Parameters](https://galeracluster.com/library/documentation/galera-parameters.html)
+`options` 选项允许您直接向 Galera 复制插件传递其他选项，如 [Galera Documentation Parameters](https://galeracluster.com/library/documentation/galera-parameters.html) 中所述。
 
-## Write statements
+## 写操作
 
-<!-- example write statements 1 -->
-When working with a replication cluster, all write statements such as  `INSERT`, `REPLACE`, `DELETE`, `TRUNCATE`, `UPDATE` that modify the content of a cluster's table must use the`cluster_name:index_name` expression instead of the table name. This ensures that the changes are propagated to all replicas in the cluster. If the correct expression is not used, an error will be triggered.
+<!-- example write statements 1 -->当使用复制集群时，所有修改集群表内容的写操作（如 `INSERT`、`REPLACE`、`DELETE`、`TRUNCATE`、`UPDATE`）都必须使用 `cluster_name:index_name` 表达式，而不是表名。这可以确保更改传播到集群中的所有副本。如果未使用正确的表达式，将触发错误。
 
-In the JSON interface, the `cluster` property must be set along with the `table` name for all write statements to a cluster's table. Failure to set the `cluster` property will result in an error.
+在 JSON 接口中，必须为集群表的所有写操作设置 `cluster` 属性以及表名。如果未设置 `cluster` 属性，将导致错误。
 
-The [Auto ID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID) for a table in a cluster should be valid as long as the [server_id](../../Server_settings/Searchd.md#server_id) is correctly configured.
+对于集群中的表，[自动 ID](../../Data_creation_and_modification/Adding_documents_to_a_table/Adding_documents_to_a_real-time_table.md#Auto-ID) 应保持有效，只要 [server_id](../../Server_settings/Searchd.md#server_id) 配置正确。
 
 <!-- intro -->
 ##### SQL:
@@ -152,12 +151,13 @@ indexApi.Delete(deleteDocumentRequest);
 ```
 <!-- end -->
 
-## Read statements
+## 读操作
 
 <!-- example write statements 2 -->
-Read statements such as `SELECT`, `CALL PQ`, `DESCRIBE` can either use regular table names that are not prepended with a cluster name, or they can use the  `cluster_name:index_name`format. If the latter is used, the `cluster_name` component is ignored.
 
-When using the HTTP endpoint `json/search`, the `cluster` property can be specified if desired, but it can also be omitted.
+读操作，如 `SELECT`、`CALL PQ`、`DESCRIBE`，可以使用未加前缀的常规表名，或者可以使用 `cluster_name:index_name` 格式。如果使用后者，`cluster_name` 部分将被忽略。
+
+在使用 HTTP 端点 `json/search` 时，可以根据需要指定 `cluster` 属性，但也可以省略此属性。
 
 
 <!-- intro -->
@@ -188,12 +188,13 @@ POST /search -d '
 
 <!-- end -->
 
-## Cluster parameters
+## 集群参数
 
 <!-- example cluster parameters 1 -->
-Replication plugin options can be adjusted using the `SET` statement.
 
-A list of available options can be found in the [Galera Documentation Parameters](https://galeracluster.com/library/documentation/galera-parameters.html) .
+可以使用 `SET` 语句调整复制插件选项。
+
+可用选项的列表可以在 [Galera Documentation Parameters](https://galeracluster.com/library/documentation/galera-parameters.html) 中找到。
 
 
 <!-- intro -->
@@ -213,14 +214,14 @@ SET CLUSTER click_query GLOBAL 'pc.bootstrap' = 1
 ```
 <!-- end -->
 
-## Cluster with diverged nodes
+## 节点分歧的集群
 
 <!-- example cluster with diverged nodes  1 -->
-It's possible for replicated nodes to diverge from one another, leading to a state where all nodes are labeled as `non-primary`. This can occur as a result of a network split between nodes, a cluster crash, or if the replication plugin experiences an exception when determining the `primary component`. In such a scenario, it's necessary to select a node and promote it to the role of `primary component`.
+复制的节点可能会彼此分歧，导致所有节点标记为 `non-primary`。这种情况可能是由于节点之间的网络分裂、集群崩溃，或复制插件在确定 `primary component` 时遇到异常所导致。在这种情况下，需要选择一个节点并将其提升为 `primary component`。
 
-To identify the node that needs to be promoted, you should compare the `last_committed` cluster status variable value on all nodes. If all the servers are currently running, there's no need to restart the cluster. Instead, you can simply promote the node with the highest last_committed value to the `primary component` using the `SET` statement (as demonstrated in the example).
+要确定需要提升的节点，应比较所有节点的 `last_committed` 集群状态变量值。如果所有服务器当前都在运行，则无需重启集群。相反，您可以使用 `SET` 语句（如示例所示）将具有最高 `last_committed` 值的节点提升为 `primary component`。
 
-The other nodes will then reconnect to the primary component and resynchronize their data based on this node.
+其他节点将重新连接到主组件，并根据该节点重新同步数据。
 
 
 <!-- intro -->
@@ -240,10 +241,10 @@ SET CLUSTER posts GLOBAL 'pc.bootstrap' = 1
 ```
 <!-- end -->
 
-## Replication and cluster
+## 复制与集群
 
 <!-- example replication and cluster 1 -->
-To use replication, you need to define one [listen](../../Server_settings/Searchd.md#listen) port for SphinxAPI protocol and one  [listen](../../Server_settings/Searchd.md#listen) for replication address and port range in the configuration file. Also, specify the  [data_dir](../../Server_settings/Searchd.md#data_dir) folder to receive incoming tables.
+要使用复制，您需要在配置文件中为 SphinxAPI 协议定义一个 [listen](../../Server_settings/Searchd.md#listen) 端口，以及一个用于复制的地址和端口范围的 [listen](../../Server_settings/Searchd.md#listen) 。同时，指定 [data_dir](../../Server_settings/Searchd.md#data_dir) 文件夹以接收传入的表。
 
 
 <!-- intro -->
@@ -261,7 +262,7 @@ searchd {
 <!-- end -->
 
 <!-- example replication and cluster 2 -->
-To replicate tables, you must create a cluster on the server that has the local tables to be replicated.
+要复制表，您必须在包含要复制的本地表的服务器上创建一个集群。
 
 <!-- intro -->
 ##### SQL:
@@ -328,7 +329,7 @@ utilsApi.Sql("CREATE CLUSTER posts");
 <!-- end -->
 
 <!-- example replication and cluster 3 -->
-Add these local tables to the cluster
+将这些本地表添加到集群中。
 
 
 <!-- intro -->
@@ -416,7 +417,7 @@ utilsApi.Sql("ALTER CLUSTER posts ADD pq_clicks");
 <!-- end -->
 
 <!-- example replication and cluster 4 -->
-All other nodes that wish to receive a replica of the cluster's tables should join the cluster as follows:
+所有其他希望接收集群表副本的节点应按如下方式加入集群：
 
 
 <!-- intro -->
@@ -486,7 +487,7 @@ utilsApi.Sql("JOIN CLUSTER posts AT '192.168.1.101:9312'");
 <!-- end -->
 
 <!-- example replication and cluster 5 -->
-When running queries, prepend the table name with the cluster name `posts`: or use the `cluster` property for HTTP request object.
+在运行查询时，在表名之前加上集群名称 `posts`，或者在 HTTP 请求对象中使用 `cluster` 属性。
 
 
 <!-- intro -->
@@ -566,5 +567,5 @@ var sqlresult = indexApi.Insert(newdoc);
 ```
 <!-- end -->
 
-All queries that modify tables in the cluster are now replicated to all nodes in the cluster.
+现在，所有修改集群中表的查询都会复制到集群中的所有节点。
 <!-- proofread -->

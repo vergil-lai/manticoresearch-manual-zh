@@ -1,13 +1,13 @@
-# Section "Common" in configuration
+# 配置中的“Common”部分
 
 lemmatizer_base
 ----------------
 
-The `lemmatizer_base` is an optional configuration directive that specifies the base path for lemmatizer dictionaries. The default path is `/usr/share/manticore`
+`lemmatizer_base` 是一个可选的配置指令，指定词形还原字典的基本路径。默认路径为 `/usr/share/manticore`。
 
-The lemmatizer implementation in Manticore Search (see [Morphology](../Creating_a_table/NLP_and_tokenization/Morphology.md) to learn what lemmatizers are) is dictionary-driven and requires specific dictionary files for different languages. These files can be downloaded from the Manticore website (<https://manticoresearch.com/install/#other-downloads>).
+Manticore Search 中的词形还原实现（见 [词性](../Creating_a_table/NLP_and_tokenization/Morphology.md) 了解词形还原器）是基于字典的，需不同语言的特定字典文件。这些文件可以从 Manticore 网站下载（https://manticoresearch.com/install/#other-downloads）。
 
-Example:
+示例：
 
 ```ini
 lemmatizer_base = /usr/share/manticore/
@@ -16,16 +16,16 @@ lemmatizer_base = /usr/share/manticore/
 progressive_merge
 ------------------
 
-The progressive_merge is a configuration directive that, when enabled, merges real-time table disk chunks from smaller to larger ones. This approach speeds up the merging process and reduces read/write amplification. By default, this setting is enabled. If disabled, the chunks are merged in the order they were created.
+`progressive_merge` 是一个配置指令，当启用时，将实时表的磁盘块从小合并为大。此方法加快了合并过程并减少了读/写放大。默认情况下，此设置是启用的。如果禁用，块将按创建顺序合并。
 
 json_autoconv_keynames
 ------------------------
 
-The json_autoconv_keynames is an optional configuration directive that determines if and how to auto-convert key names within JSON attributes. The known value is 'lowercase'. By default, this setting is unspecified (meaning no conversion occurs).
+`json_autoconv_keynames` 是一个可选的配置指令，决定是否以及如何自动转换 JSON 属性中的键名。已知值为 'lowercase'。默认情况下，此设置未指定（意味着不进行转换）。
 
-When set to lowercase, key names within JSON attributes will be automatically converted to lowercase during indexing. This conversion applies to JSON attributes from all data sources, including SQL and XMLpipe2.
+当设置为 lowercase 时，JSON 属性中的键名将在索引过程中自动转换为小写。这种转换适用于来自所有数据源的 JSON 属性，包括 SQL 和 XMLpipe2。
 
-Example:
+示例：
 
 ```ini
 json_autoconv_keynames = lowercase
@@ -34,11 +34,11 @@ json_autoconv_keynames = lowercase
 json_autoconv_numbers
 -----------------------
 
-The json_autoconv_numbers is an optional configuration directive that determines whether to automatically detect and convert JSON strings that represent numbers into numeric attributes. The default value is 0 (do not convert strings into numbers).
+`json_autoconv_numbers` 是一个可选的配置指令，决定是否自动检测并将表示数字的 JSON 字符串转换为数值属性。默认值为 0（不将字符串转换为数字）。
 
-When this option is set to 1, values such as "1234" will be indexed as numbers instead of strings. If the option is set to 0, such values will be indexed as strings. This conversion applies to JSON attributes from all data sources, including SQL and XMLpipe2.
+当此选项设置为 1 时，像 "1234" 这样的值将作为数字而非字符串进行索引。如果选项设置为 0，则此类值将作为字符串进行索引。这种转换适用于来自所有数据源的 JSON 属性，包括 SQL 和 XMLpipe2。
 
-Example:
+示例：
 
 ```ini
 json_autoconv_numbers = 1
@@ -47,11 +47,11 @@ json_autoconv_numbers = 1
 on_json_attr_error
 ---------------------
 
-on_json_attr_error is an optional configuration directive that specifies the action to take if JSON format errors are found. The default value is `ignore_attr`(ignore errors). This setting applies only to `sql_attr_json` attributes.
+`on_json_attr_error` 是一个可选的配置指令，指定在发现 JSON 格式错误时采取的措施。默认值为 `ignore_attr`（忽略错误）。此设置仅适用于 `sql_attr_json` 属性。
 
-By default, JSON format errors are ignored (`ignore_attr`), and the indexer tool will show a warning. Setting this option to `fail_index` will cause indexing to fail at the first JSON format error.
+默认情况下，JSON 格式错误被忽略（`ignore_attr`），索引工具会显示警告。将此选项设置为 `fail_index` 将导致在遇到第一个 JSON 格式错误时索引失败。
 
-Example:
+示例：
 
 ```ini
 on_json_attr_error = ignore_attr
@@ -60,11 +60,11 @@ on_json_attr_error = ignore_attr
 plugin_dir
 -----------
 
-The plugin_dir is an optional configuration directive that specifies the trusted location for dynamic libraries (UDFs). The default path is  `/usr/local/lib/manticore/`.
+`plugin_dir` 是一个可选的配置指令，指定动态库（UDFs）的可信位置。默认路径为 `/usr/local/lib/manticore/`。
 
-This directive sets the trusted directory from which the [UDF libraries](../Extensions/UDFs_and_Plugins/UDF.md) can be loaded.
+此指令设置可以加载 [UDF 库](../Extensions/UDFs_and_Plugins/UDF.md) 的可信目录。
 
-Example:
+示例：
 
 ```ini
 plugin_dir = /usr/local/lib/manticore/

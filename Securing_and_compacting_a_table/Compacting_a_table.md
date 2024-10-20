@@ -1,8 +1,8 @@
-# Compacting a Table
+# 压缩表
 
-Over time, RT tables may become fragmented into numerous disk chunks and/or contaminated with deleted, yet unpurged data, affecting search performance. In these cases, optimization is necessary. Essentially, the optimization process combines pairs of disk chunks, removing documents that were previously deleted using DELETE statements.
+随着时间的推移，RT 表可能会分散到多个磁盘块中，或被删除但未清除的数据污染，从而影响搜索性能。在这些情况下，需要进行优化。优化过程本质上是将一对磁盘块合并，并删除先前使用 DELETE 语句删除的文档。
 
-Beginning with Manticore 4, this process occurs [automatically by default](../Server_settings/Searchd.md#auto_optimize). However, you can also use the following commands to manually initiate table compaction.
+从 Manticore 4 开始，该过程默认为[自动进行](../Server_settings/Searchd.md#auto_optimize)。不过，您也可以使用以下命令手动启动表压缩。
 
 ## OPTIMIZE TABLE
 
@@ -11,7 +11,7 @@ Beginning with Manticore 4, this process occurs [automatically by default](../Se
 OPTIMIZE TABLE index_name [OPTION opt_name = opt_value [,...]]
 ```
 
-`OPTIMIZE` statement adds an RT table to the optimization queue, which will be processed in a background thread.
+`OPTIMIZE` 语句将 RT 表添加到优化队列，该队列将在后台线程中处理。
 
 <!-- intro -->
 ##### SQL:
@@ -23,15 +23,16 @@ OPTIMIZE TABLE rt;
 ```
 <!-- end -->
 
-### Number of optimized disk chunks
+### 优化后的磁盘块数量
 
 <!-- example optimize_cutoff -->
 
-By default, OPTIMIZE merges the RT table's disk chunks down to a number equal to `# of CPU cores * 2`. You can control the number of optimized disk chunks using the `cutoff` option.
+默认情况下，OPTIMIZE 将 RT 表的磁盘块合并到数量等于 `# CPU 核心 * 2`。您可以使用 `cutoff` 选项来控制优化后的磁盘块数量。
 
-Additional options include:
-* Server setting [optimize_cutoff](../Server_settings/Searchd.md#optimize_cutoff) for overriding the default threshold
-* Per-table setting [optimize_cutoff](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#optimize_cutoff)
+其他选项包括：
+
+- 服务器设置 [optimize_cutoff](../Server_settings/Searchd.md#optimize_cutoff) 用于覆盖默认阈值
+- 每表设置 [optimize_cutoff](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#optimize_cutoff)
 
 <!-- intro -->
 ##### SQL:
@@ -43,11 +44,11 @@ OPTIMIZE TABLE rt OPTION cutoff=4;
 ```
 <!-- end -->
 
-### Running in foreground
+### 在前台运行
 
 <!-- example optimize_sync -->
 
-When using `OPTION sync=1` (0 by default), the command will wait for the optimization process to complete before returning. If the connection is interrupted, the optimization will continue running on the server.
+当使用 `OPTION sync=1`（默认值为 0）时，该命令将在优化过程完成之前等待返回。如果连接中断，优化将继续在服务器上运行。
 
 <!-- intro -->
 ##### SQL:
@@ -59,51 +60,53 @@ OPTIMIZE TABLE rt OPTION sync=1;
 ```
 <!-- end -->
 
-### Throttling the IO impact
+### 限制 I/O 影响
 
-Optimization can be a lengthy and I/O-intensive process. To minimize the impact, all actual merge work is executed serially in a special background thread, and the `OPTIMIZE` statement simply adds a job to its queue. The optimization thread can be I/O-throttled, and you can control the maximum number of I/Os per second and the maximum I/O size with the [rt_merge_iops](../Server_settings/Searchd.md#rt_merge_iops) and [rt_merge_maxiosize](../Server_settings/Searchd.md#rt_merge_maxiosize) directives, respectively.
+优化可能是一个耗时且 I/O 密集的过程。为了最小化影响，所有实际的合并工作在一个特殊的后台线程中串行执行，而 `OPTIMIZE` 语句只是将一个作业添加到其队列中。优化线程可以进行 I/O 限制，您可以使用 [rt_merge_iops](../Server_settings/Searchd.md#rt_merge_iops) 和 [rt_merge_maxiosize](../Server_settings/Searchd.md#rt_merge_maxiosize) 指令控制每秒的最大 I/O 数量和最大 I/O 大小。
 
-During optimization, the RT table being optimized remains online and available for both searching and updates nearly all the time. It is locked for a very brief period when a pair of disk chunks is successfully merged, allowing for the renaming of old and new files and updating the table header.
+在优化过程中，被优化的 RT 表几乎始终保持在线，可用于搜索和更新。在成功合并一对磁盘块时，它会被锁定很短的时间，以允许重命名旧文件和新文件，并更新表头。
 
-### Optimizing clustered tables
+### 优化集群表
 
-As long as [auto_optimize](../Server_settings/Searchd.md#auto_optimize) is not disabled, tables are optimized automatically.
+只要未禁用 [auto_optimize](../Server_settings/Searchd.md#auto_optimize)，表将自动优化。
 
-If you are experiencing unexpected SSTs or want tables across all nodes of the cluster to be binary identical, you need to:
-1. Disable [auto_optimize](../Server_settings/Searchd.md#auto_optimize).
-2. Manually optimize tables:
+如果您遇到意外的 SST 或希望集群中所有节点上的表是二进制相同的，则需要：
+
+1. 禁用 [auto_optimize](../Server_settings/Searchd.md#auto_optimize)。
+2. 手动优化表：
 <!-- example cluster_manual_drop -->
-On one of the nodes, drop the table from the cluster:
+在一个节点上，从集群中删除表：
 <!-- request SQL -->
 ```sql
 ALTER CLUSTER mycluster DROP myindex;
 ```
 <!-- end -->
 <!-- example cluster_manual_optimize -->
-Optimize the table:
+优化表：
 <!-- request SQL -->
+
 ```sql
 OPTIMIZE TABLE myindex;
 ```
 <!-- end -->
 <!-- example cluster_manual_add -->
-Add back the table to the cluster:
+将表添加回集群：
 <!-- request SQL -->
+
 ```sql
 ALTER CLUSTER mycluster ADD myindex;
 ```
 <!-- end -->
-When the table is added back, the new files created by the optimization process will be replicated to the other nodes in the cluster.
-Any local changes made to the table on other nodes will be lost.
 
-Table data modifications (inserts, replaces, deletes, updates) should either:
+当表添加回集群时，优化过程创建的新文件将被复制到集群中的其他节点。对表的任何本地更改都将丢失。
 
-1. Be postponed, or
-2. Be directed to the node where the optimization process is running.
+表数据的修改（插入、替换、删除、更新）应：
 
-Note that while the table is out of the cluster, insert/replace/delete/update commands should refer to it without the cluster name prefix (for SQL statements or the cluster property in case of an HTTP JSON request), otherwise they will fail.
-Once the table is added back to the cluster, you must resume write operations on the table and include the cluster name prefix again, or they will fail.
+1. 被推迟，或
+2. 指向正在运行优化过程的节点。
 
-Search operations are available as usual during the process on any of the nodes.
+请注意，当表不在集群中时，插入/替换/删除/更新命令应在没有集群名称前缀的情况下引用它（对于 SQL 语句或在 HTTP JSON 请求中使用的集群属性），否则将失败。一旦表添加回集群，您必须恢复对该表的写操作，并再次包含集群名称前缀，否则将失败。
+
+在过程中，任何节点上的搜索操作仍然可以正常进行。
 
 <!-- proofread -->

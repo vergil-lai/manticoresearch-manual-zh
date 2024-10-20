@@ -1,67 +1,89 @@
-# Mathematical functions
+# 数学函数
 
 ### ABS()
-Returns the absolute value of the argument.
+
+返回参数的绝对值。
 
 ### ATAN2()
-Returns the arctangent function of two arguments, expressed in **radians**.
+
+返回两个参数的反正切函数，以**弧度**表示。
 
 ### BITDOT()
-`BITDOT(mask, w0, w1, ...)` returns the sum of products of each bit of a mask multiplied by its weight. `bit0*w0 + bit1*w1 + ...`
+
+`BITDOT(mask, w0, w1, ...)` 返回掩码的每个位与其权重乘积的和。计算公式为 `bit0*w0 + bit1*w1 + ...`。
 
 ### CEIL()
-Returns the smallest integer value greater than or equal to the argument.
+
+返回大于或等于参数的最小整数值。
 
 ### COS()
-Returns the cosine of the argument.
+
+返回参数的余弦值。
 
 ### CRC32()
-Returns the CRC32 value of a string argument.
+
+返回字符串参数的 CRC32 值。
 
 ### EXP()
-Returns the exponent of the argument (e=2.718... to the power of the argument).
+
+返回参数的指数值，即 e=2.718... 的参数次方。
 
 ### FIBONACCI()
-Returns the N-th Fibonacci number, where N is the integer argument. That is, arguments of 0 and up will generate the values 0, 1, 1, 2, 3, 5, 8, 13 and so on. Note that the computations are done using 32-bit integer math and thus numbers 48th and up will be returned modulo 2^32.
+
+返回第 N 个斐波那契数，其中 N 是整数参数。即参数为 0 及以上时将生成值 0, 1, 1, 2, 3, 5, 8, 13 等。请注意，计算使用 32 位整数数学，因此第 48 个及以上的值将以模 2^32 返回。
 
 ### FLOOR()
-Returns the largest integer value lesser than or equal to the argument.
+
+返回小于或等于参数的最大整数值。
 
 ### GREATEST()
-`GREATEST(attr_json.some_array)` function takes a JSON array as the argument, and returns the greatest value in that array. Also works for MVA.
+
+`GREATEST(attr_json.some_array)` 函数接受一个 JSON 数组作为参数，返回该数组中的最大值。该函数也适用于 MVA（多值属性）。
 
 ### IDIV()
-Returns the result of an integer division of the first argument by the second argument. Both arguments must be of an integer type.
+
+返回第一个参数除以第二个参数的整数除法结果。两个参数都必须是整数类型。
 
 ### LEAST()
-`LEAST(attr_json.some_array)` function takes a JSON array as the argument, and returns the least value in that array. Also works for MVA.
+
+`LEAST(attr_json.some_array)` 函数接受一个 JSON 数组作为参数，返回该数组中的最小值。该函数也适用于 MVA（多值属性）。
 
 ### LN()
-Returns the natural logarithm of the argument (with the base of e=2.718...).
+
+返回参数的自然对数值（以 e=2.718... 为底）。
 
 ### LOG10()
-Returns the common logarithm of the argument (with the base of 10).
+
+返回参数的常用对数值（以 10 为底）。
 
 ### LOG2()
-Returns the binary logarithm of the argument (with the base of 2).
+
+返回参数的二进制对数值（以 2 为底）。
 
 ### MAX()
-Returns the larger of two arguments.
+
+返回两个参数中的较大值。
 
 ### MIN()
-Returns the smaller of two arguments.
+
+返回两个参数中的较小值。
 
 ## POW()
-Returns the first argument raised to the power of the second argument.
-### RAND()
-Returns a random float between 0 and 1. It can optionally accept a `seed`, which can be a constant integer or an integer attribute's name. 
 
-If you use a `seed`, keep in mind that it resets `rand()`'s starting point separately for each plain table, RT disk, RAM chunk, or pseudo shard. Therefore, queries to a distributed table in any form can return multiple identical random values.
+返回第一个参数的第二个参数次方的值。
+
+### RAND()
+
+返回一个 0 到 1 之间的随机浮点数。可以可选地接受一个 `seed`，该 `seed` 可以是一个常量整数或整数属性的名称。
+
+如果使用 `seed`，请注意它会为每个平表、RT 磁盘、RAM 块或伪分片分别重置 `rand()` 的起始点。因此，针对分布式表的查询可能会返回多个相同的随机值。
 
 ### SIN()
-Returns the sine of the argument.
+
+返回参数的正弦值。
 
 ### SQRT()
-Returns the square root of the argument.
+
+返回参数的平方根值。
 
 <!-- proofread -->

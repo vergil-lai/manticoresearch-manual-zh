@@ -1,20 +1,19 @@
-# Special suffixes
+# 特殊后缀
 
-Manticore Search supports the use of special suffixes to simplify numeric values with specific meanings. These suffixes are categorized into size suffixes and time suffixes. The common format for suffixes is an `integer` followed by a `literal`, such as `10k` or `100d`. Literals are case-insensitive, so `10W` and `10w` are considered the same.
+Manticore Search 支持使用特殊后缀，以简化具有特定含义的数值。这些后缀分为大小后缀和时间后缀。后缀的常见格式为 `整数` 后跟 `字面量`，例如 `10k` 或 `100d`。字面量不区分大小写，因此 `10W` 和 `10w` 被视为相同。
 
-* Size suffixes: These suffixes can be used in settings that define the size of something, such as memory buffer, disk file size, or RAM limit. If no suffix is specified, the value is considered in bytes by default. The available size suffixes are:
-  - `k` for kilobytes (1k = 1024 bytes)
-  - `m` for megabytes (1m = 1024k)
-  - `g` for gigabytes (1g = 1024m)
-  - `t` for terabytes (1t = 1024g)
-
-* Time suffixes: These suffixes can be used in settings that define time interval values, such as delays or timeouts. Unadorned values for these parameters usually have a documented scale, but instead of guessing, you can use an explicit suffix. The available time suffixes are:
-  - `us` for microseconds
-  - `ms` for milliseconds
-  - `s` for seconds
-  - `m` for minutes
-  - `h` for hours
-  - `d` for days
-  - `w` for weeks
+- 大小后缀：这些后缀可用于定义某物大小的设置，如内存缓冲区、磁盘文件大小或 RAM 限制。如果未指定后缀，默认情况下值将视为字节。可用的大小后缀包括：
+  - `k` 表示千字节（1k = 1024 字节）
+  - `m` 表示兆字节（1m = 1024k）
+  - `g` 表示千兆字节（1g = 1024m）
+  - `t` 表示太字节（1t = 1024g）
+- 时间后缀：这些后缀可用于定义时间间隔值的设置，如延迟或超时。未加修饰的值通常有文档记录的刻度，但您可以使用明确的后缀来避免猜测。可用的时间后缀包括：
+  - `us` 表示微秒
+  - `ms` 表示毫秒
+  - `s` 表示秒
+  - `m` 表示分钟
+  - `h` 表示小时
+  - `d` 表示天
+  - `w` 表示周
 
 <!-- proofread -->

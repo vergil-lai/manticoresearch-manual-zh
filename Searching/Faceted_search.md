@@ -1,28 +1,28 @@
-# Faceted search
+# 分面搜索
 
-Faceted search is as crucial to a modern search application as [autocomplete](../Searching/Autocomplete.md), [spell correction](../Searching/Spell_correction.md), and search keywords [highlighting](../Searching/Highlighting.md), especially in e-commerce products.
+分面搜索对于现代搜索应用程序来说，与[自动完成](../Searching/Autocomplete.md)、[拼写校正](../Searching/Spell_correction.md)和搜索关键词[高亮显示](../Searching/Highlighting.md)同样重要，尤其是在电子商务产品中。
 
 ![Faceted search](faceted.png)
 
-Faceted search comes in handy when dealing with large quantities of data and various interconnected properties, such as size, color, manufacturer, or other factors. When querying vast amounts of data, search results frequently include numerous entries that don't match the user's expectations. Faceted search enables the end user to explicitly define the criteria they want their search results to satisfy.
+当处理大量数据和各种相互关联的属性（如尺寸、颜色、制造商或其他因素）时，分面搜索非常有用。查询大量数据时，搜索结果往往包含许多不符合用户预期的条目。分面搜索使终端用户能够明确定义他们希望搜索结果满足的条件。
 
-In Manticore Search, there's an optimization that maintains the result set of the original query and reuses it for each facet calculation. Since the aggregations are applied to an already calculated subset of documents, they're fast, and the total execution time can often be only slightly longer than the initial query. Facets can be added to any query, and the facet can be any attribute or expression. A facet result includes the facet values and the facet counts. Facets can be accessed using the SQL `SELECT` statement by declaring them at the very end of the query.
+在 Manticore Search 中，有一种优化机制，它保持原始查询的结果集，并在每次计算分面时重新使用它。由于聚合应用于已计算的文档子集，因此它们的速度很快，总执行时间通常仅比初始查询稍长。可以将分面添加到任何查询中，分面可以是任何属性或表达式。分面结果包括分面值和分面计数。可以通过在查询的最后声明分面，在 SQL `SELECT` 语句中访问分面。
 
-## Aggregations
+## 聚合
 
 <!-- example Aggregations -->
 ### SQL
-The facet values can originate from an attribute, a JSON property within a JSON attribute, or an expression. Facet values can also be aliased, but the **alias must be unique** across all result sets (main query result set and other facets result sets). The facet value is derived from the aggregated attribute/expression, but it can also come from another attribute/expression.
+分面值可以来源于属性、JSON 属性内的 JSON 属性或表达式。分面值也可以使用别名，但**别名必须在所有结果集（主查询结果集和其他分面结果集）中唯一**。分面值是从聚合的属性或表达式中得出的，但也可以来自其他属性或表达式。
 
 ```sql
 FACET {expr_list} [BY {expr_list} ] [DISTINCT {field_name}] [ORDER BY {expr | FACET()} {ASC | DESC}] [LIMIT [offset,] count]
 ```
 
-Multiple facet declarations must be separated by a whitespace.
+多个分面声明必须用空格分隔。
 
 ### HTTP JSON
 
-Facets can be defined in the `aggs` node:
+可以在 `aggs` 节点中定义分面：
 
 ``` json
      "aggs" :
@@ -39,13 +39,14 @@ Facets can be defined in the `aggs` node:
      }
 ```
 
-where:
-* `group name` is an alias assigned to the aggregation
-* `field` value must contain the name of the attribute or expression being faceted
-* optional `size` specifies the maximum number of buckets to include in the result. When not specified, it inherits the main query's limit. More details can be found in the [Size of facet result](../Searching/Faceted_search.md#Size-of-facet-result) section.
-* optional `sort` specifies an array of attributes and/or additional properties using the same syntax as the ["sort" parameter in the main query](../Searching/Sorting_and_ranking.md#Sorting-via-JSON).
+其中：
 
-The result set will contain an `aggregations` node with the returned facets, where `key` is the aggregated value and `doc_count` is the aggregation count.
+- `group name` 是分配给聚合的别名
+- `field` 值必须包含正在进行分面的属性或表达式的名称
+- 可选的 `size` 指定结果中包含的最大桶数。如果未指定，则继承主查询的限制。更多详细信息可以在 [分面结果大小](../Searching/Faceted_search.md#Size-of-facet-result) 部分找到。
+- 可选的 `sort` 指定属性和/或附加属性数组，语法与[主查询中的 "sort" 参数](../Searching/Sorting_and_ranking.md#Sorting-via-JSON)相同。
+
+结果集将包含一个带有返回分面的 `aggregations` 节点，其中 `key` 是聚合值，`doc_count` 是聚合计数。
 
 ``` json
     "aggregations": {
@@ -638,9 +639,9 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example Another_attribute -->
 
-### Faceting by aggregation over another attribute
+### 通过聚合另一个属性进行分面
 
-Data can be faceted by aggregating another attribute or expression. For example if the documents contain both the brand id and name, we can return in facet the brand names, but aggregate the brand ids. This can be done by using `FACET {expr1} BY {expr2}`
+可以通过对另一个属性或表达式进行聚合来进行分面。例如，如果文档同时包含品牌 ID 和名称，我们可以在分面结果中返回品牌名称，但聚合的是品牌 ID。可以通过使用 `FACET {expr1} BY {expr2}` 来实现。
 
 
 <!-- intro -->
@@ -686,13 +687,13 @@ SELECT * FROM facetdemo FACET brand_name by brand_id;
 
 <!-- example Distinct -->
 
-### Faceting without duplicates
+### 无重复分面
 
-If you need to remove duplicates from the buckets returned by FACET, you can use `DISTINCT field_name`, where `field_name` is the field by which you want to perform deduplication. It can also be `id` (which is the default) if you make a FACET query against a distributed table and are not sure whether you have unique ids in the tables (the tables should be local and have the same schema).
+如果需要从 `FACET` 返回的桶中移除重复项，可以使用 `DISTINCT field_name`，其中 `field_name` 是你想要进行去重的字段。如果你在对分布式表进行 FACET 查询且不确定表中的 ID 是否唯一（表应是本地的并且具有相同的架构），它也可以是 `id`（这是默认值）。
 
-If you have multiple FACET declarations in your query, `field_name` should be the same in all of them.
+如果在查询中有多个 FACET 声明，`field_name` 应该在所有声明中保持一致。
 
-`DISTINCT` returns an additional column `count(distinct ...)` before the column `count(*)`, allowing you to obtain both results without needing to make another query.
+`DISTINCT` 会在 `count(*)` 列之前返回一个额外的列 `count(distinct ...)`，这样你可以在不需要另一个查询的情况下获取两种结果。
 
 <!-- intro -->
 ##### SQL:
@@ -750,9 +751,9 @@ SELECT brand_name, property FROM facetdemo FACET brand_name distinct property;
 <!-- end -->
 
 <!-- example Expressions -->
-### Facet over expressions
+### 表达式上的分面
 
-Facets can aggregate over expressions. A classic example is the segmentation of prices by specific ranges:
+分面可以聚合表达式。一个经典的例子是通过特定的范围对价格进行分段：
 
 <!-- request SQL -->
 
@@ -1214,9 +1215,9 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 
 <!-- example Multi-level -->
 
-### Facet over multi-level grouping
+### 多级分组上的分面
 
-Facets can aggregate over multi-level grouping, with the result set being the same as if the query performed a multi-level grouping:
+分面可以在多级分组上进行聚合，其结果集与执行多级分组查询时的结果相同：
 
 <!-- request SQL -->
 
@@ -1256,16 +1257,15 @@ FACET price_range AS price_range,brand_name ORDER BY brand_name asc;
 
 <!-- example histogram -->
 
-### Facet over histogram values
+### 在直方图值上进行分面
 
-Facets can aggregate over histogram values by constructing fixed-size buckets over the values.
-The key function is:
+分面可以通过构造固定大小的区间来对直方图值进行聚合。关键函数为：
 
 ```sql
 key_of_the_bucket = interval + offset * floor ( ( value - offset ) / interval )
 ```
 
-The histogram argument `interval` must be positive, and the histogram argument `offset` must be positive and less than `interval`. By default, the buckets are returned as an array. The histogram argument `keyed` makes the response a dictionary with the bucket keys.
+直方图参数 `interval` 必须为正数，参数 `offset` 必须为正数且小于 `interval`。默认情况下，区间以数组形式返回。使用 `keyed` 参数可以使响应变为一个包含区间键的字典。
 
 <!-- request SQL -->
 
@@ -1397,15 +1397,15 @@ POST /search -d '
 
 <!-- example histogram_date -->
 
-### Facet over histogram date values
+### 在直方图日期值上进行分面
 
-Facets can aggregate over histogram date values, which is similar to the normal histogram. The difference is that the interval is specified using a date or time expression. Such expressions require special support because the intervals are not always of fixed length. Values are rounded to the closest bucket using the following key function:
+分面可以对日期值直方图进行聚合，类似于普通直方图。区别在于间隔是使用日期或时间表达式指定的。这类表达式需要特殊支持，因为时间间隔不总是固定长度的。值将通过以下键函数四舍五入到最近的区间：
 
 ```sql
 key_of_the_bucket = interval * floor ( value / interval )
 ```
 
-The histogram parameter `calendar_interval` understands months to have different amounts of days. The accepted intervals are described in the [date_histogram](../Functions/Date_and_time_functions.md#DATE_HISTOGRAM%28%29) expression. By default, the buckets are returned as an array. The histogram argument `keyed` makes the response a dictionary with the bucket keys.
+直方图参数 `calendar_interval` 能够理解不同月份的天数不同。可接受的时间间隔描述在 [date_histogram](../Functions/Date_and_time_functions.md#DATE_HISTOGRAM()) 表达式中。默认情况下，区间以数组形式返回。使用 `keyed` 参数可以使响应变为一个包含区间键的字典。
 
 <!-- request SQL -->
 
@@ -1486,10 +1486,9 @@ POST /search -d '
 
 <!-- example facet range -->
 
-### Facet over set of ranges
+### 在一组范围上进行分面
 
-Facets can aggregate over a set of ranges. The values are checked against the bucket range, where each bucket includes the `from` value and excludes the `to` value from the range.
-Setting the `keyed` property to `true` makes the response a dictionary with the bucket keys rather than an array.
+分面可以对一组范围进行聚合。值将根据区间范围进行检查，每个区间包括 `from` 值，但排除 `to` 值。 将 `keyed` 属性设置为 `true` 时，响应将变为一个包含区间键的字典，而不是数组。
 
 <!-- request SQL -->
 
@@ -1629,9 +1628,9 @@ POST /search -d '
 
 <!-- example facet range_date -->
 
-### Facet over set of date ranges
+### 在一组日期范围上进行分面。
 
-Facets can aggregate over a set of date ranges, which is similar to the normal range. The difference is that the `from` and `to` values can be expressed in [Date math](../Functions/Date_and_time_functions.md#Date-math) expressions. This aggregation includes the `from` value and excludes the `to` value for each range. Setting the `keyed` property to `true` makes the response a dictionary with the bucket keys rather than an array.
+分面可以对一组日期范围进行聚合，类似于普通的范围聚合。不同之处在于，`from` 和 `to` 值可以使用 [日期运算](../Functions/Date_and_time_functions.md#Date-math) 表达式来表示。此聚合包括每个范围的 `from` 值，排除 `to` 值。将 `keyed` 属性设置为 `true` 时，响应将变为一个包含区间键的字典，而不是数组。
 
 <!-- request SQL -->
 
@@ -1722,9 +1721,9 @@ POST /search -d '
 <!-- end -->
 
 <!-- example Ordering -->
-### Ordering in facet result
+### 分面结果的排序
 
-Facets support the `ORDER BY` clause just like a standard query. Each facet can have its own ordering, and the facet ordering doesn't affect the main result set's ordering, which is determined by the main query's `ORDER BY`. Sorting can be done on attribute name, count (using `COUNT(*)`), or the special `FACET()` function, which provides the aggregated data values. By default, a query with `ORDER BY COUNT(*)` will sort in descending order.
+分面支持类似于标准查询的 `ORDER BY` 子句。每个分面可以有自己的排序，分面的排序不会影响主结果集的排序，主结果集的排序由主查询的 `ORDER BY` 确定。排序可以基于属性名称、计数（使用 `COUNT(*)`），或者使用特殊的 `FACET()` 函数，该函数提供聚合后的数据值。默认情况下，带有 `ORDER BY COUNT(*)` 的查询将按降序排列。
 
 
 <!-- intro -->
@@ -1907,11 +1906,11 @@ POST /search -d '
 
 
 <!-- example Size -->
-### Size of facet result
+### 分面结果的大小
 
-By default, each facet result set is limited to 20 values. The number of facet values can be controlled with the `LIMIT` clause individually for each facet by providing either a number of values to return in the format `LIMIT count` or with an offset as `LIMIT offset, count`.
+默认情况下，每个分面结果集限制为 20 个值。可以通过 `LIMIT` 子句单独控制每个分面的分面值数量，格式可以是 `LIMIT count` 返回一定数量的值，或使用偏移量格式 `LIMIT offset, count`。
 
-The maximum facet values that can be returned is limited by the query's `max_matches` setting. If you want to implement dynamic `max_matches` (limiting `max_matches` to offset + per page for better performance), it must be taken into account that a too low `max_matches` value can affect the number of facet values. In this case, a minimum `max_matches` value should be used that is sufficient to cover the number of facet values.
+最大可返回的分面值数量受查询的 `max_matches` 设置限制。如果你想实现动态的 `max_matches`（将 `max_matches` 限制为偏移量 + 每页数量以提高性能），需要注意的是，过低的 `max_matches` 值可能会影响分面值的数量。在这种情况下，应使用足够覆盖分面值数量的最小 `max_matches` 值。
 
 <!-- intro -->
 ##### SQL:
@@ -2394,17 +2393,17 @@ res, _, _ := apiClient.SearchAPI.Search(context.Background()).SearchRequest(*sea
 ```
 
 <!-- end -->
-### Returned result set
+### 返回的结果集
 
-When using SQL, a search with facets returns multiple result sets. The MySQL client/library/connector used **must** support multiple result sets in order to access the facet result sets.
+使用 SQL 进行带分面的搜索时，会返回多个结果集。所使用的 MySQL 客户端/库/连接器 **必须** 支持多个结果集，才能访问分面结果集。
 
 <!-- example Performance -->
-### Performance
 
-Internally, the `FACET` is a shorthand for executing a multi-query where the first query contains the main search query and the rest of the queries in the batch have each a clustering. As in the case of multi-query, the common query optimization can kick in for a faceted search, meaning the search query is executed only once, and the facets operate on the search query result, with each facet adding only a fraction of time to the total query time.
+### 性能
 
+在内部，`FACET` 是执行多查询的简写，其中第一个查询包含主要的搜索查询，批次中的其余查询则分别进行聚类。与多查询情况类似，分面搜索的查询优化可以生效，意味着搜索查询只执行一次，分面基于搜索查询结果进行操作，每个分面仅增加一小部分时间到总查询时间。
 
-To check if the faceted search ran in an optimized mode, you can look in the [query log](../Logging/Query_logging.md), where all logged queries will contain an `xN` string, where `N` is the number of queries that ran in the optimized group. Alternatively, you can check the output of the [SHOW META](../Node_info_and_management/SHOW_META.md) statement, which will display a `multiplier` metric:
+要检查分面搜索是否以优化模式运行，可以查看 [查询日志](../Logging/Query_logging.md)，所有已记录的查询中都会包含一个 `xN` 字符串，其中 `N` 是在优化组中运行的查询数量。或者，你可以检查 [SHOW META](../Node_info_and_management/SHOW_META.md) 语句的输出，其中会显示一个 `multiplier` 指标:
 
 <!-- request SQL -->
 

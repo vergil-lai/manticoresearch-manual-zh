@@ -1,9 +1,11 @@
-# Joining a replication cluster
+# 加入复制集群
 
 <!-- example joining a replication cluster 1 -->
-To join an existing cluster, you must specify at least:
-* The [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster)of the cluster
-* The `host:port` of another node in the cluster you are joining
+
+要加入现有集群，您必须至少指定：
+
+- 集群的 [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster)
+- 要加入的集群中另一个节点的 `host:port`
 
 <!-- intro -->
 ##### SQL:
@@ -81,7 +83,7 @@ utilsApi.Sql("JOIN CLUSTER posts AT '10.12.1.35:9312'");
 <!-- end -->
 
 <!-- example joining a replication cluster 1_1 -->
-In most cases, the above is sufficient when there is a single replication cluster. However, if you are creating multiple replication clusters, you must also set the [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) and ensure that the directory is available.
+在大多数情况下，当只有一个复制集群时，上述设置已足够。然而，如果您要创建多个复制集群，还必须设置 [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) 选项，并确保该目录可用。
 
 <!-- request SQL -->
 ```sql
@@ -89,16 +91,17 @@ JOIN CLUSTER c2 at '127.0.0.1:10201' 'c2' as path
 ```
 <!-- end -->
 
-A node joins a cluster by obtaining data from a specified node and, if successful, updates the node lists across all other cluster nodes in the same way as if it was done manually through [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md). This list is used to re-join nodes to the cluster upon restart.
+节点通过从指定节点获取数据来加入集群，如果成功，它会更新所有其他集群节点的节点列表，方式与通过 [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md) 手动完成的方式相同。该列表用于在重启时重新加入节点到集群。
 
-There are two lists of nodes:
-1.`cluster_<name>_nodes_set`: used to re-join nodes to the cluster upon restart. It is updated across all nodes in the same way as [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md) does. `JOIN CLUSTER` command performs this update automatically. The [Cluster status](../../Creating_a_cluster/Setting_up_replication/Replication_cluster_status.md) displays this list as `cluster_<name>_nodes_set`.
-2. `cluster_<name>_nodes_view`:  this list contains all active nodes used for replication and does not require manual management. [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md) actually copies this list of nodes to the list of nodes used to re-join upon restart. The [Cluster status](../../Creating_a_cluster/Setting_up_replication/Replication_cluster_status.md) displays this list as `cluster_<name>_nodes_view`.
+有两个节点列表：
+1.`cluster_<name>_nodes_set`：用于在重启时重新加入节点到集群。它在所有节点之间以与 [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md) 相同的方式进行更新。`JOIN CLUSTER` 命令会自动执行此更新。[集群状态](../../Creating_a_cluster/Setting_up_replication/Replication_cluster_status.md) 显示此列表为 `cluster_<name>_nodes_set`。
+
+2. `cluster_<name>_nodes_view`：该列表包含所有用于复制的活动节点，不需要手动管理。[ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md) 实际上会将此节点列表复制到用于重启时重新加入的节点列表中。[集群状态](../../Creating_a_cluster/Setting_up_replication/Replication_cluster_status.md) 显示此列表为 `cluster_<name>_nodes_view`。
 
 <!-- example joining a replication cluster  2 -->
-When nodes are located in different network segments or data centers, the [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) option may be set explicitly. This minimizes traffic between nodes and utilizes gateway nodes for intercommunication between data centers. The following code joins an existing cluster using the [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) option.
+当节点位于不同的网络段或数据中心时，可以明确设置 [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) 选项。这可以最小化节点之间的流量，并利用网关节点在数据中心之间进行通信。以下代码示例使用 [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) 选项加入现有集群。
 
-> **Note:** The cluster `cluster_<name>_nodes_set` list is not updated automatically when this syntax is used. To update it, use [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md).
+> **注意：** 使用此语法时，集群的 `cluster_<name>_nodes_set` 列表不会自动更新。要更新它，请使用 [ALTER CLUSTER ... UPDATE nodes](../../Creating_a_cluster/Setting_up_replication/Managing_replication_nodes.md)。
 
 
 <!-- intro -->
@@ -175,5 +178,5 @@ utilsApi.Sql("JOIN CLUSTER click_query 'clicks_mirror1:9312;clicks_mirror2:9312;
 ```
 <!-- end -->
 
-The `JOIN CLUSTER` command works synchronously and completes as soon as the node receives all data from the other nodes in the cluster and is in sync with them.
+`JOIN CLUSTER` 命令是同步工作的，并在节点从集群中的其他节点接收所有数据并与之同步后立即完成。
 <!-- proofread -->

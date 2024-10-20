@@ -1,12 +1,12 @@
-# Scripted configuration
+# 脚本化配置
 
-Manticore configuration supports shebang syntax, allowing the configuration to be written in a programming language and interpreted at loading. This enables dynamic settings, such as generating tables by querying a database table, modifying settings based on external factors, or including external files containing table and source declarations.
+Manticore 配置支持 shebang 语法，允许配置以编程语言编写并在加载时解释。这使得动态设置成为可能，例如通过查询数据库表生成表，根据外部因素修改设置，或包含包含表和源声明的外部文件。
 
-The configuration file is parsed by the declared interpreter, and the output is used as the actual configuration. This occurs each time the configuration is read, not only at searchd startup.
+配置文件由声明的解释器解析，输出将作为实际配置使用。这种解析每次读取配置时都会发生，而不仅仅是在 `searchd` 启动时。
 
-Note: This feature is not available on the Windows platform.
+注意：此功能在 Windows 平台上不可用。
 
-In the following example, PHP is used to create multiple tables with different names and to scan a specific folder for files containing extra table declarations:
+在以下示例中，使用 PHP 创建多个不同名称的表，并扫描特定文件夹以查找包含额外表声明的文件：
 
 ```php
 #!/usr/bin/php

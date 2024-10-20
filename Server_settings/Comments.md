@@ -1,9 +1,9 @@
-# Comments
+# 注释
 
-Manticore Search's configuration file supports comments, which help provide explanations or notes within the configuration file. The `#` character is used to start a comment section. You can place the comment character either at the beginning of a line or inline within a line.
+Manticore Search 的配置文件支持注释，帮助在配置文件中提供解释或备注。`#` 字符用于开始注释部分。您可以将注释字符放在行的开头或行内。
 
-When using comments, be cautious when incorporating the `#` character in character tokenization settings, as everything following it will be ignored. To prevent this, use the `#` UTF-8 code, which is U+23.
+使用注释时，在字符分词设置中使用 `#` 字符要小心，因为后面的所有内容都将被忽略。为避免这种情况，可以使用 `#` 的 UTF-8 代码，即 U+23。
 
-If you need to use the `#` character within your configuration file, such as within database credentials in source declarations, you can escape it using a backslash `\`. This allows you to include the `#` character in your settings without it being interpreted as the start of a comment.
+如果您需要在配置文件中使用 `#` 字符，例如在源声明中的数据库凭证中，可以使用反斜杠 `\` 来转义。这允许您在设置中包含 `#` 字符，而不会被解释为注释的开始。
 
 <!-- proofread -->

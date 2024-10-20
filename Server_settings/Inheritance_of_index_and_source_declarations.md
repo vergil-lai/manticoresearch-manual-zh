@@ -1,10 +1,10 @@
-#Inheritance of index and source declarations
+# 索引和源声明的继承
 
-Inheritance in `index` and `source` declarations enables better organization of tables with similar settings or structures and reduces the configuration size. Both parent and child tables or sources can utilize inheritance.
+`index` 和 `source` 声明中的继承使具有相似设置或结构的表能够更好地组织，并减少配置文件的大小。父表和子表或源均可利用继承。
 
-No specific configurations are needed for a parent table or source.
+父表或源不需要特定的配置。
 
-In the child table or source declaration, specify the table or source name followed by a colon (:) and the parent name:
+在子表或源声明中，指定表或源名称后跟冒号（:）和父名称：
 
 ```ini
 table parent {
@@ -18,9 +18,11 @@ path = /var/lib/manticore/child
 }
 ```
 
-The child will inherit the entire configuration of the parent. Any settings declared in the child will overwrite the inherited values. Be aware that for multi-value settings, defining a single value in the child will clear all inherited values. For example, if the parent has several `sql_query_pre` declarations and the child has a single `sql_query_pre` declaration, all inherited `sql_query_pre` declarations are cleared. To override some of the inherited values from the parent, explicitly declare them in the child. This is also applicable if you don't need a value from the parent. For example, if the `sql_query_pre` value from the parent is not needed, declare the directive with an empty value in the child like `sql_query_pre=`. 
+子表将继承父表的整个配置。子表中声明的任何设置将覆盖继承的值。请注意，对于多值设置，在子表中定义单个值将清除所有继承的值。例如，如果父表有多个 `sql_query_pre` 声明，而子表只有一个 `sql_query_pre` 声明，则所有继承的 `sql_query_pre` 声明都将被清除。要覆盖父表的一些继承值，请在子表中显式声明它们。如果不需要父表的某个值，可以在子表中以空值声明该指令，如 `sql_query_pre=`。
 
-Note that existing values of a multi-value setting will not be copied if the child declares one value for that setting.
+请注意，如果子表为某个多值设置声明一个值，则现有的多值设置不会被复制。
 
-The inheritance behavior applies to fields and attributes, not just table options. For example, if the parent has two integer attributes and the child needs a new integer attribute, the integer attribute declarations from the parent must be copied into the child configuration.
+继承行为适用于字段和属性，而不仅仅是表选项。例如，如果父表有两个整数属性，而子表需要一个新的整数属性，则必须将父表的整数属性声明复制到子表配置中。
+
 <!-- proofread -->
+

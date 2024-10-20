@@ -1,60 +1,61 @@
-# Backup and Restore
+# 备份与恢复
 
-Backing up your tables on a regular basis is essential for recovery in the event of system crashes, hardware failure, or data corruption/loss. It's also highly recommended to make backups before upgrading to a new Manticore Search version or running [ALTER TABLE](../Updating_table_schema_and_settings.md#Updating-table-schema-in-RT-mode).
+定期备份您的表对于在系统崩溃、硬件故障或数据损坏/丢失的情况下进行恢复至关重要。在升级到新版本的 Manticore Search 或运行 [ALTER TABLE](../Updating_table_schema_and_settings.md#Updating-table-schema-in-RT-mode) 之前，强烈建议进行备份。
 
-Backing up database systems can be done in two unique ways: logical and physical backups. Each of these methods has its pros and cons, which may vary based on the specific database environment and needs. Here, we'll delve into the distinction between these two types of backups.
+备份数据库系统可以通过两种独特的方式进行：逻辑备份和物理备份。这两种方法各有优缺点，具体可能因数据库环境和需求的不同而有所差异。下面我们将深入探讨这两种备份的区别。
 
-### Logical Backups
+### 逻辑备份
 
-Logical backups entail exporting the database schema and data as SQL statements or as data formats specific to the database. This backup form is typically readable by humans and can be employed to restore the database on various systems or database engines.
+逻辑备份涉及将数据库架构和数据导出为 SQL 语句或特定于数据库的数据格式。这种备份形式通常是可读的，并且可以在不同系统或数据库引擎上恢复数据库。
 
-Pros and cons of logical backups:
-- ➕ **Portability:** Logical backups are generally more portable than physical backups, as they can be used to restore the database on different hardware or operating systems.
-- ➕ **Flexibility:** Logical backups allow you to selectively restore specific tables, indexes, or other database objects.
-- ➕ **Compatibility:** Logical backups can be used to migrate data between different database management systems or versions, provided the target system supports the exported format or SQL statements.
-- ➖ **Slower Backup and Restore:** Logical backups can be slower than physical backups, as they require the database engine to convert the data into SQL statements or another export format.
-- ➖ **Increased System Load:** Creating logical backups can cause higher system load, as the process requires more CPU and memory resources to process and export the data.
+逻辑备份的优缺点：
 
-Manticore Search supports [mysqldump](../Securing_and_compacting_a_table/Backup_and_restore.md#Backup-and-restore-with-mysqldump) for logical backups.
+- ➕ **可移植性：** 逻辑备份通常比物理备份更具可移植性，因为它们可以用于在不同硬件或操作系统上恢复数据库。
+- ➕ **灵活性：** 逻辑备份允许您选择性地恢复特定表、索引或其他数据库对象。
+- ➕ **兼容性：** 逻辑备份可用于在不同的数据库管理系统或版本之间迁移数据，前提是目标系统支持导出的格式或 SQL 语句。
+- ➖ **备份和恢复速度较慢：** 逻辑备份通常比物理备份速度较慢，因为它们需要数据库引擎将数据转换为 SQL 语句或其他导出格式。
+- ➖ **系统负载增加：** 创建逻辑备份可能会导致系统负载增加，因为该过程需要更多的 CPU 和内存资源来处理和导出数据。
 
-### Physical Backups
+Manticore Search 支持使用 [mysqldump](../Securing_and_compacting_a_table/Backup_and_restore.md#Backup-and-restore-with-mysqldump) 进行逻辑备份。
 
-Physical backups involve copying the raw data files and system files that comprise the database. This type of backup essentially creates a snapshot of the database's physical state at a given point in time.
+### 物理备份
 
-Pros and cons of physical backups:
-- ➕ **Speed:** Physical backups are usually faster than logical backups, as they involve copying raw data files directly from disk.
-- ➕ **Consistency:** Physical backups ensure a consistent backup of the entire database, as all related files are copied together.
-- ➕ **Lower System Load:** Creating physical backups generally places less load on the system compared to logical backups, as the process does not involve additional data processing.
-- ➖ **Portability:** Physical backups are typically less portable than logical backups, as they may be dependent on the specific hardware, operating system, or database engine configuration.
-- ➖ **Flexibility:** Physical backups do not allow for the selective restoration of specific database objects, as the backup contains the entire database's raw files.
-- ➖ **Compatibility:** Physical backups cannot be used to migrate data between different database management systems or versions, as the raw data files may not be compatible across different platforms or software.
+物理备份涉及复制构成数据库的原始数据文件和系统文件。这种类型的备份基本上是在给定时间点创建数据库物理状态的快照。
 
-Manticore Search has [manticore-backup](../Securing_and_compacting_a_table/Backup_and_restore.md#Using-manticore-backup-command-line-tool) command line tool for physical backups.
+物理备份的优缺点：
 
-In summary, logical backups provide more flexibility, portability, and compatibility but can be slower and more resource-intensive, while physical backups are faster, more consistent, and less resource-intensive but may be limited in terms of portability and flexibility. The choice between these two backup methods will depend on your specific database environment, hardware, and requirements.
+- ➕ **速度：** 物理备份通常比逻辑备份更快，因为它们涉及直接从磁盘复制原始数据文件。
+- ➕ **一致性：** 物理备份确保整个数据库的一致性备份，因为所有相关文件都是一起复制的。
+- ➕ **较低的系统负载：** 创建物理备份通常对系统的负载较小，因为该过程不涉及额外的数据处理。
+- ➖ **可移植性：** 物理备份通常比逻辑备份的可移植性较低，因为它们可能依赖于特定的硬件、操作系统或数据库引擎配置。
+- ➖ **灵活性：** 物理备份不允许选择性地恢复特定数据库对象，因为备份包含整个数据库的原始文件。
+- ➖ **兼容性：** 物理备份不能在不同的数据库管理系统或版本之间迁移数据，因为原始数据文件可能在不同的平台或软件之间不兼容。
 
-## Using manticore-backup command line tool
+Manticore Search 提供了 [manticore-backup](../Securing_and_compacting_a_table/Backup_and_restore.md#Using-manticore-backup-command-line-tool) 命令行工具以进行物理备份。
 
-The `manticore-backup` tool, included in the official Manticore Search [packages](https://manticoresearch.com/install), automates the process of backing up tables for an instance running in [RT mode](../Read_this_first.md#Real-time-mode-vs-plain-mode).
+总之，逻辑备份提供了更多的灵活性、可移植性和兼容性，但速度较慢且资源消耗较高；而物理备份速度更快、一致性更好、资源消耗较低，但在可移植性和灵活性方面可能受到限制。选择这两种备份方法将取决于您特定的数据库环境、硬件和需求。
 
-### Installation
+## 使用 manticore-backup 命令行工具
 
-**If you followed [the official installation instructions](https://manticoresearch.com/install/), you should already have everything installed and don't need to worry.** Otherwise, [`manticore-backup`](https://github.com/manticoresoftware/manticoresearch-backup) requires PHP 8.1.10 and [specific modules](https://github.com/manticoresoftware/executor/blob/main/build-linux) or [`manticore-executor`](https://github.com/manticoresoftware/executor), which is a part of the `manticore-extra` package, and you need to ensure that one of these is available.
+`manticore-backup` 工具包含在官方 Manticore Search [软件包](https://manticoresearch.com/install) 中，自动化备份运行在 [RT 模式](../Read_this_first.md#Real-time-mode-vs-plain-mode) 下的表的过程。
 
-Note that `manticore-backup` is not available for Windows yet.
+### 安装
 
-### How to use
+**如果您遵循了 [官方安装说明](https://manticoresearch.com/install/)，您应该已经安装了所有内容，无需担心。** 否则，[`manticore-backup`](https://github.com/manticoresoftware/manticoresearch-backup) 需要 PHP 8.1.10 和 [特定模块](https://github.com/manticoresoftware/executor/blob/main/build-linux)，或 [`manticore-executor`](https://github.com/manticoresoftware/executor)，这是 `manticore-extra` 软件包的一部分，您需要确保其中之一可用。
 
-First, make sure you're running `manticore-backup` on the same server where the Manticore instance you are about to back up is running.
+请注意，`manticore-backup` 目前不支持 Windows。
 
-Second, we recommend running the tool under the `root` user so the tool can transfer ownership of the files you are backing up. Otherwise, a backup will be also made but with no ownership transfer. In either case, you should make sure that `manticore-backup` has access to the data dir of the Manticore instance.
+### 如何使用
 
-<!-- example backup1 -->
+首先，确保在与您即将备份的 Manticore 实例运行的同一服务器上运行 `manticore-backup`。
 
-The only required argument for `manticore-backup` is `--backup-dir`, which specifies the destination for the backup. If you don't provide any additional arguments, `manticore-backup` will:
-- locate a Manticore instance running with the default configuration
-- create a subdirectory in the `--backup-dir` directory with a timestamped name
-- backup all tables found in the instance
+其次，建议以 `root` 用户身份运行该工具，以便工具可以转移您正在备份的文件的所有权。否则，也会进行备份，但不进行所有权转移。在任何情况下，您都应确保 `manticore-backup` 可以访问 Manticore 实例的数据目录。
+
+`manticore-backup` 唯一必需的参数是 `--backup-dir`，它指定备份的目标位置。如果您没有提供任何其他参数，`manticore-backup` 将：
+
+- 定位到使用默认配置运行的 Manticore 实例
+- 在 `--backup-dir` 目录中创建一个带有时间戳名称的子目录
+- 备份实例中找到的所有表
 
 <!-- request Example -->
 ```bash
@@ -93,7 +94,7 @@ Manticore versions:
 <!-- end -->
 
 <!-- example backup2 -->
-To back up specific tables only, use the `--tables` flag followed by a comma-separated list of tables, for example `--tables=tbl1,tbl2`. This will only backup the specified tables and ignore the rest.
+要仅备份特定表，可以使用 `--tables` 标志，后跟以逗号分隔的表名，例如 `--tables=tbl1,tbl2`。这将只备份指定的表，忽略其他表。
 
 <!-- request Example -->
 ```bash
@@ -129,30 +130,30 @@ Manticore versions:
 ```
 <!-- end -->
 
-### Arguments
+### 参数
 
-| Argument | Description |
-|-|-|
-| `--backup-dir=path` | This is the path to the backup directory where the backup will be stored. The directory must already exist. This argument is required and has no default value. On each backup run, manticore-backup will create a subdirectory in the provided directory with a timestamp in the name (`backup-[datetime]`), and will copy all required tables to it. So the `--backup-dir` is a container for all your backups, and it's safe to run the script multiple times.|
-| `--restore[=backup]` | Restore from `--backup-dir`. Just --restore lists available backups. `--restore=backup` will restore from `<--backup-dir>/backup`. |
-| `--force` | Skip versions check on restore and gracefully restore the backup. |
-| `--disable-telemetry` | Pass this flag in case you want to disable sending anonymized metrics  to Manticore. You can also use environment variable TELEMETRY=0 |
-| `--config=/path/to/manticore.conf` | Path to the Manticore configuration. Optional. If not provided, a default configuration for your operating system will be used. Used to determine the host and port for communication with the Manticore daemon. The `manticore-backup` tool supports [dynamic configuration](../Server_settings/Scripted_configuration.md) files. You can specify the `--config` option multiple times if your configuration is spread across multiple files. |
-| `--tables=tbl1,tbl2, ...` | Semicolon-separated list of tables that you want to back up. To back up all tables, omit this argument. All the provided tables must exist in the Manticore instance you are backing up from, or the backup will fail. |
-| `--compress` | Whether the backed up files should be compressed. Not enabled by default. | optional |
-| `--unlock` | In rare cases when something goes wrong, tables can be left in a locked state. Use this argument to unlock them. |
-| `--version` | Show the current version. |
-| `--help` | Show this help. |
+| 参数                               | 描述                                                         |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `--backup-dir=path`                | 备份目录的路径，备份将存储在此目录中。该目录必须已经存在。此参数是必需的，没有默认值。每次备份运行时，manticore-backup 将在提供的目录中创建一个带有时间戳名称的子目录（`backup-[datetime]`），并将所有所需的表复制到其中。因此，`--backup-dir` 是您所有备份的容器，可以安全地多次运行该脚本。 |
+| `--restore[=backup]`               | 从 `--backup-dir` 恢复。仅使用 --restore 列出可用的备份。`--restore=backup` 将从 `<--backup-dir>/backup` 恢复。 |
+| `--force`                          | 跳过恢复时的版本检查，优雅地恢复备份。                       |
+| `--disable-telemetry`              | 如果您希望禁用向 Manticore 发送匿名指标，请传递此标志。您也可以使用环境变量 TELEMETRY=0 |
+| `--config=/path/to/manticore.conf` | Manticore 配置的路径。可选。如果未提供，将使用适合您操作系统的默认配置。用于确定与 Manticore 守护进程的通信的主机和端口。`manticore-backup` 工具支持 [动态配置](../Server_settings/Scripted_configuration.md) 文件。如果您的配置分布在多个文件中，可以多次指定 `--config` 选项。 |
+| `--tables=tbl1,tbl2,...`           | 要备份的表的以逗号分隔的列表。要备份所有表，请省略此参数。所有提供的表必须存在于您要备份的 Manticore 实例中，否则备份将失败。 |
+| `--compress`                       | 是否压缩备份的文件。默认情况下未启用。                       |
+| `--unlock`                         | 在某些情况下，当出现问题时，表可能会处于锁定状态。使用此参数解锁它们。 |
+| `--version`                        | 显示当前版本。                                               |
+| `--help`                           | 显示此帮助信息。                                             |
 
-## BACKUP SQL command reference
+## 备份 SQL 命令参考
 
-You can also back up your data through SQL by running the simple command `BACKUP TO /path/to/backup`.
+您还可以通过运行简单命令 `BACKUP TO /path/to/backup` 进行数据备份。
 
-> NOTE: `BACKUP` is not supported in Windows. Consider using [mysqldump](../Securing_and_compacting_a_table/Backup_and_restore.md#Backup-and-restore-with-mysqldump) instead.
+> 注意：`BACKUP` 在 Windows 上不受支持。请考虑使用 [mysqldump](../Securing_and_compacting_a_table/Backup_and_restore.md#Backup-and-restore-with-mysqldump) 替代。
 
-> NOTE: `BACKUP` requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：`BACKUP` 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它无法工作，请确保 Buddy 已安装。
 
-### General syntax of BACKUP
+### BACKUP 的通用语法
 
 ```sql
 BACKUP
@@ -164,41 +165,40 @@ BACKUP
   TO path_to_backup
 ```
 
-For instance, to back up tables `a` and `b` to the `/backup` directory, run the following command:
+例如，要将表 `a` 和 `b` 备份到 `/backup` 目录，请运行以下命令：
 
 ```sql
 BACKUP TABLES a, b TO /backup
 ```
 
-There are options available to control and adjust the backup process, such as:
+有一些选项可用于控制和调整备份过程，例如：
 
-* `async`: makes the backup non-blocking, allowing you to receive a response with the query ID immediately and run other queries while the backup is ongoing. The default value is `0`.
-* `compress`: enables file compression using zstd. The default value is `0`.
-For example, to run a backup of all tables in async mode with compression enabled to the `/tmp` directory:
+* `async`：使备份非阻塞，允许您立即接收带有查询 ID 的响应，并在备份进行时运行其他查询。默认值为 `0`。
+* `compress`：启用使用 zstd 进行文件压缩。默认值为 `0`。
 
 ```sql
 BACKUP OPTION async = yes, compress = yes TO /tmp
 ```
 
-### Important considerations
+### 重要注意事项
 
-1. The path should not contain special symbols or spaces, as they are not supported.
-2. Ensure that Manticore Buddy is launched (it is by default).
+1. 路径中不应包含特殊符号或空格，因为不支持它们。
+2. 确保 Manticore Buddy 已启动（默认情况下是）。
 
-### How backup maintains consistency of tables
+### 备份如何维护表的一致性
 
-To ensure consistency of tables during backup, Manticore Search's backup tools use the innovative [FREEZE and UNFREEZE](../Securing_and_compacting_a_table/Freezing_a_table.md) commands. Unlike the traditional lock and unlock tables feature of e.g. MySQL, `FREEZE` stops flushing data to disk while still permitting writing (to some extent) and selecting updated data from the table.
+为了确保备份期间表的一致性，Manticore Search 的备份工具使用创新的 [FREEZE 和 UNFREEZE](../Securing_and_compacting_a_table/Freezing_a_table.md) 命令。与例如 MySQL 的传统锁定和解锁表的功能不同，`FREEZE` 在停止将数据刷新到磁盘的同时仍允许写入（在某种程度上）和从表中选择更新的数据。
 
-However, if your RAM chunk size grows beyond the `rt_mem_limit` threshold during lengthy backup operations involving many inserts, data may be flushed to disk, and write operations will be blocked until flushing is complete. Despite this, the tool maintains a balance between table locking, data consistency, and database write availability while the table is frozen.
+然而，如果在涉及大量插入的漫长备份操作期间，您的 RAM 块大小超过 `rt_mem_limit` 阈值，则数据可能会刷新到磁盘，写入操作将在刷新完成之前被阻止。尽管如此，该工具在冻结表期间保持表锁定、数据一致性和数据库写入可用性之间的平衡。
 
-When you use `manticore-backup` or the SQL `BACKUP` command, the `FREEZE` command is executed once and freezes all tables you are backing up simultaneously. The backup process subsequently backs up each table one by one, releasing the freeze after successfully backing up each table.
+当您使用 `manticore-backup` 或 SQL `BACKUP` 命令时，`FREEZE` 命令会被执行一次，并同时冻结您要备份的所有表。备份过程随后逐个备份每个表，成功备份每个表后释放冻结状态。
 
-If backup fails or gets interrupted, the tool tries to unfreeze all the tables.
+如果备份失败或中断，工具会尝试解冻所有表。
 
-## Restore by using manticore-backup tool
+## 使用 manticore-backup 工具恢复
 
 <!-- example restore_list -->
-To restore a Manticore instance from a backup, use the `manticore-backup` command with the `--backup-dir` and `--restore` arguments. For example: `manticore-backup --backup-dir=/path/to/backups --restore`. If you don't provide any argument for `--restore`, it will simply list all the backups in the `--backup-dir`.
+要从备份中恢复 Manticore 实例，请使用 `manticore-backup` 命令，并带上 `--backup-dir` 和 `--restore` 参数。例如：`manticore-backup --backup-dir=/path/to/backups --restore`。如果不提供 `--restore` 的任何参数，它将简单列出 `--backup-dir` 中的所有备份。
 
 <!-- request Example -->
 ```bash
@@ -223,13 +223,14 @@ Available backups: 3
 
 <!-- example restore -->
 
-To start a restore job, run `manticore-backup` with the flag `--restore=backup name`, where `backup name` is the name of the backup directory within the `--backup-dir`. Note that:
-1. There can't be any Manticore instance running on the same host and port as the one being restored.
-2. The old `manticore.json` file must not exist.
-3. The old configuration file must not exist.
-4. The old data directory must exist and be empty.
+要启动恢复作业，运行 `manticore-backup`，并带上 `--restore=备份名称` 参数，其中 `备份名称` 是 `--backup-dir` 中备份目录的名称。请注意：
 
-If all conditions are met, the restore will proceed. The tool will provide hints, so you don't have to memorize them. It's crucial to avoid overwriting existing files, so make sure to remove them prior to the restore if they still exist. Hence all the conditions.
+1. 不能有任何 Manticore 实例在同一主机和端口上运行。
+2. 旧的 `manticore.json` 文件不得存在。
+3. 旧的配置文件不得存在。
+4. 旧的数据目录必须存在且为空。
+
+如果所有条件都满足，恢复将继续进行。该工具将提供提示，因此您无需记住这些条件。避免覆盖现有文件非常重要，因此请确保在恢复之前删除它们（如果它们仍然存在）。
 
 <!-- request Example -->
 ```bash
@@ -260,12 +261,13 @@ Manticore config
 
 <!-- end -->
 
-## Backup and restore with mysqldump
+## 使用 mysqldump 进行备份和恢复
 
 <!-- example mysqldump_backup -->
-To create a backup of your Manticore Search database, you can use the `mysqldump` command. We will use the default port and host in the examples.
 
-Note, `mysqldump` is supported only for real-time tables.
+要创建 Manticore Search 数据库的备份，可以使用 `mysqldump` 命令。我们将在示例中使用默认的端口和主机。
+
+请注意，`mysqldump` 仅支持实时表。
 
 <!-- request Example -->
 ```bash
@@ -273,24 +275,25 @@ mysqldump -h0 -P9306 manticore > manticore_backup.sql
 mariadb-dump -h0 -P9306 manticore > manticore_backup.sql
 ```
 
-Executing this command will produce a backup file named `manticore_backup.sql`. This file will hold all data and table schemas.
+执行此命令将生成一个名为 `manticore_backup.sql` 的备份文件。该文件将保存所有数据和表模式。
 
 <!-- request Example 2 -->
 ```bash
 mysqldump -h0 -P9306 --replace --net-buffer-length=16m -etc manticore tbl > tbl.sql
 ```
 
-This will produce a backup file `tbl.sql` with `replace` commands instead of `insert`, with column names retained in each batch. Documents will be batched up to 16 megabytes large. There will be no `drop`/`create table` commands. This is useful for full-text reindexation after changing tokenization settings.
+这将生成一个备份文件 `tbl.sql`，其中使用 `replace` 命令而不是 `insert`，并在每个批次中保留列名。文档将批量处理，大小上限为 16 兆字节。不会有 `drop`/`create table` 命令。这在更改标记化设置后进行全文重建时非常有用。
 <!-- end -->
 
 <!-- example mysqldump_restore -->
-### Restore
+### 恢复
 
-If you're looking to restore a Manticore Search database from a backup file, the mysql client is your tool of choice.
+如果您希望从备份文件恢复 Manticore Search 数据库，mysql 客户端是您首选的工具。
 
-Note, if you are restoring in [Plain mode](../Read_this_first.md#Real-time-mode-vs-plain-mode), you cannot drop and recreate tables directly. Therefore, you should:
-- Use `mysqldump` with the `-t` option to exclude `CREATE TABLE` statements from your backup.
-- Manually [TRUNCATE](../Emptying_a_table.md) the tables before proceeding with the restoration.
+请注意，如果您在 [Plain mode](../Read_this_first.md#Real-time-mode-vs-plain-mode) 下恢复，则不能直接删除和重新创建表。因此，您应该：
+
+- 使用 `mysqldump` 并加上 `-t` 选项，排除备份中的 `CREATE TABLE` 语句。
+- 在继续恢复之前手动 [TRUNCATE](../Emptying_a_table.md) 表。
 
 <!-- request SQL -->
 ```bash
@@ -298,26 +301,27 @@ mysql -h0 -P9306 < manticore_backup.sql
 mariadb -h0 -P9306 < manticore_backup.sql
 ```
 
-This command enables you to restore everything from the `manticore_backup.sql` file.
+此命令使您能够从 `manticore_backup.sql` 文件中恢复所有内容。
 <!-- end -->
 
-### Additional options
+### 附加选项
 
-Here are some more settings that can be used with mysqldump to tailor your backup:
+以下是一些可以与 mysqldump 一起使用的设置，以调整您的备份：
 
-- `-t` skips `drop`/`create` table commands. Useful for full-text reindexation of a table after changing tokenization settings.
-- `--no-data`: This setting omits table data from the backup, resulting in a backup file that consists only of table schemas.
-- `--ignore-table=[database_name].[table_name]`: This option allows you to bypass a particular table during the backup operation. Note that the database name must be `manticore`.
-- `--replace` to perform `replace` instead of `insert`. Useful for full-text reindexation of a table after changing tokenization settings.
-- `--net-buffer-length=16M` to make batches up to 16 megabytes large for faster restoration.
-- `-e` to batch up documents. Useful for faster restoration.
-- `-c` to keep column names. Useful for reindexation of a table after changing its schema (e.g., changing field order).
+- `-t` 跳过 `drop`/`create` 表命令。对在更改标记化设置后进行表的全文重建很有用。
+- `--no-data`：此设置从备份中省略表数据，生成的备份文件仅包含表模式。
+- `--ignore-table=[database_name].[table_name]`：此选项允许您在备份操作中跳过特定表。请注意，数据库名称必须是 `manticore`。
+- `--replace` 执行 `replace` 而不是 `insert`。在更改标记化设置后，对表进行全文重建时非常有用。
+- `--net-buffer-length=16M` 使批次最大为 16 兆字节，以加快恢复速度。
+- `-e` 批量处理文档。对加快恢复速度有帮助。
+- `-c` 保留列名。在更改表模式（例如，更改字段顺序）后，进行表的重建时非常有用。
 
-For a comprehensive list of settings and their thorough descriptions, kindly refer to the [official MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/mysqldump.html).
+有关设置的全面列表及其详细描述，请参阅 [官方 MySQL 文档](https://dev.mysql.com/doc/refman/8.0/en/mysqldump.html)。
 
-### Notes
+### 注意事项
 
-We recommend specifying the `manticore` database explicitly when you plan to back up all databases, rather than using the `--all-databases` option.
+我们建议在计划备份所有数据库时明确指定 `manticore` 数据库，而不是使用 `--all-databases` 选项。
 
-Keep in mind that `mysqldump` does not support backing up distributed tables. Additionally, it cannot back up tables that contain non-stored fields (consider using `manticore-backup` or the `BACKUP` SQL command).
+请注意，`mysqldump` 不支持备份分布式表。此外，它无法备份包含非存储字段的表（可以考虑使用 `manticore-backup` 或 `BACKUP` SQL 命令）。
+
 <!-- proofread -->

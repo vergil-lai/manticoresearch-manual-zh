@@ -1,4 +1,4 @@
-# Flushing RAM chunk to a new disk chunk
+# 将RAM块刷新到新磁盘块
 
 ## FLUSH RAMCHUNK
 
@@ -8,9 +8,9 @@
 FLUSH RAMCHUNK rt_table
 ```
 
-The `FLUSH RAMCHUNK` command creates a new disk chunk in an RT table.
+`FLUSH RAMCHUNK` 命令在 RT 表中创建一个新的磁盘块。
 
-Normally, an RT table would automatically flush and convert the contents of the RAM chunk into a new disk chunk once the RAM chunk reaches the maximum allowed [rt_mem_limit](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit) size. However, for debugging and testing purposes, it might be useful to forcibly create a new disk chunk, and the `FLUSH RAMCHUNK` statement does exactly that.
+通常，当 RAM 块达到最大允许的 [rt_mem_limit](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit) 大小时，RT 表会自动刷新并将 RAM 块的内容转换为新的磁盘块。然而，出于调试和测试的目的，强制创建新的磁盘块可能是有用的，而 `FLUSH RAMCHUNK` 语句正是用于实现这一点。
 
 <!-- intro -->
 ##### SQL:

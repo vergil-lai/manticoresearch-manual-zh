@@ -1,17 +1,17 @@
-# Replication cluster status 
+# 复制集群状态
 
 <!-- example Example -->
 
-You can view the cluster status information by checking the node status. This can be done using the [Node status](../../Node_info_and_management/Node_status.md) command, which displays various information about the node, including the cluster status variables.
+您可以通过检查节点状态来查看集群状态信息。这可以使用 [节点状态](../../Node_info_and_management/Node_status.md) 命令完成，该命令显示有关节点的各种信息，包括集群状态变量。
 
-The output format for the cluster status variables is as follows:  `cluster_name_variable_name` `variable_value`. Most of the variables are described in the [Galera Documentation Status Variables](https://galeracluster.com/library/documentation/galera-status-variables.html). In addition to these variables, Manticore Search also displays:
+集群状态变量的输出格式如下：`cluster_name_variable_name` `variable_value`。大多数变量在 [Galera 文档状态变量](https://galeracluster.com/library/documentation/galera-status-variables.html) 中有描述。除了这些变量，Manticore Search 还显示：
 
-* cluster_name - the name of the cluster, as defined in the [replication setup](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) 
-* node_state - the current state of the node: `closed`, `destroyed`, `joining`, `donor`, `synced`
-* indexes_count - the number of tables managed by the cluster
-* indexes - a list of table names managed by the cluster
-* nodes_set - the list of nodes in the cluster defined using the `CREATE`, `JOIN` or `ALTER UPDATE` commands
-* nodes_view - the actual list of nodes in the cluster that the current node can see.
+- `cluster_name` - 集群的名称，如在 [复制设置](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#Replication-cluster) 中定义
+- `node_state` - 节点的当前状态：`closed`、`destroyed`、`joining`、`donor`、`synced`
+- `indexes_count` - 集群管理的表的数量
+- `indexes` - 集群管理的表名称列表
+- `nodes_set` - 使用 `CREATE`、`JOIN` 或 `ALTER UPDATE` 命令定义的集群中的节点列表
+- `nodes_view` - 当前节点可以看到的集群中实际的节点列表
 
 
 <!-- intro -->

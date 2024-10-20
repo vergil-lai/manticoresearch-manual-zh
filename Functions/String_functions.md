@@ -1,18 +1,18 @@
-# String functions
+# 字符串函数
 
 ### CONCAT()
-Concatenates two or more strings into one. Non-string arguments must be explicitly converted to string using the `TO_STRING()` function.
+将两个或多个字符串连接成一个。非字符串参数必须通过 `TO_STRING()` 函数显式转换为字符串。
 
 ```sql
 CONCAT(TO_STRING(float_attr), ',', TO_STRING(int_attr), ',', title)
 ```
 
 ### LEVENSHTEIN()
-`LEVENSHTEIN ( pattern, source, {normalize=0, length_delta=0})` returns number (Levenshtein distance) of single-character edits (insertions, deletions or substitutions) between `pattern` and `source` strings required to make in `pattern` to make it `source`.
+`LEVENSHTEIN ( pattern, source, {normalize=0, length_delta=0})` 返回模式和源字符串之间通过单字符编辑（插入、删除或替换）将 `pattern` 转换为 `source` 所需的编辑次数。
 
-   * `pattern`, `source` - constant string, string field name, JSON field name, or any expression that produces a string (like e.g., [SUBSTRING_INDEX()](../Functions/String_functions.md#SUBSTRING_INDEX%28%29))
-   * `normalize` - option to return the distance as a float number in the range `[0.0 - 1.0]`, where 0.0 is an exact match, and 1.0 is the maximum difference. The default value is 0, meaning not to normalize and provide the result as an integer.
-   * `length_delta` - skips Levenshtein distance calculation and returns `max(strlen(pattern), strlen(source))` if the option is set and the lengths of the strings differ by more than the `length_delta` value. The default value is 0, meaning to calculate Levenshtein distance for any input strings. This option can be useful when checking mostly similar strings.
+- `pattern`, `source` - 常量字符串、字符串字段名、JSON 字段名或生成字符串的表达式。
+- `normalize` - 是否将距离返回为 [0.0 - 1.0] 范围内的浮点数，默认值为 0，表示返回整数距离。
+- `length_delta` - 当字符串长度差异超过此值时，跳过 Levenshtein 距离计算并返回最大字符串长度。
 
 ``` sql
 SELECT LEVENSHTEIN('gily', attr1) AS dist, WEIGHT() AS w FROM test WHERE MATCH('test') ORDER BY w DESC, dist ASC;
@@ -21,51 +21,52 @@ SELECT LEVENSHTEIN(title, j.name, {normalize=1}) AS dist, WEIGHT() AS w FROM tes
 ```
 
 ### REGEX()
-The `REGEX(attr,expr)` function returns 1 if a regular expression matches the attribute's string, and 0 otherwise. It works with both string and JSON attributes.
+``REGEX(attr,expr)` 函数返回 1 表示正则表达式匹配属性的字符串，0 表示不匹配。适用于字符串和 JSON 属性。
 
 ```sql
 SELECT REGEX(content, 'box?') FROM test;
 SELECT REGEX(j.color, 'red | pink') FROM test;
 ```
 
-Expressions should adhere to the RE2 syntax. To perform a case-insensitive search, for instance, you can use:
+表达式应遵循 RE2 语法。例如，若要执行不区分大小写的搜索，可以使用：
 ```sql
 SELECT REGEX(content, '(?i)box') FROM test;
 ```
 
 ### SNIPPET()
-The `SNIPPET()` function can be used to highlight search results within a given text. The first two arguments are: the text to be highlighted, and a query. [Options](../Searching/Highlighting.md#Highlighting-options) can be passed to the function as the third, fourth, and so on arguments. `SNIPPET()` can obtain the text for highlighting directly from the table. In this case, the first argument should be the field name:
+`SNIPPET()` 函数可用于在给定文本中突出显示搜索结果。前两个参数分别是：需要突出显示的文本和查询。可将[选项](../Searching/Highlighting.md#Highlighting-options)作为第三个、第四个等参数传递给该函数。`SNIPPET()` 可以直接从表中获取要突出显示的文本。在这种情况下，第一个参数应为字段名称：
 
 ```sql
 SELECT SNIPPET(body, QUERY()) FROM myIndex WHERE MATCH('my.query')
 ```
 
-In this example, the `QUERY()`  expression returns the current full-text query. `SNIPPET()` can also highlight non-indexed text:
+在此示例中，`QUERY()` 表达式返回当前的全文查询。`SNIPPET()` 还可以突出显示未被索引的文本：
 
 ```sql
 mysql  SELECT id, SNIPPET('text to highlight', 'my.query', 'limit=100') FROM myIndex WHERE MATCH('my.query')
 ```
 
-Additionally, it can be used to highlight text fetched from other sources using a User-Defined Function (UDF):
+此外，它还可以用于突出显示通过用户定义函数 (UDF) 获取的文本：
 
 ```sql
 SELECT id, SNIPPET(myUdf(id), 'my.query', 'limit=100') FROM myIndex WHERE MATCH('my.query')
 ```
 
-In this context, `myUdf()` is a User-Defined Function (UDF) that retrieves a document by its ID from an external storage source. The `SNIPPET()` function is considered a "post limit" function, which means that the computation of snippets is delayed until the entire final result set is prepared, and even after the `LIMIT` clause has been applied. For instance, if a `LIMIT 20,10` clause is used, `SNIPPET()` will be called no more than 10 times.
+在此上下文中，`myUdf()` 是一个用户定义函数 (UDF)，它从外部存储源通过文档 ID 获取文档。`SNIPPET()` 函数被认为是“post limit” 函数，意味着片段的计算被延迟，直到整个最终结果集准备好，并且即使应用了 `LIMIT` 子句也是如此。例如，如果使用 `LIMIT 20,10` 子句，`SNIPPET()` 将被调用不超过 10 次。
 
-It is important to note that `SNIPPET()` does not support field-based limitations. For this functionality, use [HIGHLIGHT()](../Searching/Highlighting.md#Highlighting-via-SQL) instead.
+需要注意的是，`SNIPPET()` 不支持基于字段的限制。要实现该功能，请使用 [HIGHLIGHT()](../Searching/Highlighting.md#Highlighting-via-SQL)。
 
 ### SUBSTRING_INDEX()
 
 <!-- example substring_index -->
-`SUBSTRING_INDEX(string, delimiter, number)` returns a substring of the original string, based on a specified number of delimiter occurrences:
 
-   *   string - The original string, which can be a constant string or a string from a string/JSON attribute.
-   *   delimiter - The delimiter to search for.
-   *   number - The number of times to search for the delimiter. This can be either a positive or negative number. If it is a positive number, the function will return everything to the left of the delimiter. If it is a negative number, the function will return everything to the right of the delimiter.
+`SUBSTRING_INDEX(string, delimiter, number)` 返回原始字符串的子字符串，基于指定的分隔符出现的次数：
 
-`SUBSTRING_INDEX()` by default returns a string, but it can also be coerced into other types (such as integer or float) if necessary. Numeric values can be converted using specific functions (such as `BIGINT()`, `DOUBLE()`, etc.).
+- string - 原始字符串，可以是常量字符串或来自字符串/JSON 属性的字符串。
+- delimiter - 要搜索的分隔符。
+- number - 要搜索分隔符的次数。可以是正数或负数。如果是正数，函数将返回分隔符左侧的所有内容。如果是负数，函数将返回分隔符右侧的所有内容。
+
+`SUBSTRING_INDEX()` 默认返回一个字符串，但如有必要，它也可以强制转换为其他类型（如整数或浮点数）。数值可以使用特定函数（如 `BIGINT()`、`DOUBLE()` 等）进行转换。
 
 <!-- request SQL -->
 ```sql
@@ -83,9 +84,9 @@ SELECT double ( SUBSTRING_INDEX('1.2 3.4', ' ', -1)); /* 3.400000 */
 
 ### UPPER() and LOWER()
 
-`UPPER(string)` convert argument to upper case, `LOWER(string)` convert argument to lower case.
+`UPPER(string)` 将参数转换为大写，`LOWER(string)` 将参数转换为小写。
 
-Result also can be promoted to numeric, but only if string argument is convertible to a number. Numeric values could be promoted with arbitrary functions (`BITINT`, `DOUBLE`, etc.).
+结果也可以提升为数值，但仅当字符串参数可转换为数字时。数值可以通过任意函数（`BIGINT`、`DOUBLE` 等）进行转换。
 
 ```sql
 SELECT upper('www.w3schools.com', '.', 2); /* WWW.W3SCHOOLS.COM  */

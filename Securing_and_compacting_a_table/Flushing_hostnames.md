@@ -4,7 +4,7 @@
 FLUSH HOSTNAMES
 ```
 
-The FLUSH HOSTNAMES command is used to renew IP addresses associated with agent host names. If you want to always query the DNS for getting the host name IP, you can use the [hostname_lookup](../Server_settings/Searchd.md#hostname_lookup) directive.
+`FLUSH HOSTNAMES` 命令用于更新与代理主机名相关联的 IP 地址。如果您希望始终通过 DNS 查询获取主机名的 IP，可以使用 [hostname_lookup](../Server_settings/Searchd.md#hostname_lookup) 指令。
 
 ```sql
 mysql> FLUSH HOSTNAMES;

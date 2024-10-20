@@ -1,4 +1,4 @@
-# Freezing a table
+# 冻结表
 
 <!-- example freeze -->
 
@@ -6,22 +6,25 @@
 FREEZE tbl1[, tbl2, ...]
 ```
 
-`FREEZE` readies a real-time/plain table for a secure [backup](../Securing_and_compacting_a_table/Backup_and_restore.md). Specifically, it:
-1. Deactivates table compaction. If the table is currently being compacted, `FREEZE` will gracefully interrupt it.
-2. Transfers the current RAM chunk to a disk chunk.
-3. Flushes attributes.
-4. Disables implicit operations that could modify the disk files.
-5. Increments the table's locked counter.
-6. Shows the actual file list associated with the table.
+`FREEZE` 命令准备一个实时/普通表进行安全的 [备份](../Securing_and_compacting_a_table/Backup_and_restore.md)。具体步骤包括：
 
-If the table is already frozen (locked), `FREEZE` will:
-1. Increment the table's locked counter.
-2. Shows the actual file list associated with the table.
+1. 停用表的压缩功能。如果表正在被压缩，`FREEZE` 将优雅地中断它。
+2. 将当前的 RAM 块转移到磁盘块。
+3. 刷新属性。
+4. 禁用可能修改磁盘文件的隐式操作。
+5. 增加表的锁定计数器。
+6. 显示与表相关的实际文件列表。
 
-The built-in tool [manticore-backup](../Securing_and_compacting_a_table/Backup_and_restore.md) uses `FREEZE` to ensure data consistency. You can do the same if you want to create your own backup solution or need to freeze tables for other reasons. Just follow these steps:
-1. `FREEZE` a table (or a few).
-2. Capture the output of the `FREEZE` command and back up the specified files.
-3. `UNFREEZE` the table(s) once finished.
+如果表已被冻结（锁定），`FREEZE` 将：
+
+1. 增加表的锁定计数器。
+2. 显示与表相关的实际文件列表。
+
+内置工具 [manticore-backup](../Securing_and_compacting_a_table/Backup_and_restore.md) 使用 `FREEZE` 来确保数据一致性。您可以在创建自己的备份解决方案或需要冻结表时执行相同操作，只需遵循以下步骤：
+
+1. `FREEZE` 表（或多个表）。
+2. 捕获 `FREEZE` 命令的输出并备份指定的文件。
+3. 一旦完成，执行 `UNFREEZE` 命令。
 
 <!-- request Example -->
 ```sql
@@ -52,24 +55,23 @@ FREEZE t;
 
 <!-- end -->
 
-The `file` column indicates the table's file paths within the [data_dir](../Server_settings/Searchd.md#data_dir) of the running instance. The `normalized` column displays the absolute paths for the same files. To back up a table, simply copy the provided files without additional preparation.
+当表被冻结时，您不能执行 `UPDATE` 查询；它们会因“索引现在被锁定，请稍后再试”的错误消息而失败。
 
-When a table is frozen, you cannot execute `UPDATE` queries; they will fail with the error message "index is locked now, try again later."
+同时，`DELETE` 和 `REPLACE` 查询在表被冻结时也有一些限制：
 
-Also, `DELETE` and `REPLACE` queries have some restrictions while the table is frozen:
-* If `DELETE` affects a document in the current RAM chunk - it is permitted.
-* If `DELETE` impacts a document in a disk chunk but was previously deleted - it is allowed.
-* If `DELETE` would alter an actual disk chunk - it will wait until the table is unfrozen.
+- 如果 `DELETE` 影响当前 RAM 块中的文档——这是允许的。
+- 如果 `DELETE` 影响磁盘块中的文档但已被先前删除——这是允许的。
+- 如果 `DELETE` 会改变实际的磁盘块——它将等待直到表解冻。
 
-Manually `FLUSH`ing a RAM chunk of a frozen table will report 'success', but no real saving will occur.
+手动 `FLUSH` 冻结表的 RAM 块将报告“成功”，但不会实际保存任何数据。
 
-`DROP`/`TRUNCATE` of a frozen table **is** allowed since these operations are not implicit. We assume that if you truncate or drop a table, you don't need it backed up; therefore, it should not have been frozen initially.
+冻结表的 `DROP`/`TRUNCATE` 操作是允许的，因为这些操作不是隐式的。我们假设如果您要截断或删除表，则不需要备份它，因此它不应该在最初被冻结。
 
-`INSERT`ing into a frozen table is supported but limited: new data will be stored in RAM (as usual) until `rt_mem_limit` is reached; then, new insertions will wait until the table is unfrozen.
+在冻结的表中支持 `INSERT`，但有限制：新数据将按常规存储在 RAM 中，直到达到 `rt_mem_limit`；然后，新插入将等待表解冻。
 
-If you shut down the daemon with a frozen table, it will act as if it experienced a dirty shutdown (e.g., `kill -9`): newly inserted data will **not** be saved in the RAM-chunk on disk, and upon restart, it will be restored from a binary log (if any) or lost (if binary logging is disabled).
+如果您在冻结表的情况下关闭守护进程，它将表现得像经历了脏关闭（例如，`kill -9`）：新插入的数据将**不会**被保存到磁盘上的 RAM 块，并且在重新启动时将从二进制日志（如果有的话）恢复，或丢失（如果禁用了二进制日志）。
 
-# Unfreezing a table
+# 解冻表
 
 <!-- example unfreeze -->
 
@@ -77,7 +79,7 @@ If you shut down the daemon with a frozen table, it will act as if it experience
 UNFREEZE tbl1[, tbl2, ...]
 ```
 
-`UNFREEZE` command decreases the table's locked counter, and if it reaches zero, reactivates previously blocked operations and resumes the internal compaction service. Any operations that were waiting for the table to unfreeze will also resume and complete normally.
+`UNFREEZE` 命令减少表的锁定计数器，如果计数器达到零，则重新激活之前被阻止的操作并恢复内部压缩服务。所有等待表解冻的操作也将恢复并正常完成。
 
 <!-- request Example -->
 ```sql
@@ -86,13 +88,13 @@ UNFREEZE tbl;
 
 <!-- end -->
 
-# Inspecting the lock state of a table
+# 检查表的锁定状态
 
 <!-- example show_table_status -->
 
-You can use `SHOW table_name STATUS` to check if a table is frozen or not.
+可以使用`SHOW table_name STATUS` 来检查表是否被冻结。
 
-The locked counter is displayed in the table's status under the `locked` column. A value of zero indicates that the table is not frozen, while a non-zero value reflects the number of active locks. Each explicit `FREEZE` command and implicit locking (such as when the table is part of a cluster and a replication routine selects it as a donor for a replica) increases the counter. Each `UNFREEZE` command decreases the counter, eventually down to zero.
+锁定计数器显示在表的状态下的 `locked` 列中。零值表示表未被冻结，而非零值表示活动锁的数量。每个显式的 `FREEZE` 命令和隐式锁定（如当表是集群的一部分且复制例程选择它作为副本的捐赠者时）都会增加计数器。每个 `UNFREEZE` 命令都会减少计数器，最终降到零。
 
 <!-- request Example -->
 
@@ -117,7 +119,7 @@ SHOW TABLE `foo` STATUS LIKE 'locked';
 
 <!-- example show_locks -->
 
-Locked tables are also displayed using the `SHOW LOCKS` command. The lock counters are shown in the `Additional Info` column.
+锁定的表也可以通过 `SHOW LOCKS` 命令显示。锁定计数器在 `Additional Info` 列中显示。
 
 <!-- request Example -->
 

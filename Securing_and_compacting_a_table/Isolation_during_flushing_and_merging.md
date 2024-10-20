@@ -1,10 +1,11 @@
-# Isolation during flushing and merging
+# 刷新与合并期间的隔
 
-Manticore provides isolation during the flushing and merging process of a real-time table to prevent any changes from affecting running queries.
+Manticore 在实时表的刷新和合并过程中提供隔离，以防止任何更改影响正在运行的查询。
 
-For example, during table compaction, a pair of disk chunks are merged and a new chunk is produced. At one point, a new version of the table is created with the new chunk replacing the original pair. This is done seamlessly so that a long-running query using the original chunks will continue to see the old version of the table, while a new query will see the new version with the resulting merged chunk.
+例如，在表压缩期间，一对磁盘块被合并，生成一个新的块。在某个时刻，创建了一个新的表版本，新块替换了原始的那对块。这个过程是无缝的，因此使用原始块的长时间运行的查询将继续看到旧版本的表，而新查询将看到包含合并结果的新版本。
 
-The same applies to flushing a RAM chunk, where suitable RAM segments are merged into a new disk chunk and the participated RAM chunk segments are abandoned. During this operation, Manticore provides isolation for queries that started before the operation began.
+同样，刷新 RAM 块时，适合的 RAM 段被合并为一个新的磁盘块，参与的 RAM 块段则被放弃。在此操作期间，Manticore 为在操作开始之前启动的查询提供隔离。
 
-Furthermore, these operations are transparent for replaces and updates. If you update an attribute in a document that belongs to a disk chunk being merged with another one, the update will be applied to both that chunk and the resulting merged chunk. If you delete a document during a merge, it will be deleted in the original chunk and also in the resulting merged chunk, which will either have the document marked as deleted or have no such document at all if the deletion happened early in the merging process.
+此外，这些操作对于替换和更新是透明的。如果您更新属于正在与另一块合并的磁盘块的文档中的属性，该更新将同时应用于该块和生成的合并块。如果在合并期间删除文档，它将在原始块中被删除，并且在生成的合并块中也会被删除，这将导致该文档被标记为已删除，或者如果删除发生在合并过程的早期，则根本不存在该文档。
+
 <!-- proofread -->

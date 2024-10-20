@@ -1,26 +1,26 @@
-# Searching and ranking functions
+# 搜索和排序函数
 
 ### BM25A()
-`BM25A(k1,b)` returns the exact `BM25A()` value. Requires the `expr` ranker and enabled `index_field_lengths`. Parameters `k1` and `b` must be floats.
+`BM25A(k1,b)` 返回精确的 `BM25A()` 值。需要 `expr` 排序器，并启用 `index_field_lengths`。参数 `k1` 和 `b` 必须是浮点数。
 
 ### BM25F()
-`BM25F(k1, b, {field=weight, ...})` returns the exact `BM25F()` value and requires `index_field_lengths` to be enabled. The `expr` ranker is also necessary. Parameters `k1` and `b` must be floats.
+`BM25F(k1, b, {field=weight, ...})` 返回精确的 `BM25F()` 值，并要求启用 `index_field_lengths`。也需要 `expr`排序器。参数 `k1` 和 `b` 必须是浮点数。
 
 ### EXIST()
-Substitutes non-existent columns with default values. It returns either the value of an attribute specified by 'attr-name', or the 'default-value' if that attribute does not exist. STRING or MVA attributes are not supported. This function is useful when searching through multiple tables with different schemas.
+用于替换不存在的列，返回由 'attr-name' 指定的属性值，如果该属性不存在则返回 'default-value'。不支持字符串或 MVA 属性。此函数在处理多个表且表结构不同的情况下非常有用。
 
 ```sql
 SELECT *, EXIST('gid', 6) as cnd FROM i1, i2 WHERE cnd>5
 ```
 
 ### MIN_TOP_SORTVAL()
-Returns the sort key value of the worst-ranked element in the current top-N matches if the sort key is a float, and 0 otherwise.
+返回当前 top-N 匹配中排名最差的元素的排序键值（如果排序键是浮点数），否则返回 0。
 
 ### MIN_TOP_WEIGHT()
-Returns the weight of the worst-ranked element in the current top-N matches.
+返回当前 top-N 匹配中排名最差的元素的权重。
 
 ### PACKEDFACTORS()
-`PACKEDFACTORS()` can be used in queries to display all calculated weighting factors during matching or to provide a binary attribute for creating a custom ranking UDF. This function only works if the expression ranker is specified and the query is not a full scan; otherwise, it returns an error. `PACKEDFACTORS()` can take an optional argument that disables ATC ranking factor calculation: `PACKEDFACTORS({no_atc=1})`. Calculating ATC significantly slows down query processing, so this option can be useful if you need to see the ranking factors but don't require ATC. `PACKEDFACTORS()` can also output in JSON format: `PACKEDFACTORS({json=1})`. The respective outputs in either key-value pair or JSON format are shown below. (Note that the examples below are wrapped for readability; actual returned values would be single-line.)
+`PACKEDFACTORS()` 可用于在匹配期间显示所有计算的权重因子，或提供二进制属性以创建自定义排序的 UDF。此函数仅在指定了表达式排序器且查询不是全扫描时可用；否则会返回错误。`PACKEDFACTORS()` 可以接受一个可选参数，用于禁用 ATC 排序因子计算：`PACKEDFACTORS({no_atc=1})`。计算 ATC 会显著降低查询处理速度，因此如果只需要查看排序因子而不需要 ATC，这个选项很有用。`PACKEDFACTORS()` 也可以输出 JSON 格式：`PACKEDFACTORS({json=1})`。
 
 ```sql
 mysql> SELECT id, PACKEDFACTORS() FROM test1
@@ -84,7 +84,7 @@ packedfactors({json=1}):
 1 row in set (0.01 sec)
 ```
 
-This function can be used to implement custom ranking functions in UDFs, as in:
+可以通过子查询进行重新排序，以减少计算次数：
 
 ```sql
 SELECT *, CUSTOM_RANK(PACKEDFACTORS()) AS r
@@ -94,7 +94,7 @@ ORDER BY r DESC
 OPTION ranker=expr('1');
 ```
 
-Where `CUSTOM_RANK()` is a function implemented in a UDF. It should declare a `SPH_UDF_FACTORS` structure (defined in sphinxudf.h), initialize this structure, unpack the factors into it before usage, and deinitialize it afterwards, as follows:
+当 `CUSTOM_RANK()` 是在 UDF 中实现的函数时，它应声明一个 `SPH_UDF_FACTORS` 结构体（定义在 sphinxudf.h 中），在使用之前初始化该结构体，解包其中的因素，并在使用后进行解初始化，代码如下：
 
 ```sql
 SPH_UDF_FACTORS factors;
@@ -104,9 +104,9 @@ sphinx_factors_unpack((DWORD*)args->arg_values[0], &factors);
 sphinx_factors_deinit(&factors);
 ```
 
-`PACKEDFACTORS()` data is available at all query stages, not just during the initial matching and ranking pass. This enables another particularly interesting application of `PACKEDFACTORS()`: re-ranking.
+`PACKEDFACTORS()` 数据在所有查询阶段都可用，不仅限于初始匹配和排名阶段。这使得 `PACKEDFACTORS()` 可以应用于重新排名。
 
-In the example above, we used an expression-based ranker with a dummy expression and sorted the result set by the value computed by our UDF. In other words, we used the UDF to rank all our results. Now, let's assume for the sake of an example that our UDF is extremely expensive to compute, with a throughput of only 10,000 calls per second. If our query matches 1,000,000 documents, we would want to use a much simpler expression to do most of our ranking in order to maintain reasonable performance. Then, we would apply the expensive UDF to only a few top results, say, the top 100 results. In other words, we would build the top 100 results using a simpler ranking function and then re-rank those with a more complex one. This can be done with subselects:
+在上述示例中，我们使用基于表达式的排序器，并通过我们的 UDF 计算的值对结果集进行排序。换句话说，我们用 UDF 对所有结果进行了排名。假设我们的 UDF 计算非常昂贵，每秒只能处理 10,000 次调用。如果查询匹配了 1,000,000 个文档，我们可能希望使用更简单的表达式进行大部分排名，以保持合理的性能。然后我们可以对少量顶级结果（例如前 100 个）应用昂贵的 UDF。也就是说，我们使用较简单的排序函数构建前 100 个结果，然后用更复杂的函数对这些结果重新排名。可以通过子查询完成这一操作：
 
 ```sql
 SELECT * FROM (
@@ -118,25 +118,25 @@ SELECT * FROM (
 ) ORDER BY r DESC LIMIT 10
 ```
 
-In this example, the expression-based ranker is called for every matched document to compute `WEIGHT()`, so it gets called 1,000,000 times. However, the UDF computation can be postponed until the outer sort, and it will only be performed for the top 100 matches by `WEIGHT()`, according to the inner limit. This means the UDF will only be called 100 times. Finally, the top 10 matches by UDF value are selected and returned to the application.
+在此示例中，表达式排序器为每个匹配的文档调用以计算 `WEIGHT()`，因此它被调用了 1,000,000 次。然而，UDF 计算可以推迟到外部排序，并且只会对根据内部限制获得的前 100 个结果调用 UDF。这样，UDF 只需调用 100 次。最后，应用程序会根据 UDF 值选出前 10 个匹配项并返回。
 
-For reference, in a distributed setup, the `PACKEDFACTORS()` data is sent from the agents to the master node in binary format. This makes it technically feasible to implement additional re-ranking passes on the master node if needed.
+在分布式环境中，`PACKEDFACTORS()` 数据以二进制格式从代理发送到主节点。这使得在主节点上实现额外的重新排名成为可能。
 
-When used in SQL but not called from any UDFs, the result of `PACKEDFACTORS()` is formatted as plain text, which can be used to manually assess the ranking factors. Note that this feature is not currently supported by the Manticore API.
+当在 SQL 中使用而不通过任何 UDF 调用时，`PACKEDFACTORS()` 的结果会以纯文本格式输出，可以手动评估排序因素。请注意，该功能目前不支持 Manticore API。
 
 
 ### REMOVE_REPEATS()
-`REMOVE_REPEATS ( result_set, column, offset, limit )` - removes repeated adjusted rows with the same 'column' value.
+`REMOVE_REPEATS ( result_set, column, offset, limit )` 删除具有相同 'column' 值的重复行。
 
 ```sql
 SELECT REMOVE_REPEATS((SELECT * FROM dist1), gid, 0, 10)
 ```
-Note that `REMOVE_REPEATS` does not affect `total_found` in the [search query meta info](../../Node_info_and_management/SHOW_META.md#SHOW-META).
+请注意，`REMOVE_REPEATS` 不会影响 [查询元信息](../../Node_info_and_management/SHOW_META.md#SHOW-META) 中的 `total_found`。
 
 ### WEIGHT()
-The `WEIGHT()` function returns the calculated matching score. If no ordering is specified, the result is sorted in descending order by the score provided by `WEIGHT()`. In this example, we order first by weight and then by an integer attribute.
+`WEIGHT()` 函数返回计算出的匹配评分。如果没有指定排序，结果将按 `WEIGHT()` 提供的分数以降序排序。在以下示例中，我们首先按权重排序，然后按整数属性排序。
 
-The search above performs a simple matching, where all words need to be present. However, we can do more (and this is just a simple example):
+上面的搜索执行了一个简单的匹配，要求所有单词都必须出现。然而，我们可以做得更多（这是一个简单的示例）：
 
 ```sql
 mysql> SELECT *,WEIGHT() FROM testrt WHERE MATCH('"list of business laptops"/3');
@@ -175,14 +175,14 @@ mysql> SHOW META;
 16 rows in set (0.00 sec)
 ```
 
-Here, we search for four words, but a match can occur even if only three of the four words are found. The search will rank documents containing all words higher.
+在此示例中，我们搜索了四个单词，但即使仅找到其中的三个单词，匹配也会发生。包含所有单词的文档将排名更高。
 
 ### ZONESPANLIST()
-The `ZONESPANLIST()` function returns pairs of matched zone spans. Each pair contains the matched zone span identifier, a colon, and the order number of the matched zone span. For example, if a document reads `<emphasis role="bold"><i>text</i> the <i>text</i></emphasis>`, and you query for `'ZONESPAN:(i,b) text'`, then `ZONESPANLIST()` will return the string `"1:1 1:2 2:1"`, meaning that the first zone span matched "text" in spans 1 and 2, and the second zone span in span 1 only.
+`ZONESPANLIST()` 函数返回匹配的区域跨度对。每对包含匹配的区域跨度标识符、冒号和匹配的区域跨度的顺序号。例如，如果文档内容为 `<emphasis role="bold"><i>text</i> the <i>text</i></emphasis>`，并且您查询 `'ZONESPAN:(i,b) text'`，则 `ZONESPANLIST()` 会返回字符串 `"1:1 1:2 2:1"`，这意味着第一个区域跨度在第 1 和第 2 个区域中匹配 "text"，第二个区域跨度仅在第 1 个区域中匹配。
 
 ### QUERY()
-`QUERY()` returns the current search query. `QUERY()` is a postlimit expression and is intended to be used with [SNIPPET()](../Functions/String_functions.md#SNIPPET%28%29).
+`QUERY()` 返回当前的搜索查询。`QUERY()` 是一个 postlimit 表达式，旨在与 [SNIPPET()](../Functions/String_functions.md#SNIPPET()) 一起使用。
 
-Table functions are a mechanism for post-query result set processing. Table functions take an arbitrary result set as input and return a new, processed set as output. The first argument should be the input result set, but a table function can optionally take and handle more arguments. Table functions can completely change the result set, including the schema. Currently, only built-in table functions are supported. Table functions work for both outer `SELECT` and [nested SELECT](../Searching/Sub-selects.md).
+表函数是一种用于查询结果集后处理的机制。表函数接受任意结果集作为输入并返回新的、经过处理的结果集。第一个参数应为输入结果集，但表函数还可以可选地处理更多参数。表函数可以完全更改结果集，包括其模式。目前仅支持内置的表函数。表函数适用于外部 `SELECT` 和 [嵌套 SELECT](../Searching/Sub-selects.md)。
 
 <!-- proofread -->

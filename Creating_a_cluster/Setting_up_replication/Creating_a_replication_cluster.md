@@ -1,9 +1,10 @@
-# Creating a replication cluster
+# 创建复制集群
 
 <!-- example creating a replication cluster 1 -->
-To create a replication cluster, you must set its [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#name) at a minimum.
 
-If you are creating a single cluster or the first cluster, you may omit the [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#path) option. In this case, the [data_dir](../../Server_settings/Searchd.md#data_dir) option will be used as the cluster path. However, for all subsequent clusters, you must specify the [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#path) and the path must be available. The [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) option may also be set to list all nodes in the cluster.
+要创建一个复制集群，您至少必须设置其 [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#name)。
+
+如果您正在创建单个集群或第一个集群，可以省略 [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#path) 选项。在这种情况下，将使用 [data_dir](../../Server_settings/Searchd.md#data_dir) 选项作为集群路径。但是，对于所有后续集群，必须指定 [path](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#path)，并且该路径必须可用。您还可以设置 [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) 选项，以列出集群中的所有节点。
 
 
 <!-- intro -->
@@ -103,6 +104,6 @@ utilsApi.Sql("CREATE CLUSTER click_query '/var/data/click_query/' as path, 'clic
 ```
 <!-- end -->
 
-If the [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) option is not specified when creating a cluster, the first node that joins the cluster will be saved as the [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) option.
+如果在创建集群时未指定 [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) 选项，则将保存第一个加入集群的节点作为 [nodes](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#nodes) 选项。
 
 <!-- proofread -->

@@ -1,45 +1,45 @@
-# Cluster recovery
+# 集群恢复
 
-In the event that the Manticore search daemon stops with no remaining nodes in the cluster to serve requests, recovery is necessary. Due to the multi-master nature of the Galera library used for replication, Manticore replication cluster is a single logical entity that maintains the consistency of its nodes and data, and the status of the entire cluster. This allows for safe writes on multiple nodes simultaneously and ensures the integrity of the cluster.
+在 Manticore 搜索守护进程停止且集群中没有剩余节点处理请求时，需要进行恢复。由于使用 Galera 库进行复制的多主模式，Manticore 复制集群是一个单一的逻辑实体，维护其节点和数据的一致性，以及整个集群的状态。这允许在多个节点上同时安全写入，并确保集群的完整性。
 
-However, this also poses challenges. Let's examine several scenarios, using a cluster of nodes A, B, and C, to see what needs to be done when some or all nodes become unavailable.
+然而，这也带来了挑战。让我们通过一个包含节点 A、B 和 C 的集群来检查几种情况，以了解在某些或所有节点变得不可用时需要采取的措施。
 
 ### Case 1
 
- When node A is stopped, the other nodes receive a "normal shutdown" message. The cluster size is reduced, and a quorum re-calculation takes place. 
- 
-Upon starting node A, it joins the cluster and will not serve any write transactions until it is fully synchronized with the cluster. If the writeset cache on donor nodes B or C (which can be controlled with the Galera cluster's [gcache.size](https://galeracluster.com/library/documentation/galera-parameters.html#gcache-size)) still contains all of the transactions missed at node A, node A will receive a fast incremental state transfer ([IST](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-ist)), that is, a transfer of only missed transactions. If not, a snapshot state transfer  ([SST](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-sst)) will occur, which involves the transfer of table files.
+当节点 A 停止时，其他节点会收到“正常关闭”消息。集群大小减少，并进行法定人数重新计算。
+
+当节点 A 启动时，它将加入集群，并且在与集群完全同步之前不会处理任何写事务。如果捐赠节点 B 或 C 上的写缓存（可以通过 Galera 集群的 [gcache.size](https://galeracluster.com/library/documentation/galera-parameters.html#gcache-size) 控制）仍包含节点 A 错过的所有事务，节点 A 将接收快速增量状态转移（[IST](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-ist)），即仅传输错过的事务。如果没有，则会发生快照状态转移（[SST](https://galeracluster.com/library/documentation/state-transfer.html#state-transfer-sst)），这涉及到表文件的传输。
 
 ### Case 2
 
-In the scenario where nodes A and B are stopped, the cluster size is reduced to one, with node C forming the primary component to handle write transactions. 
+在节点 A 和 B 停止的情况下，集群大小减少到 1，节点 C 形成主组件以处理写事务。
 
-Nodes A and B can then be started as usual and will join the cluster after start-up. Node C acts as the donor, providing the state transfer to nodes A and B.
+节点 A 和 B 然后可以像往常一样启动，并将在启动后加入集群。节点 C 作为捐赠者，向节点 A 和 B 提供状态转移。
 
 ### Case 3
 
-All nodes are stopped as usual and the cluster is off.
+所有节点都像往常一样停止，集群处于关闭状态。
 
-The problem now is how to initialize the cluster. It's important that on a clean shutdown of searchd the nodes write the number of last executed transaction into the cluster directory [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) file along with flag `safe_to_bootstrap`. The node which was stopped last will have option `safe_to_bootstrap: 1` and the most advanced `seqno` number.
+现在的问题是如何初始化集群。在 searchd 的干净关闭过程中，节点将最近执行的事务数量写入集群目录中的 [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) 文件，并带有标志 `safe_to_bootstrap`。最后停止的节点将有选项 `safe_to_bootstrap: 1` 和最先进的 `seqno` 号。
 
-It is important that this node starts first to form the cluster. To bootstrap a cluster the server should be started on this node with flag [--new-cluster](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md). On Linux you can also run `manticore_new_cluster` which will start Manticore in `--new-cluster` mode via systemd.
+确保这个节点先启动以形成集群。要启动集群，服务器应在该节点上以标志 [--new-cluster](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) 启动。在 Linux 上，您也可以运行 `manticore_new_cluster`，它将通过 systemd 以 `--new-cluster` 模式启动 Manticore。
 
-If another node starts first and bootstraps the cluster, then the most advanced node joins that cluster, performs full SST and receives a table file where some transactions are missed in comparison with the table files it got before. That is why it is important to start first the node which was shut down last, it should have flag `safe_to_bootstrap: 1` in [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md).
+如果另一个节点先启动并引导集群，那么最先进的节点将加入该集群，进行完整的 SST，并接收与其之前获得的表文件相比缺少一些事务的表文件。因此，首先启动最后关闭的节点是重要的，它应在 [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) 中具有标志 `safe_to_bootstrap: 1`。
 
 ### Case 4
 
-In the event of a crash or network failure causing Node A to disappear from the cluster, nodes B and C will attempt to reconnect with Node A. Upon failure, they will remove Node A from the cluster. With two out of the three nodes still running, the cluster maintains its quorum and continues to operate normally.
+如果由于崩溃或网络故障导致节点 A 从集群中消失，节点 B 和 C 将尝试重新连接节点 A。如果失败，它们将从集群中移除节点 A。在剩余的三个节点中，两个仍在运行，集群保持法定人数，并继续正常运行。
 
-When Node A is restarted, it will join the cluster automatically, as outlined in [Case 1](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-1).
+当节点 A 重新启动时，它将自动加入集群，如 [Case 1](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-1) 中所述。
 
 ### Case 5
 
-Nodes A and B have gone offline. Node C is unable to form a quorum on its own as 1 node is less than half of the total nodes (3). As a result, the cluster on node C is shifted to a non-primary state and rejects any write transactions with an error message.
+节点 A 和 B 已下线。节点 C 无法单独形成法定人数，因为 1 个节点少于总节点数的一半（3）。因此，节点 C 上的集群被转移到非主状态，并拒绝任何写事务，返回错误消息。
 
-Meanwhile, node C waits for the other nodes to connect and also tries to connect to them. If this happens, and the network is restored and nodes A and B are back online, the cluster will automatically reform. If nodes A and B are just temporarily disconnected from node C but can still communicate with each other, they will continue to operate as normal, as they still form the quorum.
+与此同时，节点 C 等待其他节点连接并尝试连接它们。如果发生这种情况，网络恢复，节点 A 和 B 重新上线，集群将自动重组。如果节点 A 和 B 仅暂时与节点 C 断开连接，但仍能相互通信，它们将正常运行，因为它们仍然形成法定人数。
 
 <!-- example case 5 -->
-However, if both nodes A and B have crashed or restarted due to a power failure, someone must activate the primary component on node C using the following command:
+然而，如果节点 A 和 B 因为电力故障崩溃或重启，则必须使用以下命令在节点 C 上激活主组件：
 
 <!-- intro -->
 ##### SQL:
@@ -58,26 +58,25 @@ SET CLUSTER posts GLOBAL 'pc.bootstrap' = 1
 ```
 <!-- end -->
 
-t's important to note that before executing this command, you must confirm that the other nodes are truly unreachable. Otherwise, a split-brain scenario may occur and separate clusters may form.
+在执行此命令之前，务必确认其他节点确实无法访问。否则，可能会发生“分脑”场景，导致形成多个独立的集群。
 
 ### Case 6
 
-All nodes have crashed. In this situation, the [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) file in the cluster directory has not been updated and does not contain a valid `seqno`sequence number.
+所有节点都崩溃。在这种情况下，集群目录中的 [grastate.dat](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) 文件未更新，不包含有效的 `seqno` 序列号。
 
-If this occurs, someone needs to locate the node with the most recent data and start the server on it using the [--new-cluster-force](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) command line key. All other nodes will start as normal, as described in [Case 3](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-3)).
-On Linux, you can also use the `manticore_new_cluster --force`, command, which will start Manticore in `--new-cluster-force` mode via systemd.
+如果发生这种情况，则需要找到最近数据的节点，并在其上使用 [--new-cluster-force](../../Creating_a_cluster/Setting_up_replication/Restarting_a_cluster.md) 命令行选项启动服务器。所有其他节点将按照 [Case 3](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-3) 中所述正常启动。在 Linux 上，您还可以使用 `manticore_new_cluster --force` 命令，通过 systemd 启动 Manticore 以 `--new-cluster-force` 模式。
 
 ### Case 7
 
-Split-brain can cause the cluster to transition into a non-primary state. For example, consider a cluster comprised of an even number of nodes (four), such as two pairs of nodes located in different data centers. If a network failure interrupts the connection between the data centers, split-brain occurs as each group of nodes holds exactly half of the quorum. As a result, both groups stop handling write transactions, since the Galera replication model prioritizes data consistency, and the cluster cannot accept write transactions without a quorum. However, nodes in both groups attempt to reconnect with the nodes from the other group in an effort to restore the cluster.
+“分脑”可能导致集群转变为非主状态。例如，考虑一个包含偶数节点（四个）的集群，例如位于不同数据中心的两个节点对。如果网络故障中断了数据中心之间的连接，则发生“分脑”，因为每组节点恰好持有法定人数的一半。因此，两组都停止处理写事务，因为 Galera 复制模型优先考虑数据一致性，而集群在没有法定人数的情况下无法接受写事务。然而，两个组中的节点都尝试与其他组中的节点重新连接，以努力恢复集群。
 
 <!-- example case 7 -->
-If someone wants to restore the cluster before the network is restored, the same steps outlined in [Case 5](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-5) hould be taken, but only at one group of nodes. 
+如果有人希望在网络恢复之前恢复集群，则应采取与 [Case 5](../../Creating_a_cluster/Setting_up_replication/Cluster_recovery.md#Case-5) 中所述相同的步骤，但仅在一组节点上执行。
 
-After the statement is executed, the group with the node that it was run on will be able to handle write transactions once again.
-
+在执行语句后，执行该语句的节点组将能够再次处理写事务。
 
 <!-- intro -->
+
 ##### SQL:
 
 <!-- request SQL -->
@@ -94,5 +93,5 @@ SET CLUSTER posts GLOBAL 'pc.bootstrap' = 1
 ```
 <!-- end -->
 
-However, it's important to note that if the statement is issued at both groups, it will result in the formation of two separate clusters, and the subsequent network recovery will not result in the groups rejoining.
+但是，重要的是要注意，如果在两个组上都执行该语句，将导致形成两个独立的集群，随后网络恢复将不会导致两个组重新连接。
 <!-- proofread -->

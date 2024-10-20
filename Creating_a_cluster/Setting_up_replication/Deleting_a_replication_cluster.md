@@ -1,7 +1,7 @@
-# Deleting a replication cluster 
+# 删除复制集群
 
 <!-- example deleting a replication cluster  1 -->
-The `DELETE CLUSTER` statement removes the specified cluster with its  [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#name). Once the cluster is deleted, it is removed from all nodes, but its tables remain intact and become active local non-replicated tables.
+`DELETE CLUSTER` 语句删除指定的集群及其 [name](../../Creating_a_cluster/Setting_up_replication/Setting_up_replication.md#name)。一旦集群被删除，它将从所有节点中移除，但其表将保持完整并变为活动的本地非复制表。
 
 
 

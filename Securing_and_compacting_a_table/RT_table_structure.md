@@ -1,46 +1,48 @@
-# Real-time table structure
+# 实时表的结构
 
-A plain table can be created from an external source using a special tool called `indexer`, which reads a "recipe" from the configuration, connects to the data sources, pulls documents, and builds table files. This is a lengthy process. If your data changes, the table becomes outdated, and you need to rebuild it from the refreshed sources. If your data changes incrementally, such as a blog or newsfeed where old documents never change and only new ones are added, the rebuild will take more and more time, as you will need to process the archive sources again and again with each pass.
+一个普通表可以通过一个名为 `indexer` 的特殊工具从外部源创建，该工具从配置中读取“食谱”，连接到数据源，提取文档并构建表文件。这是一个耗时的过程。如果您的数据发生变化，表就会变得过时，您需要从刷新后的源重新构建它。如果您的数据是增量变化的，比如一个博客或新闻源，其中旧文档不会改变，只会添加新文档，重建将需要越来越多的时间，因为您需要在每次处理时重复处理存档源。
 
-One way to deal with this problem is by using several tables instead of one solid table. For example, you can process sources produced in previous years and save the table. Then, take only sources from the current year and put them into a separate table, rebuilding it as often as necessary. You can then place both tables as parts of a distributed table and use it for querying. The point here is that each time you rebuild, you only process data from the last 12 months at most, and the table with older data remains untouched without needing to be rebuilt. You can go further and divide the last 12 months table into monthly, weekly, or daily tables, and so on.
+解决这个问题的一种方法是使用多个表，而不是一个大型表。例如，您可以处理前几年生成的源并保存表。然后，仅处理当前年份的源，并将其放入单独的表中，按照需要频繁重建。然后，您可以将这两个表作为分布式表的一部分，并用于查询。这里的关键是，每次重建时，您最多只处理过去12个月的数据，而包含旧数据的表保持不变，无需重建。您可以进一步将最近的12个月表按月、按周或按天分开，依此类推。
 
-This approach works, but you need to maintain your distributed table manually. That is, add new chunks, delete old ones, and keep the overall number of partial tables not too large (with too many tables, searching can become slower, and the OS usually limits the number of simultaneously opened files). To deal with this, you can manually merge several tables together by running [indexer --merge](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Merging_tables.md). However, that only solves the problem of having many tables, making maintenance more challenging. And even with 'per-hour' reindexing, you will most likely have a noticeable time gap between new data arriving in sources and rebuilding the table, which populates this data for searching.
+这种方法是可行的，但您需要手动维护您的分布式表。也就是说，添加新块、删除旧块，并保持部分表的总数不过多（如果表过多，搜索可能会变慢，操作系统通常会限制同时打开的文件数量）。为了解决这个问题，您可以通过运行 [indexer --merge](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Merging_tables.md) 手动将多个表合并在一起。然而，这只是解决了表数量过多的问题，使维护变得更加复杂。即使是每小时的重新索引，您也很可能会在新数据到达源和重建表（以填充这些数据进行搜索）之间有明显的时间差。
 
-A real-time table is designed to solve this problem. It consists of two parts:
+实时表旨在解决此问题。它由两部分组成：
 
-1. A special RAM-based table (called RAM chunk) that contains portions of data arriving right now.
-2. A collection of plain tables called disk chunks that were built in the past.
+1. 一个基于 RAM 的特殊表（称为 RAM 块），包含当前到达的数据部分。
+2. 一组过去构建的普通表，称为磁盘块。
 
-This is very similar to a standard [distributed table](../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md), made from several local tables.
+这与标准的 [分布式表](../Creating_a_table/Creating_a_distributed_table/Creating_a_distributed_table.md) 非常相似，由几个本地表组成。
 
-You don't need to build such a table by running `indexer`,  which reads a "recipe" from the config and tables data sources. Instead, the real-time table provides the ability to 'insert' new documents and 'replace' existing ones. When executing the 'insert' command, you push new documents to the server. It then builds a small table from the added documents and immediately brings it online. So, right after the 'insert' command completes, you can perform searches in all table parts, including the just-added documents.
+您不需要通过运行 `indexer` 来构建这样的表，`indexer` 从配置和表数据源读取“食谱”。相反，实时表提供了“插入”新文档和“替换”现有文档的能力。当执行“插入”命令时，您将新文档推送到服务器。然后，它从添加的文档构建一个小表，并立即将其上线。因此，在“插入”命令完成后，您可以在所有表部分中执行搜索，包括刚添加的文档。
 
-The search server automatically maintains the table, so you don't have to worry about it. However, you might be interested in learning a few details about 'how it is maintained'.
+搜索服务器自动维护该表，因此您不必担心。然而，您可能会对“它是如何维护的”感兴趣。
 
-**First, since indexed data is stored in RAM - what about emergency power-off?** Will I lose my table then? Well, before completion, the server saves new data into a special 'binlog'. This consists of one or several files, living on your persistent storage, which incrementally grows as you add more and more changes. You can adjust the behavior regarding how often new queries (or transactions) are stored in the binlog, and how often the 'sync' command is executed over the binlog file to force the OS to actually save the data on a safe storage. The most paranoid approach is to flush and sync after every transaction. This is the slowest but also the safest method. The least expensive way is to switch off the binlog entirely. This is the fastest method, but you risk losing your indexed data. Intermediate variants, like flush/sync every second, are also provided.
+**首先，既然索引数据存储在 RAM 中，紧急断电怎么办？** 那么我会失去我的表吗？在完成之前，服务器会将新数据保存到一个特殊的“binlog”中。这由一个或多个文件组成，存储在您的持久存储上，随着您添加更多更改而逐渐增长。您可以调整关于新查询（或事务）存储在 binlog 中的频率，以及在 binlog 文件上执行“sync”命令以强制操作系统实际将数据保存到安全存储中的行为。最极端的做法是在每个事务后进行刷新和同步。这是最慢的，但也是最安全的方法。最便宜的方法是完全关闭 binlog。这是最快的方法，但您面临着失去已索引数据的风险。中间变体，如每秒刷新/同步，也可以使用。
 
-The binlog is designed specifically for sequential saving of newly arriving transactions; it is not a table and cannot be searched over. It is merely an insurance policy to ensure that the server will not lose your data. If a sudden disruption occurs and everything crashes due to a software or hardware problem, the server will load the freshest available dump of the RAM chunk and then replay the binlog, repeating stored transactions. Ultimately, it will achieve the same state as it was in at the moment of the last change.
+binlog 专门用于顺序保存新到达的事务；它不是表，不能进行搜索。它仅仅是一个保险政策，以确保服务器不会丢失您的数据。如果发生突发故障，因软件或硬件问题导致崩溃，服务器将加载 RAM 块的最新可用转储，然后重放 binlog，重复存储的事务。最终，它将达到与上一次更改时相同的状态。
 
-**Second, what about limits?** What if I want to process, say, 10TB of data, but it just doesn't fit into RAM! RAM for a real-time table is limited and can be configured. When a certain amount of data is indexed, the server manages the RAM part of the table by merging together small transactions, keeping their number and overall size small. This process can sometimes cause delays during insertion, however. When merging no longer helps, and new insertions hit the [RAM limit](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit), the server converts the RAM-based table into a plain table stored on disk (called a disk chunk). This table is added to the collection of tables in the second part of the RT table and becomes accessible online. The RAM is then flushed, and the space is deallocated.
+**第二，限制呢？** 如果我想处理，比如说，10TB 的数据，但它根本不适合 RAM！实时表的 RAM 是有限的，可以进行配置。当索引到达某一数据量时，服务器通过合并小事务来管理表的 RAM 部分，保持其数量和整体大小较小。然而，这个过程有时会在插入期间导致延迟。当合并不再有效，且新的插入达到 [RAM 限制](../Creating_a_table/Local_tables/Plain_and_real-time_table_settings.md#rt_mem_limit) 时，服务器会将基于 RAM 的表转换为存储在磁盘上的普通表（称为磁盘块）。这个表会添加到实时表的第二部分的表集合中，并可以在线访问。然后，RAM 被刷新，空间被释放。
 
-When the data from RAM is securely saved to disk, which occurs:
+当来自 RAM 的数据安全保存到磁盘时，会发生以下情况：
 
-* when the server saves the collected data as a disk table
-* or when it dumps the RAM part during a clean shutdown or by [manual flushing](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_disk.md#FLUSH-TABLE)
+- 服务器将收集到的数据保存为磁盘表
+- 或者在干净关机期间或通过 [手动刷新](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_disk.md#FLUSH-TABLE) 转储 RAM 部分
 
-the binlog for that table is no longer necessary. So, it gets discarded. If all the tables are saved, the binlog will be deleted.
+该表的 binlog 将不再需要。因此，它被丢弃。如果所有表都被保存，binlog 将被删除。
 
-**Third, what about disk collection?**  If having many disk parts makes searching slower, what's the difference if I make them manually in the distributed table manner, or they're produced as disk parts (or, 'chunks') by an RT table? Well, in both cases, you can merge several tables into one. For example, you can merge hourly tables from yesterday and keep one 'daily' table for yesterday instead. With manual maintenance, you have to think about the schema and commands yourself. With an RT table, the server provides the [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE) command, which does the same, but keeps you away from unnecessary internal details.
+**第三，磁盘集合呢？** 如果有很多磁盘部分会使搜索变慢，那么如果我以分布式表的方式手动创建它们或作为 RT 表产生的磁盘部分（或“块”）有什么区别？在这两种情况下，您都可以将多个表合并为一个。例如，您可以合并昨天的每小时表，并保留一个“每日”表。通过手动维护，您必须自己考虑模式和命令。在 RT 表中，服务器提供了 [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE) 命令，它执行相同的操作，但让您远离不必要的内部细节。
 
-**Fourth, if my "document" constitutes a 'mini-table' and I don't need it anymore, I can just throw it away. But if it is 'optimized', i.e. mixed together with tons of other documents, how can I undo or delete it?** Yes, indexed documents are 'mixed' together, and there is no easy way to delete one without rebuilding the whole table. And if for plain tables rebuilding or merging is just a normal way of maintenance, for a real-time table it keeps only the simplicity of manipulation, but not 'real-timeness'. To address the problem, Manticore uses a trick: when you delete a document, identified by document ID, the server just tracks the number. Together with other deleted documents, their IDs are saved in a so-called [kill-list](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#Table-kill-list). When you search over the table, the server first retrieves all matching documents, and then throws out the documents that are found in the kill-list (that is the most basic description; in fact, internally it's more complex). The point is - for the sake of 'immediate' deletion, documents are not actually deleted, but are just marked as 'deleted'. They still occupy space in different table structures, being essentially garbage. Word statistics, which affect ranking, also aren't affected, meaning it works exactly as it is declared: we search among all documents, and then just hide ones marked as deleted from the final result. When a document is [replaced](../Data_creation_and_modification/Updating_documents/REPLACE.md), it means that it is killed in the old parts of the table and is inserted again in the freshest part. All consequences of 'hiding by killlist' are also in play in this case.
+**第四，如果我的“文档”构成一个“迷你表”，而我不再需要它，我可以直接丢弃它。但是如果它被“优化”，即与其他大量文档混合在一起，我该如何撤销或删除它呢？** 是的，已索引的文档是“混合”在一起的，没有简单的方法可以在不重建整个表的情况下删除一个。如果对于普通表来说，重建或合并只是正常的维护方式，对于实时表，它保持了操作的简单性，但没有“实时性”。为了解决这个问题，Manticore 使用了一个技巧：当您删除一个由文档 ID 标识的文档时，服务器仅跟踪该编号。与其他已删除文档一起，它们的 ID 被保存在一个所谓的 [kill-list](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Killlist_in_plain_tables.md#Table-kill-list) 中。当您在表中搜索时，服务器首先检索所有匹配的文档，然后将找到的文档从 kill-list 中剔除（这只是最基本的描述；实际上，内部会更复杂）。关键是——为了“立即”删除，文档实际上并没有被删除，而只是标记为“已删除”。它们仍然占据不同表结构中的空间，本质上是垃圾。单词统计，影响排名，也不会受到影响，这意味着它的工作方式与声明的完全一致：我们在所有文档中搜索，然后仅从最终结果中隐藏标记为已删除的文档。当文档被 [替换](../Data_creation_and_modification/Updating_documents/REPLACE.md) 时，这意味着它在表的旧部分被“杀死”，并在最新部分重新插入。所有“通过 killlist 隐藏”的后果在这种情况下也适用。
 
-When a rebuild of some part of a table happens, e.g., when some transactions (segments) of a RAM chunk are merged, or when a RAM chunk is converted into a disk chunk, or when two disk chunks are merged together, the server performs a comprehensive iteration over the affected parts and physically excludes deleted documents from all of them. That is, if they were in document lists of some words - they are wiped away. If it was a unique word - it gets removed completely.
+当表的某个部分重建时，例如，当 RAM 块的某些事务（段）合并，或当 RAM 块转换为磁盘块，或当两个磁盘块合并在一起时，服务器会对受影响的部分进行全面迭代，并从所有部分中物理排除已删除的文档。也就是说，如果它们在某些单词的文档列表中——它们会被清除。如果这是一个唯一的单词——它会被完全移除。
 
-As a summary: the deletion works in two phases:
-1. First, we mark documents as 'deleted' in real-time and suppress them in search results.
-2. During some operation with an RT table chunk, we finally physically wipe the deleted documents for good.
+总结一下：删除分为两个阶段：
 
-**Fifth, if an RT table contains plain disk tables in its collection, can I just add my ready old disk table to it?** No. It's not possible to avoid unneeded complexity and prevent accidental corruption. However, if your RT table has just been created and contains no data, then you can [ATTACH TABLE](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md) your disk table to it. Your old table will be moved inside the RT table and will become its part.
+1. 首先，我们在实时表中将文档标记为“已删除”，并在搜索结果中抑制它们。
+2. 在与 RT 表块的某些操作中，我们最终会彻底物理清除已删除的文档。
 
-As a summary about the RT table structure: it is a cleverly organized collection of plain disk tables with a fast in-memory table, intended for real-time insertions and semi-real-time deletions of documents. The RT table has a common schema, common settings, and can be easily maintained without deep digging into details. 
+**第五，如果 RT 表包含其集合中的普通磁盘表，我能否直接将我的旧磁盘表添加到其中？** 不可以。为了避免不必要的复杂性和防止意外损坏，这是不可能的。然而，如果您的 RT 表刚创建并且不包含数据，那么您可以 [ATTACH TABLE](../Data_creation_and_modification/Adding_data_from_external_storages/Adding_data_to_tables/Attaching_one_table_to_another.md) 将您的磁盘表附加到其中。您的旧表将被移动到 RT 表内，成为其一部分。
+
+关于 RT 表结构的总结：它是一个巧妙组织的普通磁盘表的集合，具有快速的内存表，旨在进行实时插入和半实时删除文档。RT 表具有共同的模式、共同的设置，并且可以在不深入细节的情况下轻松维护。
+
 <!-- proofread -->

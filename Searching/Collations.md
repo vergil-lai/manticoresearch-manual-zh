@@ -1,23 +1,23 @@
-# Collations
+# 排序规则
 
-Collations primarily impact string attribute comparisons. They define both the character set encoding and the strategy Manticore employs for comparing strings when performing `ORDER BY` or `GROUP BY` with a string attribute involved.
+排序规则主要影响字符串属性的比较。它们定义了字符集编码以及Manticore在涉及字符串属性时执行 `ORDER BY` 或 `GROUP BY` 时用于比较字符串的策略。
 
-String attributes are stored as-is during indexing, and no character set or language information is attached to them. This is fine as long as Manticore only needs to store and return the strings to the calling application verbatim. However, when you ask Manticore to sort by a string value, the request immediately becomes ambiguous.
+在索引期间，字符串属性按原样存储，并没有附加任何字符集或语言信息。当Manticore只需要按字面值存储和返回字符串给调用应用程序时，这是可以的。然而，当你要求Manticore按字符串值排序时，这个请求就变得不明确了。
 
-First, single-byte (ASCII, ISO-8859-1, or Windows-1251) strings need to be processed differently than UTF-8 strings, which may encode each character with a variable number of bytes. Thus, we need to know the character set type to properly interpret the raw bytes as meaningful characters.
+首先，单字节字符串（如ASCII、ISO-8859-1或Windows-1251）需要与UTF-8字符串（每个字符可能使用可变字节数编码）进行不同的处理。因此，我们需要知道字符集类型，以便将原始字节正确地解释为有意义的字符。
 
-Second, we also need to know the language-specific string sorting rules. For example, when sorting according to US rules in the en_US locale, the accented character `ï` (small letter `i` with diaeresis) should be placed somewhere after `z`. However, when sorting with French rules and the fr_FR locale in mind, it should be placed between `i` and `j`. Some other set of rules might choose to ignore accents altogether, allowing `ï` and `i` to be mixed arbitrarily.
+其次，我们还需要知道特定语言的字符串排序规则。例如，按美式英语（en_US本地化规则）排序时，带有分音符的`ï`（小写字母`i`）应该被放在`z`之后。然而，在使用法式法语（fr_FR本地化规则）排序时，它应该位于`i`和`j`之间。还有一些规则可能会完全忽略重音符号，将`ï`和`i`任意混合。
 
-Third, in some cases, we may require case-sensitive sorting, while in others, case-insensitive sorting is needed.
+第三，在某些情况下，我们可能需要区分大小写排序，而在其他情况下则需要不区分大小写的排序。
 
-Collations encapsulate all of the following: the character set, the language rules, and the case sensitivity. Manticore currently provides four collations:
+排序规则封装了以下所有内容：字符集、语言规则和区分大小写的规则。Manticore目前提供了四种排序规则：
 
 1. `libc_ci`
 2. `libc_cs`
 3. `utf8_general_ci`
 4. `binary`
 
-The first two collations rely on several standard C library (libc) calls and can thus support any locale installed on your system. They provide case-insensitive (`_ci`) and case-sensitive (`_cs`) comparisons, respectively. By default, they use the C locale, effectively resorting to bytewise comparisons. To change that, you need to specify a different available locale using the [collation_libc_locale](../Server_settings/Searchd.md#collation_libc_locale) directive. The list of locales available on your system can usually be obtained with the `locale` command:
+前两种排序规则依赖于多个标准C库（libc）调用，因此可以支持系统上安装的任何语言环境。它们分别提供不区分大小写(`_ci`)和区分大小写(`_cs`)的比较。默认情况下，它们使用C语言环境，实际上就是字节比较。要更改此设置，你需要使用 [collation_libc_locale](../Server_settings/Searchd.md#collation_libc_locale) 指令指定一个不同的可用语言环境。系统上可用的语言环境通常可以通过`locale`命令获取：
 
 ```bash
 $ locale -a
@@ -45,12 +45,12 @@ ru_RU.utf8
 ru_UA.utf8
 ```
 
-The specific list of system locales may vary. Consult your OS documentation to install additional needed locales.
+具体的系统语言环境列表可能有所不同。请查阅操作系统文档以安装所需的额外语言环境。
 
-`utf8_general_ci` and `binary` locales are built-in into Manticore. The first one is a generic collation for UTF-8 data (without any so-called language tailoring); it should behave similarly to the `utf8_general_ci` collation in MySQL. The second one is a simple bytewise comparison.
+`utf8_general_ci` 和 `binary` 是内置于Manticore中的排序规则。前者是针对UTF-8数据的通用排序规则（不含所谓的语言定制），其行为应类似于MySQL中的`utf8_general_ci`排序规则。后者则是简单的字节比较。
 
-Collation can be overridden via SQL on a per-session basis using the `SET collation_connection` statement. All subsequent SQL queries will use this collation. Otherwise, all queries will use the server default collation or as specified in the [collation_server](../Server_settings/Searchd.md#collation_server) configuration directive. Manticore currently defaults to the `libc_ci` collation.
+可以通过SQL中的 `SET collation_connection` 语句按会话覆盖排序规则。所有后续的SQL查询将使用此排序规则。否则，所有查询将使用服务器默认的排序规则，或者根据 [collation_server](../Server_settings/Searchd.md#collation_server) 配置指令指定的排序规则。Manticore目前默认使用`libc_ci`排序规则。
 
-Collations affect all string attribute comparisons, including those within `ORDER BY` and `GROUP BY`, so differently ordered or grouped results can be returned depending on the collation chosen. Note that collations don't affect full-text searching; for that, use the [charset_table](../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table).
+排序规则影响所有字符串属性的比较，包括 `ORDER BY` 和 `GROUP BY` 中的比较，因此选择不同的排序规则可能返回不同顺序或分组的结果。需要注意的是，排序规则不会影响全文搜索；对于全文搜索，请使用 [charset_table](../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#charset_table)。
 
 <!-- proofread -->
