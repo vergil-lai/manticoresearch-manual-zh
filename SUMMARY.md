@@ -2,9 +2,7 @@
 
 
 
-## Manticore Search
-
-* [首页](README.md) 
+* [Manticore Search](README.md) 
 * [☝ 介绍](Introduction.md)
 * [❗ 首先阅读](Read_this_first.md)
 * [1️⃣ 安装](Installation/Installation.md)
