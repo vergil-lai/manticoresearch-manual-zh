@@ -1,8 +1,8 @@
 # Summary
 
-## Manticore Search
 
 
+## [Manticore Search](README.md) 
 
 * [☝ 介绍](Introduction.md)
 * [❗ 首先阅读](Read_this_first.md)
