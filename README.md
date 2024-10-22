@@ -2,7 +2,10 @@
 
 ## 官方介绍
 
-### [Manticore Search](https://manticoresearch.com/) —— 易于使用的开源快速搜索数据库
+- [官网](https://manticoresearch.com/)
+- [Github](https://github.com/manticoresoftware/manticoresearch)
+
+### Manticore Search —— 易于使用的开源快速搜索数据库
 
 ### 性能
 
