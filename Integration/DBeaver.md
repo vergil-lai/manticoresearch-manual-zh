@@ -1,40 +1,42 @@
-# Integration with DBeaver
+# 与 DBeaver 集成
 
-> NOTE: The integration with DBeaver requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：与 DBeaver 的集成需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保已安装 Buddy。
 
-[DBeaver](https://dbeaver.io/) is a SQL client software application and a database administration tool. For MySQL databases, it applies the JDBC application programming interface to interact with them via a JDBC driver.
+[DBeaver](https://dbeaver.io/) 是一个 SQL 客户端软件应用程序和数据库管理工具。对于 MySQL 数据库，它使用 JDBC 应用程序编程接口通过 JDBC 驱动程序与其交互。
 
-Manticore allows you to use DBeaver for working with data stored in Manticore tables the same way as if it was stored in a MySQL database.
+Manticore 允许您使用 DBeaver 来处理存储在 Manticore 表中的数据，就像它存储在 MySQL 数据库中一样。
 
-## Settings to use
+## 使用的设置
 
-To start working with Manticore in DBeaver, follow these steps:
+要在 DBeaver 中开始使用 Manticore，请按照以下步骤操作：
 
-- Choose the `New database connection` option in DBeaver's UI
-- Choose `SQL` -> `MySQL` as DBeaver's database driver
-- Set the `Server host` and `Port` options corresponding to the host and port of your Manticore instance (keep the `database` field empty)
-- Set `root/<empty password>` as authentication credentials
-
-
-## Functions available
-
-Since Manticore does not fully support MySQL, only a part of DBeaver's functionality is available when working with Manticore.
-
-You will be able to:
-- View, create, delete, and rename tables
-- Add and drop table columns
-- Insert, delete, and update column data
-
-You will not be able to:
-- Use database integrity check mechanisms (`MyISAM` will be set as the only storage engine available)
-- Use MySQL procedures, triggers, events, etc.
-- Manage database users
-- Set other database administration options
+- 在 DBeaver 的用户界面中选择 `新建数据库连接`
+- 选择 `SQL` -> `MySQL` 作为 DBeaver 的数据库驱动程序
+- 设置 `服务器主机` 和 `端口` 选项，对应于您的 Manticore 实例的主机和端口（保持 `数据库` 字段为空）
+- 设置 `root/<空密码>` 作为身份验证凭据
 
 
-## Data type handling
+## 可用的功能
 
-Some MySQL data types are not currently supported by Manticore and, therefore, cannot be used when creating a new table with DBeaver. Also, a few of the supported data types are converted to the most similar Manticore types with type precision being ignored in such conversion. Below is the list of supported MySQL data types as well as the Manticore types they are mapped to:
+由于 Manticore 并不完全支持 MySQL，因此在使用 Manticore 时，只有部分 DBeaver 的功能可用。
+
+您将能够：
+
+- 查看、创建、删除和重命名表
+- 添加和删除表列
+- 插入、删除和更新列数据
+
+您将无法：
+
+- 使用数据库完整性检查机制（`MyISAM` 将被设置为唯一可用的存储引擎）
+- 使用 MySQL 的过程、触发器、事件等
+- 管理数据库用户
+- 设置其他数据库管理选项
+
+
+## 数据类型处理
+
+Manticore 目前不支持某些 MySQL 数据类型，因此在使用 DBeaver 创建新表时无法使用这些类型。此外，部分支持的数据类型将转换为与 Manticore 类型最相似的类型，在此类转换中将忽略类型精度。以下是支持的 MySQL 数据类型及其映射到的 Manticore 类型列表：
 
 - `BIGINT UNSIGNED` => `bigint`
 - `BOOL` => `boolean`
@@ -46,24 +48,22 @@ Some MySQL data types are not currently supported by Manticore and, therefore, c
 - `TEXT`, `LONGTEXT`, `MEDIUMTEXT`, `TINYTEXT`, `BLOB`, `LONGBLOB`, `MEDIUMBLOB`, `TINYBLOB`  => `text`
 - `VARCHAR`, `LONG VARCHAR`, `BINARY`, `CHAR`, `VARBINARY`, `LONG VARBINARY`  => `string`
 
-You can find more details about Manticore data types [here](Creating_a_table/Data_types.md#Data-types).
+您可以在[此处](Creating_a_table/Data_types.md#Data-types)找到有关 Manticore 数据类型的更多详细信息。
 
-### About date types
+### 关于日期类型
 
-Manticore is able to handle the `DATE`, `DATETIME` and `TIMESTAMP` data types, however, this reqiures Manticore's [Buddy](Starting_the_server/Docker.md#Manticore-Columnar-Library-and-Manticore-Buddy) enabled. Otherwise, an attempt to operate with one of these types will result in an error.
+Manticore 能够处理 `DATE`、`DATETIME` 和 `TIMESTAMP` 数据类型，但这需要启用 Manticore 的 [Buddy](Starting_the_server/Docker.md#Manticore-Columnar-Library-and-Manticore-Buddy)。否则，尝试操作这些类型中的任意一个将导致错误。
 
-Note that the `TIME` type is not supported.
+注意，不支持 `TIME` 类型。
 
-## Possible caveats
+## 可能的注意事项
 
-- DBeaver's `Preferences` -> `Connections` -> `Client identification` option must not be turned off or overridden.
-  To work correctly with DBeaver, Manticore needs to distinguish its requests from others. For this, it uses client notification info sent by DBeaver in request headers. Disabling client notification will break that detection and, therefore, Manticore's correct functionality.
+DBeaver 的 `首选项` -> `连接` -> `客户端识别` 选项不能关闭或覆盖。 为了与 DBeaver 正常工作，Manticore 需要区分其请求与其他请求。为此，它使用 DBeaver 在请求标头中发送的客户端通知信息。禁用客户端通知将破坏该检测，从而影响 Manticore 的正常功能。
 
-- When trying to update data in your table for the first time, you'll see the `No unique key` popup message and will be asked to define a custom unique key.
-  When you get this message, perform the following steps:
+第一次尝试更新表中的数据时，您将看到 `无唯一键` 弹出消息，并要求您定义自定义唯一键。 当收到此消息时，请执行以下步骤：
 
-  - Choose the `Custom Unique Key` option
-  - Choose only the `id` column in the columns list
-  - Press `Ok`
+- 选择 `自定义唯一键` 选项
+- 在列列表中仅选择 `id` 列
+- 点击 `确定`
 
-  After that, you'll be able to update your data safely.
+之后，您将能够安全地更新您的数据。

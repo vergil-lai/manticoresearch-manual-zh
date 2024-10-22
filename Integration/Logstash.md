@@ -1,12 +1,12 @@
-# Integration with Logstash
+# 与 Logstash 集成
 
-> NOTE: The integration with Logstash requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：与 Logstash 的集成需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果不起作用，请确保 Buddy 已安装。
 
-[Logstash](https://www.elastic.co/logstash) is a log management tool that collects data from a variety of sources, transforms it on the fly, and sends it to your desired destination. It is often used as a data pipeline for Elasticsearch, an open-source analytics and search engine.
+[Logstash](https://www.elastic.co/logstash) 是一个日志管理工具，可从各种来源收集数据，实时转换并将其发送到所需的目标。它通常用作 Elasticsearch 的数据管道，Elasticsearch 是一个开源的分析和搜索引擎。
 
-Now, Manticore supports the use of Logstash as a processing pipeline. This allows the collected and transformed data to be sent to Manticore just like to Elasticsearch. Currently, the versions 7.6-7.15  are supported.  
+现在，Manticore 支持使用 Logstash 作为处理管道。这允许收集和转换后的数据像发送到 Elasticsearch 一样被发送到 Manticore。目前，支持的版本为 7.6-7.15。
 
-Let’s examine a simple example of a Logstash config file used for indexing `dpkg.log`, a standard log file of the Debian package manager. The log itself has a simple structure, as shown below:
+我们来看一个用于索引 `dpkg.log` 的简单 Logstash 配置文件示例，这是 Debian 包管理器的标准日志文件。日志本身的结构很简单，如下所示：
 
 ```
 2023-05-31 10:42:55 status triggers-awaited ca-certificates-java:all 20190405ubuntu1.1
@@ -16,9 +16,9 @@ Let’s examine a simple example of a Logstash config file used for indexing `dp
 2023-05-31 10:42:55 trigproc systemd:amd64 245.4-4ubuntu3.21 <none>
 ```
 
-## Logstash configuration
+## Logstash 配置
 
-Here is an example Logstash configuration:
+以下是一个 Logstash 配置示例：
 
 ```
 input {
@@ -43,13 +43,13 @@ output {
 }
 ```
 
-Note that, before proceeding further, one crucial caveat needs to be addressed: Manticore does not support Log Template Management and the Index Lifecycle Management features of Elasticsearch. As these features are enabled by default in Logstash, they need to be explicitly disabled in the config. Additionally, the hosts option in the output config section must correspond to Manticore’s HTTP listen port (default is localhost:9308).
+请注意，在继续之前，需要解决一个关键问题：Manticore 不支持 Elasticsearch 的日志模板管理和索引生命周期管理功能。由于这些功能在 Logstash 中默认启用，因此需要在配置中显式禁用。此外，输出配置部分中的 `hosts` 选项必须对应于 Manticore 的 HTTP 监听端口（默认是 localhost:9308）。
 
-## Logstash results
+## Logstash 结果
 
-After adjusting the config as described, you can run Logstash, and the data from the dpkg log will be passed to Manticore and properly indexed.
+在按上述配置调整后，您可以运行 Logstash，dpkg 日志中的数据将被传递到 Manticore 并正确索引。
 
-Here is the resulting schema of the created table and an example of the inserted document:
+以下是创建表的结果模式以及插入文档的示例：
 
 ```
 mysql> DESCRIBE dpkg_log;

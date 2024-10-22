@@ -1,66 +1,66 @@
-# Integration with Apache Superset
+# 与 Apache Superset 集成
 
-> NOTE: The integration with Apache Superset requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：与 Apache Superset 的集成需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它不起作用，请确保已安装 Buddy。
 
-[Apache Superset](https://superset.apache.org/) is a modern data exploration and visualization platform. Manticore Search can be integrated with Apache Superset, allowing users to harness the full potential of Manticore Search for data analysis and visualization.
+[Apache Superset](https://superset.apache.org/) 是一个现代化的数据探索和可视化平台。Manticore Search 可以与 Apache Superset 集成，允许用户充分利用 Manticore Search 进行数据分析和可视化。
 
-**Note: This integration works only with Apache Superset 3.x branch and is not yet available for version 4 or newer.**
+**注意：此集成仅适用于 Apache Superset 3.x 版本分支，尚不支持 4 版或更新版本。**
 
-## Prerequisites
+## 前提条件
 
-Before integrating Manticore Search with Apache Superset, ensure that:
+在将 Manticore Search 与 Apache Superset 集成之前，请确保：
 
-1. Manticore Search (version 6.2.0 or later) is properly installed and configured on your server. Refer to the [official Manticore Search installation guide](https://manual.manticoresearch.com/Installation/Installation) for assistance.
-2. Apache Superset is set up on your system. Follow the [official Apache Superset installation guide](https://superset.apache.org/docs/quickstart) for installation instructions.
+1. Manticore Search（版本 6.2.0 或更高）已在您的服务器上正确安装和配置。请参阅 [Manticore Search 官方安装指南](https://manual.manticoresearch.com/Installation/Installation) 以获取帮助。
+2. Apache Superset 已在您的系统上设置完毕。请按照 [Apache Superset 官方安装指南](https://superset.apache.org/docs/quickstart) 进行安装。
 
-## Connecting Manticore Search to Apache Superset
+## 将 Manticore Search 连接到 Apache Superset
 
-To connect Manticore Search to Apache Superset:
+将 Manticore Search 连接到 Apache Superset 的步骤如下：
 
-1. Log in to your Apache Superset dashboard.
-2. Click on "+" in the top navigation bar and choose "Database Connections".
-3. Click "+ DATABASE" to add a new database.
-4. Select "MySQL" as the database type.
-5. In the configuration page, provide the following details:
-   - Database Name: A name for the database (e.g., "Manticore")
-   - Host: Your Manticore Search server host
-   - Port: The port on which Manticore Search is running
-   - Username: Your Manticore Search username
-   - Display Name: A display name for the connection
-6. Click "Connect" to verify the connection and save.
+1. 登录到您的 Apache Superset 仪表板。
+2. 点击顶部导航栏中的 "+" 并选择 "数据库连接"。
+3. 点击 "+ DATABASE" 以添加新数据库。
+4. 选择 "MySQL" 作为数据库类型。
+5. 在配置页面中提供以下详细信息：
+   - 数据库名称：为数据库命名（例如 "Manticore"）
+   - 主机：您的 Manticore Search 服务器主机
+   - 端口：Manticore Search 所运行的端口
+   - 用户名：您的 Manticore Search 用户名
+   - 显示名称：连接的显示名称
+6. 点击 "连接" 以验证连接并保存。
 
-## Creating Charts and Dashboards
+## 创建图表和仪表板
 
-After connecting Manticore Search to Apache Superset, you can create charts and dashboards using your Manticore data:
+将 Manticore Search 连接到 Apache Superset 后，您可以使用 Manticore 数据创建图表和仪表板：
 
-1. In the Apache Superset dashboard, click on "Dashboards" in the top navigation bar and select "New dashboard".
-2. Open the dashboard and click on the "+" icon to add a new chart.
-3. Choose the dataset connected to Manticore Search.
-4. Select the type of chart you want to create (e.g., bar chart, line chart, pie chart).
-5. Use Apache Superset's query builder or write an SQL query to fetch data from your Manticore Search database.
-6. Customize the chart's appearance, labels, and other settings as needed.
-7. Click "UPDATE CHART" to update the chart.
-8. Add a name for the chart and click "Save" to permanently save it in the Dashboard.
+1. 在 Apache Superset 仪表板中，点击顶部导航栏中的 "仪表板" 并选择 "新建仪表板"。
+2. 打开仪表板，点击 "+" 图标以添加新图表。
+3. 选择与 Manticore Search 连接的数据集。
+4. 选择您想创建的图表类型（例如条形图、折线图、饼图）。
+5. 使用 Apache Superset 的查询构建器或编写 SQL 查询以从 Manticore Search 数据库中获取数据。
+6. 根据需要自定义图表的外观、标签和其他设置。
+7. 点击 "更新图表" 以更新图表。
+8. 为图表添加名称并点击 "保存" 以永久保存到仪表板中。
 
-## Supported Functionality
+## 支持的功能
 
-When working with Manticore Search through Apache Superset, you can:
+通过 Apache Superset 使用 Manticore Search 时，您可以：
 
-- View and query data from Manticore Search tables
-- Create various types of visualizations based on your Manticore data
-- Build and customize dashboards using these visualizations
+- 查看和查询 Manticore Search 表中的数据
+- 基于 Manticore 数据创建各种类型的可视化
+- 使用这些可视化构建和自定义仪表板
 
-## Data Type Handling
+## 数据类型处理
 
-Manticore Search data types are mapped to MySQL data types when working with Apache Superset. Refer to the Manticore Search documentation for more details on supported data types and their mappings.
+在使用 Apache Superset 时，Manticore Search 数据类型会映射为 MySQL 数据类型。有关支持的数据类型及其映射的更多详细信息，请参阅 Manticore Search 文档。
 
-## Limitations
+## 限制
 
-- Some advanced MySQL features may not be available when working with Manticore Search through Apache Superset.
-- Certain data manipulation operations might be limited compared to working directly with MySQL databases.
+- 在通过 Apache Superset 使用 Manticore Search 时，某些高级的 MySQL 功能可能不可用。
+- 与直接使用 MySQL 数据库相比，某些数据操作操作可能受到限制。
 
-By following these steps and guidelines, you can effectively integrate Manticore Search with Apache Superset for powerful data exploration and visualization capabilities.
+通过遵循这些步骤和指南，您可以有效地将 Manticore Search 与 Apache Superset 集成，实现强大的数据探索和可视化功能。
 
-## References
-Please refer to the following resources for more information on Apache Superset and Manticore Search:
-- [Apache Superset Integration](https://manticoresearch.com/blog/manticoresearch-apache-superset-integration/)
+## 参考资料
+有关 Apache Superset 和 Manticore Search 的更多信息，请参考以下资源：
+- [Apache Superset 集成](https://manticoresearch.com/blog/manticoresearch-apache-superset-integration/)

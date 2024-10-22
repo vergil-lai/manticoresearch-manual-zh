@@ -1,14 +1,14 @@
-# Integration with Filebeat
+# 与 Filebeat 集成
 
-> NOTE: The integration with Filebeat requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：与 Filebeat 的集成需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果不起作用，请确保 Buddy 已安装。
 
-[Filebeat](https://www.elastic.co/beats/filebeat) is a lightweight shipper for forwarding and centralizing log data. Once installed as an agent, it monitors the log files or locations you specify, collects log events, and forwards them for indexing, usually to Elasticsearch or Logstash.
+[Filebeat](https://www.elastic.co/beats/filebeat) 是一个轻量级的日志数据传输和集中化工具。一旦作为代理安装后，它会监控您指定的日志文件或位置，收集日志事件并将其转发以进行索引，通常发送到 Elasticsearch 或 Logstash。
 
-Now, Manticore also supports the use of Filebeat as processing pipelines. This allows the collected and transformed data to be sent to Manticore just like to Elasticsearch. Currently, all the versions >= 7.10  are supported.
+现在，Manticore 也支持使用 Filebeat 作为处理管道。这允许收集和转换后的数据像发送到 Elasticsearch 一样被发送到 Manticore。目前，支持的所有版本为 7.10 及以上。
 
-## Filebeat configuration
+## Filebeat 配置
 
-Below is a Filebeat config to work with our example dpkg log:
+以下是与我们示例的 dpkg 日志配合使用的 Filebeat 配置：
 
 ```
 filebeat.inputs:
@@ -30,9 +30,9 @@ setup.template:
   pattern: "dpkg_log"
 ```
 
-### Configuration for Filebeat versions >= 8.11
+### Filebeat 版本 >= 8.11 的配置
 
-Note that Filebeat versions higher than 8.10 have the output compression feature enabled by default. That is why the `compression_level: 0` option must be added to the configuration file to provide compatibility with Manticore:
+请注意，Filebeat 版本高于 8.10 的默认启用了输出压缩功能。因此，必须在配置文件中添加 `compression_level: 0` 选项，以确保与 Manticore 的兼容性：
 
 ```
 filebeat.inputs:
@@ -55,9 +55,9 @@ setup.template:
   pattern: "dpkg_log"
 ```
 
-## Filebeat results
+## Filebeat 结果
 
-Once you run Filebeat with this configuration, log data will be sent to Manticore and properly indexed. Here is the resulting schema of the table created by Manticore and an example of the inserted document:
+一旦您使用该配置运行 Filebeat，日志数据将被发送到 Manticore 并正确地被索引。以下是 Manticore 创建的表的最终模式以及插入文档的示例：
 
 ```
 mysql> DESCRIBE dpkg_log;
