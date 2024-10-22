@@ -5,19 +5,22 @@ SHOW META [ LIKE pattern ]
 ```
 
 <!-- example show meta -->
-`SHOW META` is an SQL statement that displays additional meta-information about the processed query, including the query time, keyword statistics, and information about the secondary indexes used. The syntax is:
 
-The included items are:
-* `total`: The number of matches actually retrieved and sent to the client.
-* `total_found`: The estimated total number of matches for the query in the index. If you need an accurate number of matches, prefer using `SELECT COUNT(*)`.
-* `total_relation`: If Manticore cannot calculate the exact `total` value, this field will display `total_relation: gte`, indicating that the actual count is **Greater Than or Equal** to `total_found`. If the `total` value is precise, `total_relation: eq` will be shown.
-* `time`: The duration (in seconds) it took to process the search query.
-* `keyword[N]`: The n-th keyword used in the search query. Note that the keyword can be presented as a wildcard, e.g., `abc*`.
-* `docs[N]`: The total number of documents (or records) containing the n-th keyword from the search query. If the keyword is presented as a wildcard, this value represents the sum of documents for all expanded sub-keywords, potentially exceeding the actual number of matched documents.
-* `hits[N]`: The total number of occurrences (or hits) of the n-th keyword across all documents.
-* `index`: Information about the utilized index (e.g., secondary index).
+`SHOW META` 是一个 SQL 语句，用于显示有关已处理查询的附加元信息，包括查询时间、关键词统计和使用的二级索引信息。其语法如下：
+
+返回的项包括：
+
+- `total`：实际检索到并发送给客户端的匹配结果数量。
+- `total_found`：索引中查询的估计总匹配数。如果需要精确的匹配数量，建议使用 `SELECT COUNT(*)`。
+- `total_relation`：如果 Manticore 无法精确计算 `total` 值，该字段将显示 `total_relation: gte`，表示实际数量 **大于或等于** `total_found`。如果 `total` 值是精确的，则显示 `total_relation: eq`。
+- `time`：处理搜索查询所用的时间（以秒为单位）。
+- `keyword[N]`：搜索查询中使用的第 N 个关键词。请注意，关键词可以是通配符形式，例如 `abc*`。
+- `docs[N]`：包含搜索查询中第 N 个关键词的文档（或记录）的总数。如果关键词是通配符形式，此值表示所有扩展子关键词的文档总数，可能超过实际匹配文档数。
+- `hits[N]`：第 N 个关键词在所有文档中的总出现次数（或命中次数）。
+- `index`：有关所使用的索引的信息（例如二级索引）。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -64,9 +67,10 @@ show meta;
 <!-- end -->
 
 <!-- example show meta iostats cpustats -->
-`SHOW META` can display I/O and CPU counters, but they will only be available if searchd was started with the `--iostats` and `--cpustats` switches, respectively.
+`SHOW META` 可以显示 I/O 和 CPU 计数器，但这些计数器仅在 `searchd` 使用 `--iostats` 和 `--cpustats` 参数启动时才可用。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -182,7 +186,7 @@ mysql> show meta;
 
 <!-- example show meta single statement -->
 
-`SHOW META` must be executed immediately after the query in the **same** session. Since some MySQL connectors/libraries use connection pools, running `SHOW META` in a separate statement can lead to unexpected results, such as retrieving metadata from another query. In these cases (and generally recommended), run a multiple statement containing both the query and `SHOW META`. Some connectors/libraries support multi-queries within the same method for a single statement, while others may require the use of a dedicated method for multi-queries or setting specific options during connection setup.
+额外的值，如 `predicted_time`、`dist_predicted_time`、`local_fetched_docs`、`local_fetched_hits`、`local_fetched_skips` 及其相应的 `dist_fetched_*` 值，只有在 `searchd` 配置了[预测时间成本](../Server_settings/Searchd.md#predicted_time_costs) 并且查询在 `OPTION` 子句中包含 `predicted_time` 时才会显示。
 
 <!-- intro -->
 ##### SQL:
@@ -255,11 +259,11 @@ SHOW META LIKE 'total%';
 
 <!-- end -->
 
-## SHOW META and facets
+## SHOW META 与分面
 
 <!-- example show meta facets -->
 
-When utilizing [faceted search](../Searching/Faceted_search.md), you can examine the `multiplier` field in the `SHOW META` output to determine how many queries were executed in an optimized group.
+在使用[分面搜索](../Searching/Faceted_search.md)时，您可以通过查看 `SHOW META` 输出中的 `multiplier` 字段，确定在一个优化组中执行了多少查询。
 
 <!-- intro -->
 ##### SQL:
@@ -307,13 +311,13 @@ SHOW META LIKE 'multiplier';
 
 <!-- end -->
 
-## SHOW META and query optimizer
+## SHOW META 与查询优化器
 
 <!-- example of show meta vs query optimizer -->
 
-When the [cost-based query optimizer](../Searching/Cost_based_optimizer.md) chooses to use `DocidIndex`, `ColumnarScan`, or `SecondaryIndex` instead of a plain filter, this is reflected in the `SHOW META` command.
+当[基于成本的查询优化器](../Searching/Cost_based_optimizer.md) 选择使用 `DocidIndex`、`ColumnarScan` 或 `SecondaryIndex` 代替普通过滤器时，这会在 `SHOW META` 命令中反映出来。
 
-The `index` variable displays the names and types of secondary indexes used during query execution. The percentage indicates how many disk chunks (in the case of an RT table) or pseudo shards (in the case of a plain table) utilized the secondary index.
+`index` 变量显示了查询执行过程中使用的二级索引的名称和类型。百分比表示使用二级索引的磁盘块（对于 RT 表）或伪分片（对于普通表）的比例。
 
 <!-- intro -->
 ##### SQL:
@@ -341,19 +345,19 @@ SHOW META;
 
 <!-- end -->
 
-## SHOW META for PQ tables
+## SHOW META 针对 PQ 表
 
 <!-- example show meta PQ -->
 
-`SHOW META` can be used after executing a [CALL PQ](../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ) statement, in which case it provides different output.
+在执行 [CALL PQ](../Searching/Percolate_query.md#Performing-a-percolate-query-with-CALL-PQ) 语句后，可以使用 `SHOW META` 来获取不同的输出。
 
-`SHOW META` following a `CALL PQ` statement includes:
+`SHOW META` 在 `CALL PQ` 语句之后的输出包括：
 
-* `Total` - Total time spent on matching the document(s)
-* `Queries matched` - Number of stored queries that match the document(s)
-* `Document matches` - Number of documents that matched the queries stored in the table
-* `Total queries stored` - Total number of queries stored in the table
-* `Term only queries` - Number of queries in the table that have terms; the remaining queries use extended query syntax.
+- `Total` - 匹配文档所花费的总时间
+- `Queries matched` - 匹配文档的已存储查询数量
+- `Document matches` - 匹配表中存储查询的文档数量
+- `Total queries stored` - 表中存储的查询总数
+- `Term only queries` - 表中仅包含词项的查询数量；其余查询使用扩展查询语法。
 
 <!-- intro -->
 ##### SQL:
@@ -391,18 +395,18 @@ CALL PQ ('pq', ('{"title":"angry", "gid":3 }')); SHOW META;
 
 <!-- example call pq verbose meta  -->
 
-Using `CALL PQ` with a `verbose` option provides more detailed output.
+使用 `CALL PQ` 配合 `verbose` 选项可以提供更详细的输出信息。
 
-It includes the following additional entries:
+它包括以下附加条目：
 
-* `Setup` - Time spent on the initial setup of the matching process, such as parsing docs and setting options
-* `Queries failed` - Number of queries that failed
-* `Fast rejected queries` - Number of queries that were not fully evaluated but quickly matched and rejected using filters or other conditions
-* `Time per query` - Detailed time for each query
-* `Time of matched queries` - Total time spent on queries that matched any documents
-
+- **Setup** - 用于匹配过程初始设置的时间，例如解析文档和设置选项的时间。
+- **Queries failed** - 失败的查询数量。
+- **Fast rejected queries** - 未完全评估但通过筛选器或其他条件快速匹配并被拒绝的查询数量。
+- **Time per query** - 每个查询的详细时间。
+- **Time of matched queries** - 花费在匹配到文档的查询上的总时间。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 

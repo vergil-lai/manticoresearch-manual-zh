@@ -4,7 +4,7 @@
 DROP FUNCTION udf_name
 ```
 
-`DROP FUNCTION` statement uninstalls a user-defined function [UDF](../../../Extensions/UDFs_and_Plugins/UDF.md) with the specified name. Upon successful removal, the function will no longer be available for use in subsequent queries. However, ongoing concurrent queries will not be affected, and if necessary, the library unloading will be delayed until those queries are completed. Example:
+`DROP FUNCTION` 语句用于卸载具有指定名称的用户定义函数（UDF）。成功移除后，该函数将无法在后续查询中使用。然而，正在进行的并发查询不会受到影响，如果有必要，库文件的卸载将会延迟到这些查询完成为止。示例：
 
 ```sql
 mysql> DROP FUNCTION avgmva;

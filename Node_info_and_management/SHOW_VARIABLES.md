@@ -4,7 +4,7 @@
 SHOW [{GLOBAL | SESSION}] VARIABLES LIKE 'pattern'
 ```
 
-It returns the current values of a few server-wide variables. Also, support for `GLOBAL` and `SESSION` clauses was added.
+它返回一些服务器全局变量的当前值。同时，增加了对 `GLOBAL` 和 `SESSION` 子句的支持。
 
 ```sql
 mysql> SHOW GLOBAL VARIABLES;

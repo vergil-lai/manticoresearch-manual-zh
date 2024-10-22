@@ -1,19 +1,19 @@
-# Read-only mode
+# 只读模式
 
-Read-only mode for a connection disables any table or global modifications. Therefore, queries like `create`, `drop`, various types of `alter`, `attach`, `optimize`, and data modification queries such as `insert`, `replace`, `delete`, `update`, and others will all be rejected. Changing daemon-wide settings using `SET GLOBAL` is also not possible in this mode.
+只读模式下，连接将禁止对表或全局设置的任何修改。因此，诸如 `create`、`drop`、各种类型的 `alter`、`attach`、`optimize` 以及数据修改查询（例如 `insert`、`replace`、`delete`、`update` 等）都会被拒绝。在这种模式下，使用 `SET GLOBAL` 修改守护进程级别的设置也是不允许的。
 
-However, you can still perform all search operations, generate snippets, and run `CALL PQ` queries. Additionally, you can modify local (connection-wide) settings.
+然而，您仍然可以执行所有搜索操作、生成片段，并运行 `CALL PQ` 查询。此外，您可以修改本地（连接范围内）的设置。
 
-To check if your current connection is read-only or not, execute the `show variables like 'session_read_only'` statement. A value of `1` indicates read-only, while `0` means not read-only (usual).
+要检查当前连接是否为只读模式，可以执行 `show variables like 'session_read_only'` 语句。如果返回值为 `1`，则表示连接处于只读模式；如果为 `0`，则表示连接为常规（非只读）模式。
 
-## Activation
+## 激活
 
-Typically, you define a separate [listen](../Server_settings/Searchd.md#listen) directive in read-only mode by adding the suffix `_readonly` to it. However, you can also do this interactively for the current connection by executing the `SET ro=1` statement via SQL.
+通常，您可以通过在配置中为 [listen](../Server_settings/Searchd.md#listen) 指令添加后缀 `_readonly` 来定义只读模式。但是，您也可以通过 SQL 执行 `SET ro=1` 语句，交互式地为当前连接激活只读模式。
 
-## Deactivation
+## 取消激活
 
-If you're connected to a [VIP](../Server_settings/Searchd.md#listen) socket, you can execute `SET ro=0` (even if the socket you are connected to was defined as read-only in the config and not interactively). This will switch the connection to the usual (not read-only) mode with all modifications allowed.
+如果您连接到 [VIP](../Server_settings/Searchd.md#listen) 套接字，可以执行 `SET ro=0`（即使您连接的套接字在配置中被定义为只读），这将把连接切换到常规模式，允许所有修改操作。
 
-For standard (non-VIP) connections, escaping read-only mode is only possible by reconnecting if it was set interactively, or by updating the configuration file and restarting the daemon.
+对于标准（非 VIP）连接，如果只读模式是通过交互方式设置的，您可以通过重新连接退出只读模式；如果是通过配置文件设置的，则需要更新配置文件并重新启动守护进程来退出只读模式。
 
 <!-- proofread -->

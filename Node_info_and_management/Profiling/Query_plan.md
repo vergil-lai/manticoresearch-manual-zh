@@ -1,17 +1,19 @@
-# Query plan
+# 查询计划
 
 <!-- example SHOW PLAN -->
 
-The `SHOW PLAN` SQL statement and the `"plan": N` JSON interface option display the query execution plan. The plan is generated and stored during the actual execution, so in the case of SQL, profiling must be enabled in the current session **before** running that statement. This can be done with a `SET profiling=1` statement.
+SQL 中的 `SHOW PLAN` 语句和 `"plan": N` 的 JSON 接口选项用于显示查询执行计划。执行计划在实际执行过程中生成并存储，因此对于 SQL 来说，必须在运行该语句**之前**在当前会话中启用分析功能，可以通过 `SET profiling=1` 语句来完成。
 
-Two items are returned in SQL mode:
-* `transformed_tree`, which displays the full-text query decomposition.
-* `enabled_indexes`, which provides information about effective secondary indexes.
+在 SQL 模式下，返回两个项目：
 
-To view the query execution plan in a JSON query, add `"plan": N` to the query. The result will appear as a `plan` property in the result set. `N` can be one of the following:
-* 1 - Displays only the textual plan of the root node, similar to the one returned in the `SHOW PLAN` SQL query. This is the most compact form.
-* 2 - Displays only the JSON object plan, useful for processing.
-* 3 - Displays a JSON object with a textual description of every node. Note that the description for child nodes is also present and repeats part of the parent's description, which makes the whole representation quite large.
+- `transformed_tree`：显示全文检索查询的分解结构。
+- `enabled_indexes`：提供关于有效辅助索引的信息。
+
+要在 JSON 查询中查看查询执行计划，可以在查询中添加 `"plan": N`。结果将作为 `plan` 属性出现在结果集中。`N` 的取值可以是以下之一：
+
+- 1 - 仅显示根节点的文本计划，类似于 `SHOW PLAN` SQL 查询返回的内容。这是最紧凑的形式。
+- 2 - 仅显示 JSON 对象的计划，便于处理。
+- 3 - 显示带有每个节点文本描述的 JSON 对象。请注意，子节点的描述也会显示，且会重复部分父节点的描述，这使得整体表示相当庞大。
 
 
 <!-- intro -->
@@ -103,7 +105,7 @@ POST /search
 
 <!-- example SHOW PLAN EXPANSION -->
 
-In some cases, the evaluated query tree can be quite different from the original one due to expansions and other transformations.
+在某些情况下，由于扩展和其他转换，评估后的查询树可能与原始查询树有很大不同。
 
 <!-- intro -->
 ##### SQL:
@@ -147,7 +149,7 @@ Query OK, 0 rows affected (0.00 sec)
 ```
 
 <!-- intro -->
-##### JSON full format:
+##### JSON全格式：
 
 <!-- request JSON -->
 
@@ -305,7 +307,7 @@ POST /search
 
 <!-- intro -->
 
-##### JSON object format:
+##### JSON 对象格式：
 
 <!-- request JSON -->
 
@@ -452,7 +454,7 @@ POST /search
 
 <!-- intro -->
 
-##### JSON short format:
+##### JSON 短格式：
 
 <!-- request JSON -->
 
@@ -497,26 +499,26 @@ POST /search
 
 <!-- end -->
 
-See also [EXPLAIN QUERY](../../Searching/Full_text_matching/Profiling.md#Profiling-without-running-a-query). It displays the execution tree of a full-text query **without actually executing the query**. Note that when using `SHOW PLAN` after a query to a real-time table, the result will be based on a random disk/RAM chunk. Therefore, if you have recently modified the table's tokenization settings, or if the chunks vary significantly in terms of dictionaries, etc., you might not get the result you are expecting. Take this into account and consider using `EXPLAIN QUERY` as well.
+请参见 [EXPLAIN QUERY](../../Searching/Full_text_matching/Profiling.md#Profiling-without-running-a-query)。它显示全文检索查询的执行树 **而不实际执行查询**。需要注意的是，在对实时表进行查询后使用 `SHOW PLAN` 时，结果将基于随机的磁盘/RAM块。因此，如果您最近修改了表的分词设置，或各个块在词典等方面差异很大，您可能无法得到预期的结果。在这种情况下，建议同时使用 `EXPLAIN QUERY`。
 
-## JSON result set notes
+## JSON 结果集说明
 
-`query` property contains the transformed full-text query tree. Each node contains:
+`query` 属性包含经过转换的全文检索查询树。每个节点包含：
 
-* `type`: node type. Can be `AND`, `OR`, `PHRASE`, `KEYWORD`, etc.
-* `description`: query subtree for this node shown as a string (in `SHOW PLAN` format).
-* `children`: child nodes, if any.
-* `max_field_pos`: maximum position within a field.
-* `word`: transformed keyword. Keyword nodes only.
-* `querypos`: position of this keyword in a query. Keyword nodes only.
-* `excluded`: keyword excluded from query. Keyword nodes only.
-* `expanded`: keyword added by prefix expansion. Keyword nodes only.
-* `field_start`: keyword must occur at the very start of the field. Keyword nodes only.
-* `field_end`: keyword must occur at the very end of the field. Keyword nodes only.
-* `boost`: keyword IDF will be multiplied by this. Keyword nodes only.
+- `type`：节点类型。可能的值有 `AND`、`OR`、`PHRASE`、`KEYWORD` 等。
+- `description`：该节点的查询子树，显示为字符串（以 `SHOW PLAN` 格式）。
+- `children`：子节点（如有）。
+- `max_field_pos`：字段中的最大位置。
+- `word`：转换后的关键字。仅适用于关键字节点。
+- `querypos`：该关键字在查询中的位置。仅适用于关键字节点。
+- `excluded`：从查询中排除的关键字。仅适用于关键字节点。
+- `expanded`：由前缀扩展添加的关键字。仅适用于关键字节点。
+- `field_start`：关键字必须出现在字段的最开始处。仅适用于关键字节点。
+- `field_end`：关键字必须出现在字段的末尾。仅适用于关键字节点。
+- `boost`：关键字的IDF将乘以此值。仅适用于关键字节点。
 
-## Dot format for SHOW PLAN
-`SHOW PLAN format=dot` allows returning the full-text query execution tree in a hierarchical format suitable for visualization by existing tools, such as https://dreampuf.github.io/GraphvizOnline:
+## SHOW PLAN 的 Dot 格式
+`SHOW PLAN format=dot` 允许以层次格式返回全文检索查询执行树，适用于现有工具的可视化，例如 https://dreampuf.github.io/GraphvizOnline。
 
 ```sql
 MySQL [(none)]> show plan option format=dot\G

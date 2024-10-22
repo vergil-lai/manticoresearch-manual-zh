@@ -6,20 +6,20 @@ SHOW THREADS [ OPTION columns=width[,format=sphinxql][,format=all] ]
 
 <!-- example SHOW THREADS -->
 
-`SHOW THREADS` is an SQL statement that displays information about all threads and their current activities.
+`SHOW THREADS` 是一个 SQL 语句，用于显示所有线程及其当前活动的详细信息。
 
-The resulting table contains the following columns:
+返回的表格包含以下列：
 
-* `TID`: ID assigned to the thread by the kernel
-* `Name`: Thread name, also visible in `top`, `htop`, `ps`, and other process-viewing tools
-* `Proto`: Connection protocol; possible values include `sphinx`, `mysql`, `http`, `ssl`, `compressed`, `replication`, or a combination (e.g., `http,ssl` or `compressed,mysql`)
-* `State`: Thread state; possible values are `handshake`, `net_read`, `net_write`, `query`, `net_idle`
-* `Connection from`: Client's `ip:port`
-* `ConnID`: Connection ID (starting from 0)
-* `This/prev job time`: When the thread is busy - how long the current job has been running; when the thread is idling - previous job duration + suffix `prev`
-* `Jobs done`: Number of jobs completed by this thread
-* `Thread status`: `idling` or `working`
-* `Info`: Information about the query, which may include multiple queries if the query targets a distributed table or a real-time table
+- **TID**: 由内核分配给线程的 ID
+- **Name**: 线程名称，可在 `top`、`htop`、`ps` 和其他进程查看工具中看到
+- **Proto**: 连接协议，可能的值包括 `sphinx`, `mysql`, `http`, `ssl`, `compressed`, `replication`，或者它们的组合（例如，`http,ssl` 或 `compressed,mysql`）
+- **State**: 线程状态，可能的值包括 `handshake`, `net_read`, `net_write`, `query`, `net_idle`
+- **Connection from**: 客户端的 `ip:port`
+- **ConnID**: 连接 ID（从 0 开始）
+- **This/prev job time**: 当线程正在工作时，显示当前任务已运行的时间；当线程空闲时，显示上一个任务的持续时间，并附加后缀 `prev`
+- **Jobs done**: 此线程已完成的任务数量
+- **Thread status**: `idling`（空闲）或 `working`（工作中）
+- **Info**: 查询的详细信息，如果查询目标是分布式表或实时表，可能包含多个查询
 
 <!-- intro -->
 ##### SQL:
@@ -594,18 +594,18 @@ apiClient.UtilsAPI.Sql(context.Background()).Body("SHOW THREADS").Execute()
 
 <!-- end -->
 
-The `Info` column displays:
+`Info` 列显示的内容包括：
 
-* Raw text of queries executed via the Manticore SQL interface
-* Full text syntax, comments, and data size for queries run through the internal Manticore binary protocol (e.g., from a remote Manticore instance)
+- 通过 Manticore SQL 接口执行的查询的原始文本。
+- 使用内部 Manticore 二进制协议执行的查询（例如，从远程 Manticore 实例）时，显示查询的完整文本语法、注释及数据大小。
 
 <!-- example SHOW THREADS WIDTH -->
 
-You can limit the maximum width of the `Info` column by specifying the `columns=N` option.
+可以通过指定 `columns=N` 选项来限制 `Info` 列的最大宽度。
 
-By default, queries are displayed in their original format. However, when the `format=sphinxql` option is used, queries will be shown in SQL format, regardless of the protocol used for execution.
+默认情况下，查询将以原始格式显示。但如果使用了 `format=sphinxql` 选项，查询将以 SQL 格式显示，无论执行协议是什么。
 
-Using `format=all` will show all threads, while idling and system threads are hidden without this option (e.g., those busy with [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE)).
+使用 `format=all` 将显示所有线程，而不使用此选项时，空闲线程和系统线程将被隐藏（例如，那些忙于 [OPTIMIZE](../Securing_and_compacting_a_table/Compacting_a_table.md#OPTIMIZE-TABLE) 的线程）。
 
 <!-- intro -->
 ##### SQL:

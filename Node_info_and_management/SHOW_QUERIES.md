@@ -5,15 +5,15 @@
 SHOW QUERIES
 ```
 
-> NOTE: `SHOW QUERIES` requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意: `SHOW QUERIES` 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果它无法工作，请确保已安装 Buddy。
 
-`SHOW QUERIES` returns information about all currently running queries. The output is a table with the following structure:
+`SHOW QUERIES` 返回所有当前正在执行的查询信息。输出的表格结构如下：
 
-- `id`: Query ID that can be used in [KILL](../Node_info_and_management/KILL.md) to terminate the query
-- `query`: Query statement or a portion of it
-- `time`: Time taken on command execution or how long ago the query was performed (in this case, the value will include `ago`)
-- `protocol`: [Connection protocol](../Server_settings/Searchd.md#listen), with possible values being `sphinx`, `mysql`, `http`, `ssl`, `compressed`, `replication`, or a combination (e.g., `http,ssl` or `compressed,mysql`)
-- `host`: Client's `ip:port`
+- **id**: 查询的 ID，可用于 [KILL](../Node_info_and_management/KILL.md) 命令来终止查询。
+- **query**: 查询语句或其一部分。
+- **time**: 执行命令所用的时间或查询执行的时间（该值可能包含 `ago`，表示过去的时间）。
+- **protocol**: [连接协议](../Server_settings/Searchd.md#listen)，可能的值包括 `sphinx`, `mysql`, `http`, `ssl`, `compressed`, `replication`，或者它们的组合（例如，`http,ssl` 或 `compressed,mysql`）。
+- **host**: 客户端的 `ip:port`。
 
 
 <!-- request SQL -->
@@ -34,6 +34,6 @@ mysql> SHOW QUERIES;
 
 <!-- end -->
 
-Refer to [SHOW THREADS](../Node_info_and_management/SHOW_THREADS.md) if you'd like to gain insight from the perspective of the threads themselves.
+果你希望从线程的角度查看更多信息，可以参考 [SHOW THREADS](../Node_info_and_management/SHOW_THREADS.md) 命令。
 
 <!-- proofread -->

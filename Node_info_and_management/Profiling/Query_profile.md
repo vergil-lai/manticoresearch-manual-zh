@@ -1,42 +1,44 @@
-# Query profile
+# 查询分析
 
 <!-- example SHOW PROFILE -->
 
-The SQL `SHOW PROFILE` statement and the `"profile": true` JSON interface option both provide a detailed execution profile of the executed query. In the case of SQL, profiling must be enabled in the current session **before** running the statement to be instrumented. This can be accomplished with the `SET profiling=1` statement. By default, profiling is disabled to prevent potential performance implications, resulting in an empty profile if not enabled.
+* SQL `SHOW PROFILE` 语句和 `"profile": true` 的 JSON 接口选项都可以提供已执行查询的详细执行分析。在使用 SQL 时，必须在当前会话中**提前**启用分析功能，可以通过 `SET profiling=1` 语句来完成。默认情况下，分析功能是禁用的，以避免潜在的性能影响，如果未启用，将返回一个空的分析结果。
 
-Each profiling result includes the following fields:
-* `Status` column briefly describes the specific state where the time was spent. See below.
-* `Duration` column shows the wall clock time, in seconds.
-* `Switches` column displays the number of times the query engine changed to the given state. These are merely logical engine state switches and **not** any OS level context switches or function calls (although some sections might actually map to function calls), and they do **not** have any direct effect on performance. In a sense, the number of switches is just the number of times the respective instrumentation point was hit.
-* `Percent` column shows the percentage of time spent in this state.
+  每个分析结果包含以下字段：
 
-States in the profile are returned in a prerecorded order that roughly maps (but is **not** identical) to the actual query order.
+  - `Status` 列简要描述了时间花费的具体状态，详见下文。
+  - `Duration` 列显示了耗时，单位为秒。
+  - `Switches` 列显示查询引擎切换到给定状态的次数。这些仅仅是逻辑引擎状态的切换，而**不是**任何操作系统级别的上下文切换或函数调用（尽管某些部分可能确实映射到函数调用），并且它们对性能没有直接影响。从某种意义上说，切换次数只是命中相应分析点的次数。
+  - `Percent` 列显示在此状态下花费的时间百分比。
 
-The list of states may (and will) change over time as we refine the states. Here's a brief description of the currently profiled states.
+  分析中的状态以预先记录的顺序返回，大致与实际查询顺序对应（但并**不**完全相同）。
 
-* `unknown`: generic catch-all state. Accounts for not-yet-instrumented code or small miscellaneous tasks that don't really belong in any other state but are too small to warrant their own state.
-* `net_read`: reading the query from the network (i.e., the application).
-* `io`: generic file IO time.
-* `dist_connect`: connecting to remote agents in the distributed table case.
-* `sql_parse`: parsing the SQL syntax.
-* `dict_setup`: dictionary and tokenizer setup.
-* `parse`: parsing the full-text query syntax.
-* `transforms`: full-text query transformations (wildcard and other expansions, simplification, etc.).
-* `init`: initializing the query evaluation.
-* `open`: opening the table files.
-* `read_docs`: IO time spent reading document lists.
-* `read_hits`: IO time spent reading keyword positions.
-* `get_docs`: computing the matching documents.
-* `get_hits`: computing the matching positions.
-* `filter`: filtering the full-text matches.
-* `rank`: computing the relevance rank.
-* `sort`: sorting the matches.
-* `finalize`: finalizing the per-table search result set (last stage expressions, etc.).
-* `dist_wait`: waiting for remote results from agents in the distributed table case.
-* `aggregate`: aggregating multiple result sets.
-* `net_write`: writing the result set to the network.
+  状态列表可能（且将会）随着时间的推移而变化，以下是当前分析的状态的简要描述：
+
+  - `unknown`：通用状态，涵盖尚未进行分析的代码或属于其他状态但任务太小以至于无需独立状态的部分。
+  - `net_read`：从网络（即应用程序）读取查询。
+  - `io`：通用文件 IO 时间。
+  - `dist_connect`：在分布式表情况下连接到远程代理。
+  - `sql_parse`：解析 SQL 语法。
+  - `dict_setup`：词典和分词器的设置。
+  - `parse`：解析全文检索查询语法。
+  - `transforms`：全文检索查询的转换（通配符扩展、简化等）。
+  - `init`：初始化查询评估。
+  - `open`：打开表文件。
+  - `read_docs`：读取文档列表的 IO 时间。
+  - `read_hits`：读取关键字位置的 IO 时间。
+  - `get_docs`：计算匹配的文档。
+  - `get_hits`：计算匹配的位置。
+  - `filter`：过滤全文匹配结果。
+  - `rank`：计算相关性排名。
+  - `sort`：对匹配结果进行排序。
+  - `finalize`：完成每个表的搜索结果集（如最后阶段的表达式等）。
+  - `dist_wait`：在分布式表情况下等待远程结果。
+  - `aggregate`：聚合多个结果集。
+  - `net_write`：将结果集写入网络。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 

@@ -2,7 +2,7 @@
 
 ## 官方介绍
 
-### Manticore Search —— 易于使用的开源快速搜索数据库
+### [Manticore Search](https://manticoresearch.com/) —— 易于使用的开源快速搜索数据库
 
 ### 性能
 
@@ -241,7 +241,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
             * [• 重新加载插件](Extensions/UDFs_and_Plugins/Plugins/Reloading_plugins.md)
             * [• 排名插件](Extensions/UDFs_and_Plugins/Plugins/Ranker_plugins.md)
             * [• 令牌过滤器插件](Extensions/UDFs_and_Plugins/Plugins/Token_filter_plugins.md)
-* [• 令牌过滤器插件](Miscellaneous_tools.md)
+* [• 杂项工具](Miscellaneous_tools.md)
 * [• OpenAPI 规范](Openapi.md)
 * [• 远程监控](Telemetry.md)
 * [• 更新日志](Changelog.md)

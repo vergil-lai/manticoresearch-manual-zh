@@ -1,69 +1,70 @@
 # SphinxSE
 
-SphinxSE is a MySQL storage engine that can be compiled into MySQL/MariaDB servers using their pluggable architecture.
+SphinxSE 是一个 MySQL 存储引擎，可以通过 MySQL/MariaDB 服务器的插件架构编译进 MySQL/MariaDB 服务器。
 
-Despite its name, SphinxSE does *not* actually store any data itself. Instead, it serves as a built-in client that enables the MySQL server to communicate with `searchd`, execute search queries, and retrieve search results. All indexing and searching take place outside MySQL.
+尽管名称为 SphinxSE，它实际上并不存储任何数据。它作为内置客户端，允许 MySQL 服务器与 `searchd` 通信，执行搜索查询并检索搜索结果。所有的索引和搜索操作都在 MySQL 之外完成。
 
-Some common SphinxSE applications include:
-* Simplifying the porting of MySQL Full-Text Search (FTS) applications to Manticore;
-* Enabling Manticore use with programming languages for which native APIs are not yet available;
-* Offering optimizations when additional Manticore result set processing is needed on the MySQL side (e.g., JOINs with original document tables or additional MySQL-side filtering).
+一些常见的 SphinxSE 应用包括：
 
-## Installing SphinxSE
+- 简化将 MySQL 全文搜索 (FTS) 应用程序迁移到 Manticore；
+- 使 Manticore 可以与暂时没有提供原生 API 的编程语言一起使用；
+- 在需要在 MySQL 端进行进一步处理时提供优化（例如，与原始文档表的 JOIN 操作或 MySQL 端的额外过滤）。
 
-You will need to obtain a copy of MySQL sources, prepare those, and then recompile MySQL binary. MySQL sources (mysql-5.x.yy.tar.gz) could be obtained from <http://dev.mysql.com> website.
+## 安装 SphinxSE
 
-### Compiling MySQL 5.0.x with SphinxSE
+你需要获取 MySQL 源码副本，进行准备并重新编译 MySQL 二进制文件。MySQL 源码（mysql-5.x.yy.tar.gz）可以从 http://dev.mysql.com 网站获取。
 
-1.  copy `sphinx.5.0.yy.diff` patch file into MySQL sources directory and run
+### 编译带有 SphinxSE 的 MySQL 5.0.x
+
+1.  将 `sphinx.5.0.yy.diff` 补丁文件复制到 MySQL 源码目录，并运行
 ```bash
 $ patch -p1 < sphinx.5.0.yy.diff
 ```
-If there's no .diff file exactly for the specific version you need to:   build, try applying .diff with closest version numbers.  It is important that the patch should apply with no rejects.
-2.  in MySQL sources directory, run
+如果没有适用于特定版本的 .diff 文件，可以尝试应用与版本号最接近的补丁。重要的是，补丁应该能够无错误应用。
+2.  在 MySQL 源码目录中运行
 ```bash
 $ sh BUILD/autorun.sh
 ```
-3.  in MySQL sources directory, create `sql/sphinx` directory in and copy all files in `mysqlse` directory from Manticore sources there. Example:
+3.  在 MySQL 源码目录中，创建 `sql/sphinx` 目录，并将 Manticore 源码中的 `mysqlse` 目录下的所有文件复制到该目录。例如：
 ```bash
 $ cp -R /root/builds/sphinx-0.9.7/mysqlse /root/builds/mysql-5.0.24/sql/sphinx
 ```
-4.  configure MySQL and enable the new engine:
+4.  配置 MySQL 并启用新引擎：
 ```bash
 $ ./configure --with-sphinx-storage-engine
 ```
-5.  build and install MySQL:
+5.  编译并安装 MySQL：
 ```bash
 $ make
 $ make install
 ```
 
-### Compiling MySQL 5.1.x with SphinxSE
+### 编译带有 SphinxSE 的 MySQL 5.1.x
 
-1. In the MySQL sources directory, create a `storage/sphinx` directory and copy all files from the `mysqlse` directory in the Manticore sources to this new location. For example:
+1. 在 MySQL 源码目录中，创建 `storage/sphinx` 目录，并将 Manticore 源码中 `mysqlse` 目录的所有文件复制到该新位置。例如：
 ```bash
 $ cp -R /root/builds/sphinx-0.9.7/mysqlse /root/builds/mysql-5.1.14/storage/sphinx
 ```
-2.  In the MySQL source directory, run:
+2.  在 MySQL 源码目录中运行：
 ```bash
 $ sh BUILD/autorun.sh
 ```
-3. Configure MySQL and enable the Manticore engine:
+3. 配置 MySQL 并启用 Manticore 引擎：
 ```bash
 $ ./configure --with-plugins=sphinx
 ```
-4. Build and install MySQL:
+4. 构建并安装 MySQL：
 ```bash
 $ make
 $ make install
 ```
 
-### Checking SphinxSE installation
+### 检查 SphinxSE 安装
 
 
 <!-- example Example_1 -->
 
-To verify that SphinxSE has been successfully compiled into MySQL, start the newly built server, run the MySQL client, and issue the `SHOW ENGINES` query. You should see a list of all available engines. Manticore should be present, and the "Support" column should display "YES":
+要验证 SphinxSE 是否已成功编译到 MySQL 中，启动新构建的服务器，运行 MySQL 客户端，并执行 `SHOW ENGINES` 查询。你应该能看到所有可用引擎的列表，其中 Manticore 应该会显示，并且“Support”列应显示“YES”：
 
 <!-- request -->
 
@@ -86,11 +87,11 @@ mysql> show engines;
 
 <!-- end -->
 
-## Using SphinxSE
+## 使用 SphinxSE
 
-To search using SphinxSE, you'll need to create a special ENGINE=SPHINX "search table" and then use a `SELECT` statement with the full-text query placed in the `WHERE` clause for the query column.
+要使用 SphinxSE 进行搜索，你需要创建一个特殊的 ENGINE=SPHINX“搜索表”，然后使用 `SELECT` 语句，并将全文查询放置在查询列的 `WHERE` 子句中。
 
-Here's an example create statement and search query:
+以下是一个创建语句和搜索查询的示例：
 
 ```sql
 CREATE TABLE t1
@@ -105,119 +106,122 @@ CREATE TABLE t1
 SELECT * FROM t1 WHERE query='test it;mode=any';
 ```
 
-In a search table, the first three columns *must* have the following types: `INTEGER UNSIGNED` or `BIGINT` for the 1st column (document ID), `INTEGER` or `BIGINT` for the 2nd column (match weight), and `VARCHAR` or `TEXT` for the 3rd column (your query). This mapping is fixed; you cannot omit any of these three required columns, move them around, or change their types. Additionally, the query column must be indexed, while all others should remain unindexed. Column names are ignored, so you can use any arbitrary names.
+在搜索表中，前三个列 *必须* 使用以下类型：第1列为 `INTEGER UNSIGNED` 或 `BIGINT`（文档 ID），第2列为 `INTEGER` 或 `BIGINT`（匹配权重），第3列为 `VARCHAR` 或 `TEXT`（查询内容）。此映射是固定的，不能省略、移动或更改这些三列。此外，查询列必须建立索引，其他列则不需要。列名可以使用任意名称，列名是忽略的。
 
-Additional columns must be either `INTEGER`, `TIMESTAMP`, `BIGINT`, `VARCHAR`, or `FLOAT`. They will be bound to attributes provided in the Manticore result set by name, so their names must match the attribute names specified in `sphinx.conf`. If there's no matching attribute name in the Manticore search results, the column will have `NULL` values.
+其他列必须为 `INTEGER`、`TIMESTAMP`、`BIGINT`、`VARCHAR` 或 `FLOAT`。它们将绑定到 Manticore 结果集中提供的属性，列名必须与 `sphinx.conf` 中指定的属性名称相匹配。如果 Manticore 搜索结果中没有匹配的属性名，该列的值将为 `NULL`。
 
-Special "virtual" attribute names can also be bound to SphinxSE columns. Use `_sph_` instead of `@` for that purpose. For example, to obtain the values of `@groupby`, `@count`, or `@distinct` virtual attributes, use `_sph_groupby`, `_sph_count`, or `_sph_distinct` column names, respectively.
+还可以将特殊的“虚拟”属性名称绑定到 SphinxSE 列。使用 `_sph_` 代替 `@` 来实现此功能。例如，要获取 `@groupby`、`@count` 或 `@distinct` 虚拟属性的值，可以分别使用 `_sph_groupby`、`_sph_count` 或 `_sph_distinct` 列名。
 
-The `CONNECTION` string parameter is used to specify the Manticore host, port, and table. If no connection string is specified in `CREATE TABLE`, the table name `*` (i.e., search all tables) and `localhost:9312` are assumed. The connection string syntax is as follows:
+`CONNECTION` 字符串参数用于指定 Manticore 的主机、端口和表。如果在 `CREATE TABLE` 中未指定连接字符串，则假定表名为 `*`（即搜索所有表）并使用 `localhost:9312`。连接字符串的语法如下：
 
 ```
 CONNECTION="sphinx://HOST:PORT/TABLENAME"
 ```
 
-You can change the default connection string later:
+你可以稍后更改默认连接字符串：
 
 ```sql
 mysql> ALTER TABLE t1 CONNECTION="sphinx://NEWHOST:NEWPORT/NEWTABLENAME";
 ```
 
-You can also override these parameters on a per-query basis.
+你还可以在每个查询中覆盖这些参数。
 
-As shown in the example, both the query text and search options should be placed in the `WHERE` clause on the search query column (i.e., the 3rd column). Options are separated by semicolons and their names from values by an equality sign. Any number of options can be specified. The available options are:
+如示例所示，查询文本和搜索选项应放置在搜索查询列（即第3列）的 `WHERE` 子句中。选项以分号分隔，名称与值之间用等号连接。可以指定任意数量的选项。可用选项包括：
 
-* query - query text;
-* mode - matching mode. Must be one of "all", "any", "phrase", "boolean", or "extended". Default is "all";
-* sort - match sorting mode. Must be one of "relevance", "attr_desc", "attr_asc", "time_segments", or "extended". In all modes besides "relevance", the attribute name (or sorting clause for "extended") is also required after a colon:
+- query - 查询文本；
+- mode - 匹配模式。必须为 "all"、"any"、"phrase"、"boolean" 或 "extended" 之一。默认值为 "all"；
+- sort - 匹配排序模式。必须为 "relevance"、"attr_desc"、"attr_asc"、"time_segments" 或 "extended" 之一。对于除 "relevance" 外的所有模式，排序列（对于 "extended"）或属性名称也是必需的：
+
 ```
 ... WHERE query='test;sort=attr_asc:group_id';
 ... WHERE query='test;sort=extended:@weight desc, group_id asc';
 ```
-* offset - offset into the result set; default is 0;
-* limit - number of matches to retrieve from the result set; default is 20;
-* index - names of the tables to search:
+* offset - 结果集中的偏移量；默认为 0；
+* limit - 从结果集中检索的匹配项数；默认为 20；
+* index - 要搜索的表名：
 ```sql
 ... WHERE query='test;index=test1;';
 ... WHERE query='test;index=test1,test2,test3;';
 ```
-* minid, maxid - min and max document ID to match;
-* weights - comma-separated list of weights to be assigned to Manticore full-text fields:
+* minid, maxid - 要匹配的最小和最大文档 ID；
+* weights - 要分配给 Manticore 全文字段的权重列表：
 ```sql
 ... WHERE query='test;weights=1,2,3;';
 ```
-* filter, !filter - comma-separated attribute name and a set of values to match:
+* filter, !filter - 要匹配的属性名及其值的逗号分隔列表：
 ```sql
-# only include groups 1, 5 and 19
+# 仅包含组 1、5 和 19
 ... WHERE query='test;filter=group_id,1,5,19;';
-# exclude groups 3 and 11
+# 排除组 3 和 11
 ... WHERE query='test;!filter=group_id,3,11;';
 ```
 * range, !range - comma-separated (integer or bigint) Manticore attribute name, and min and max values to match:
 ```sql
-# include groups from 3 to 7, inclusive
+# 包含 3 到 7 的组
 ... WHERE query='test;range=group_id,3,7;';
-# exclude groups from 5 to 25
+# 排除 5 到 25 的组
 ... WHERE query='test;!range=group_id,5,25;';
 ```
-* floatrange, !floatrange - comma-separated (floating point) Manticore attribute name, and min and max values to match:
+* range, !range - 要匹配的 Manticore 属性名以及最小和最大值的逗号分隔列表：
 ```sql
-# filter by a float size
+# 按浮点数大小过滤
 ... WHERE query='test;floatrange=size,2,3;';
-# pick all results within 1000 meter from geoanchor
+# 按地理锚点距离过滤，选择 1000 米范围内的结果
 ... WHERE query='test;floatrange=@geodist,0,1000;';
 ```
-* maxmatches - maxmatches - per-query max matches value, as in [max_matches search option](../Searching/Options.md#max_matches):
+* maxmatches - 每个查询的最大匹配数，如 [max_matches 搜索选项](../Searching/Options.md#max_matches) 中所述：
 ```sql
 ... WHERE query='test;maxmatches=2000;';
 ```
-* cutoff - maximum allowed matches, as in [cutoff search option](../Searching/Options.md#cutoff):
+* cutoff - 最大允许匹配数，如 [cutoff 搜索选项](../Searching/Options.md#cutoff) 中所述：
 ```sql
 ... WHERE query='test;cutoff=10000;';
 ```
-* maxquerytime - maximum allowed query time (in milliseconds), as in [max_query_time search option](../Searching/Options.md#max_query_time):
+* maxquerytime - 最大允许查询时间（以毫秒为单位），如 [max_query_time 搜索选项](../Searching/Options.md#max_query_time) 中所述：
 ```sql
 ... WHERE query='test;maxquerytime=1000;';
 ```
-* groupby - group-by function and attribute. Read [this](../Searching/Grouping.md#Just-Grouping) about grouping search results:
+* groupby - 分组函数和属性。参考 [此文](../Searching/Grouping.md#Just-Grouping) 了解分组搜索结果：
 ```sql
 ... WHERE query='test;groupby=day:published_ts;';
 ... WHERE query='test;groupby=attr:group_id;';
 ```
-* groupsort - group-by sorting clause:
+* groupsort - 分组排序子句：
 ```sql
 ... WHERE query='test;groupsort=@count desc;';
 ```
-* distinct - an attribute to compute [COUNT(DISTINCT)](../Searching/Grouping.md#COUNT%28DISTINCT-field%29) for when doing group-by:
+* distinct - 分组时计算 [COUNT(DISTINCT)](../Searching/Grouping.md#COUNT(DISTINCT-field)) 的属性：
 ```sql
 ... WHERE query='test;groupby=attr:country_id;distinct=site_id';
 ```
-* indexweights - comma-separated list of table names and weights to use when searching through several tables:
+* indexweights - 当搜索多个表时，使用的表名及权重的逗号分隔列表：
 ```sql
 ... WHERE query='test;indexweights=tbl_exact,2,tbl_stemmed,1;';
 ```
-* fieldweights - comma-separated list of per-field weights that can be used by the ranker:
+* fieldweights - 排名器使用的每个字段权重的逗号分隔列表：
 ```sql
 ... WHERE query='test;fieldweights=title,10,abstract,3,content,1;';
 ```
-* comment - a string to mark this query in query log, as in [comment search option](../Searching/Options.md#comment):
+* comment - 用于在查询日志中标记此查询的字符串，如 [comment 搜索选项](../Searching/Options.md#comment) 中所述：
 ```sql
 ... WHERE query='test;comment=marker001;';
 ```
-* select - a string with expressions to compute:
+* select - 包含要计算的表达式的字符串：
 ```sql
 ... WHERE query='test;select=2*a+3*** as myexpr;';
 ```
-* host, port - remote `searchd` host name and TCP port, respectively:
+* host, port - 远程 `searchd` 主机名和 TCP 端口：
 ```sql
 ... WHERE query='test;host=sphinx-test.loc;port=7312;';
 ```
-* ranker - a ranking function to use with "extended" matching mode, as in [ranker](../Searching/Options.md#ranker). Known values are "proximity_bm25", "bm25", "none", "wordcount", "proximity", "matchany", "fieldmask", "sph04", "expr:EXPRESSION" syntax to support expression-based ranker (where EXPRESSION should be replaced with your specific ranking formula), and "export:EXPRESSION":
+* ranker - 与 "extended" 匹配模式一起使用的排名函数，如 [ranker](../Searching/Options.md#ranker) 中所述。已知的值包括 "proximity_bm25"、"bm25"、"none"、"wordcount"、"proximity"、"matchany"、"fieldmask"、"sph04"、"expr
+
+  " 语法支持表达式排名器（其中 EXPRESSION 应替换为特定的排名公式），以及 "export"：
 ```sql
 ... WHERE query='test;mode=extended;ranker=bm25;';
 ... WHERE query='test;mode=extended;ranker=expr:sum(lcs);';
 ```
-The "export" ranker functions similarly to ranker=expr, but it retains the per-document factor values, while ranker=expr discards them after computing the final `WEIGHT()` value. Keep in mind that ranker=export is intended for occasional use, such as training a machine learning (ML) function or manually defining your own ranking function, and should not be used in actual production. When utilizing this ranker, you'll likely want to examine the output of the `RANKFACTORS()` function, which generates a string containing all the field-level factors for each document.
+“export” 排名器的功能类似于 ranker=expr，但它保留每个文档的因子值，而 ranker=expr 在计算最终的 `WEIGHT()` 值后会丢弃这些值。请记住，ranker=export 旨在偶尔使用，例如训练机器学习（ML）函数或手动定义自己的排名函数，不应在实际生产中使用。在使用此排名器时，您可能希望查看 `RANKFACTORS()` 函数的输出，该函数生成一个包含每个文档所有字段级因子的字符串。
 
 <!-- example SQL Example_2 -->
 <!-- request -->
@@ -263,17 +267,17 @@ idf=0.259532)
 
 <!-- end -->
 
-* geoanchor - geodistance anchor. Learn more about Geo-search [in this section](../Searching/Geo_search.md). Takes 4 parameters, which are the latitude and longitude attribute names, and anchor point coordinates, respectively:
+* geoanchor - 地理距离锚点。有关地理搜索的更多信息，请查看[本节](../Searching/Geo_search.md)。它接受四个参数，分别是纬度和经度属性名称，以及锚点坐标。
 ```sql
 ... WHERE query='test;geoanchor=latattr,lonattr,0.123,0.456';
 ```
 
-One **very important** note is that it is **much** more efficient to let Manticore handle sorting, filtering, and slicing the result set, rather than increasing the max matches count and using `WHERE`, `ORDER BY`, and `LIMIT` clauses on the MySQL side. This is due to two reasons. First, Manticore employs a variety of optimizations and performs these tasks better than MySQL. Second, less data would need to be packed by searchd, transferred, and unpacked by SphinxSE.
+一个**非常重要**的说明是，让 Manticore 处理结果集的排序、过滤和切片要**高效得多**，而不是增加最大匹配数并在 MySQL 端使用 `WHERE`、`ORDER BY` 和 `LIMIT` 子句。这有两个原因。首先，Manticore 采用多种优化措施，并且在执行这些任务时表现优于 MySQL。其次，需要由 searchd 打包、传输和由 SphinxSE 解压的数据量会更少。
 
 
 <!-- example Example_3 -->
 
-You can obtain additional information related to the query results using the `SHOW ENGINE SPHINX STATUS` statement:
+您可以使用 `SHOW ENGINE SPHINX STATUS` 语句获取与查询结果相关的附加信息：
 
 <!-- request -->
 
@@ -298,7 +302,7 @@ mysql> SHOW ENGINE SPHINX STATUS;
 
 <!-- example Example_4 -->
 
-You can also access this information through status variables. Keep in mind that using this method does not require super-user privileges.
+您还可以通过状态变量访问这些信息。请注意，使用此方法不需要超级用户权限。
 
 <!-- request -->
 
@@ -325,7 +329,7 @@ mysql> SHOW STATUS LIKE 'sphinx_%';
 
 <!-- example SQL Example_5 -->
 
-SphinxSE search tables can be joined with tables using other engines. Here's an example using the "documents" table from example.sql:
+SphinxSE 搜索表可以与使用其他引擎的表进行连接。以下是使用 example.sql 中的 "documents" 表的示例：
 
 <!-- request -->
 
@@ -359,24 +363,23 @@ mysql> SHOW ENGINE SPHINX STATUS;
 
 <!-- end -->
 
-## Building snippets via MySQL
+## 通过 MySQL 构建片段
 
+SphinxSE 还具有一个 UDF 函数，允许您通过 MySQL 创建片段。此功能类似于 [HIGHLIGHT()](../../Searching/Highlighting.md#Highlighting)，但可以通过 MySQL+SphinxSE 访问。
 
-SphinxSE also features a UDF function that allows you to create snippets using MySQL. This functionality is similar to [HIGHLIGHT()](../../Searching/Highlighting.md#Highlighting), but can be accessed through MySQL+SphinxSE.
-
-The binary providing the UDF is called `sphinx.so` and should be automatically built and installed in the appropriate location along with SphinxSE. If it doesn't install automatically for some reason, locate `sphinx.so` in the build directory and copy it to your MySQL instance's plugins directory. Once done, register the UDF with the following statement:
+提供 UDF 的二进制文件称为 `sphinx.so`，应与 SphinxSE 一起自动构建并安装到适当的位置。如果由于某种原因未能自动安装，请在构建目录中找到 `sphinx.so`，并将其复制到 MySQL 实例的插件目录中。完成后，使用以下语句注册 UDF：
 
 ```sql
 CREATE FUNCTION sphinx_snippets RETURNS STRING SONAME 'sphinx.so';
 ```
 
-The function name *must* be sphinx_snippets; you cannot use an arbitrary name. The function arguments are as follows:
+函数名称*必须*是 sphinx_snippets，不能使用其他名称。函数参数如下：
 
-**Prototype:** function sphinx_snippets ( document, table, words [, options] );
+**原型：**函数 sphinx_snippets ( document, table, words [, options] );
 
-The document and words arguments can be either strings or table columns. Options must be specified like this: `'value' AS option_name`. For a list of supported options, refer to the [Highlighting section](../Searching/Highlighting.md). The only UDF-specific additional option is called `sphinx` and allows you to specify the searchd location (host and port).
+document 和 words 参数可以是字符串或表列。选项必须像这样指定：`'value' AS option_name`。有关支持的选项列表，请参阅 [高亮部分](../Searching/Highlighting.md)。唯一的 UDF 特定附加选项称为 `sphinx`，允许您指定 searchd 的位置（主机和端口）。
 
-Usage examples:
+使用示例：
 
 ```sql
 SELECT sphinx_snippets('hello world doc', 'main', 'world',

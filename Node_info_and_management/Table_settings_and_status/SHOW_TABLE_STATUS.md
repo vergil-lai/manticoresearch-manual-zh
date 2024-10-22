@@ -2,52 +2,51 @@
 
 <!-- example SHOW TABLE STATUS -->
 
-`SHOW TABLE STATUS` is an SQL statement that displays various per-table statistics.
+`SHOW TABLE STATUS` 是一个SQL语句，用于显示每个表的各种统计信息。
 
-The syntax is:
+语法如下：
 
 ```sql
 SHOW TABLE index_name STATUS
 ```
 
-Depending on index type, displayed statistic includes different set of rows:
+根据索引类型，显示的统计信息包含不同的行集：
 
-* **template**: `index_type`.
-* **distributed**: `index_type`, `query_time_1min`, `query_time_5min`,`query_time_15min`,`query_time_total`, `exact_query_time_1min`, `exact_query_time_5min`, `exact_query_time_15min`, `exact_query_time_total`, `found_rows_1min`, `found_rows_5min`, `found_rows_15min`, `found_rows_total`.
-* **percolate**: `index_type`, `stored_queries`, `ram_bytes`, `disk_bytes`, `max_stack_need`, `average_stack_base`, `
-  desired_thread_stack`, `tid`, `tid_saved`, `query_time_1min`, `query_time_5min`,`query_time_15min`,`query_time_total`, `exact_query_time_1min`, `exact_query_time_5min`, `exact_query_time_15min`, `exact_query_time_total`, `found_rows_1min`, `found_rows_5min`, `found_rows_15min`, `found_rows_total`.
-* **plain**: `index_type`, `indexed_documents`, `indexed_bytes`, may be set of `field_tokens_*` and `total_tokens`, `ram_bytes`, `disk_bytes`, `disk_mapped`, `disk_mapped_cached`, `disk_mapped_doclists`, `disk_mapped_cached_doclists`, `disk_mapped_hitlists`, `disk_mapped_cached_hitlists`, `killed_documents`, `killed_rate`, `query_time_1min`, `query_time_5min`,`query_time_15min`,`query_time_total`, `exact_query_time_1min`, `exact_query_time_5min`, `exact_query_time_15min`, `exact_query_time_total`, `found_rows_1min`, `found_rows_5min`, `found_rows_15min`, `found_rows_total`.
-* **rt**: `index_type`, `indexed_documents`, `indexed_bytes`, may be set of `field_tokens_*` and `total_tokens`, `ram_bytes`, `disk_bytes`, `disk_mapped`, `disk_mapped_cached`, `disk_mapped_doclists`, `disk_mapped_cached_doclists`, `disk_mapped_hitlists`, `disk_mapped_cached_hitlists`, `killed_documents`, `killed_rate`, `ram_chunk`, `ram_chunk_segments_count`, `disk_chunks`, `mem_limit`, `mem_limit_rate`, `ram_bytes_retired`, `optimizing`, `locked`, `tid`, `tid_saved`, `query_time_1min`, `query_time_5min`,`query_time_15min`,`query_time_total`, `exact_query_time_1min`, `exact_query_time_5min`, `exact_query_time_15min`, `exact_query_time_total`, `found_rows_1min`, `found_rows_5min`, `found_rows_15min`, `found_rows_total`.
+- **模板表**: `index_type`
+- **分布式表**: `index_type`，`query_time_1min`，`query_time_5min`，`query_time_15min`，`query_time_total`，`exact_query_time_1min`，`exact_query_time_5min`，`exact_query_time_15min`，`exact_query_time_total`，`found_rows_1min`，`found_rows_5min`，`found_rows_15min`，`found_rows_total`
+- **过滤表**: `index_type`，`stored_queries`，`ram_bytes`，`disk_bytes`，`max_stack_need`，`average_stack_base`，`desired_thread_stack`，`tid`，`tid_saved`，`query_time_1min`，`query_time_5min`，`query_time_15min`，`query_time_total`，`exact_query_time_1min`，`exact_query_time_5min`，`exact_query_time_15min`，`exact_query_time_total`，`found_rows_1min`，`found_rows_5min`，`found_rows_15min`，`found_rows_total`
+- **普通表**: `index_type`，`indexed_documents`，`indexed_bytes`，可能包含`field_tokens_*` 和 `total_tokens` 的集合，`ram_bytes`，`disk_bytes`，`disk_mapped`，`disk_mapped_cached`，`disk_mapped_doclists`，`disk_mapped_cached_doclists`，`disk_mapped_hitlists`，`disk_mapped_cached_hitlists`，`killed_documents`，`killed_rate`，`query_time_1min`，`query_time_5min`，`query_time_15min`，`query_time_total`，`exact_query_time_1min`，`exact_query_time_5min`，`exact_query_time_15min`，`exact_query_time_total`，`found_rows_1min`，`found_rows_5min`，`found_rows_15min`，`found_rows_total`
+- **实时表**: `index_type`，`indexed_documents`，`indexed_bytes`，可能包含`field_tokens_*` 和 `total_tokens` 的集合，`ram_bytes`，`disk_bytes`，`disk_mapped`，`disk_mapped_cached`，`disk_mapped_doclists`，`disk_mapped_cached_doclists`，`disk_mapped_hitlists`，`disk_mapped_cached_hitlists`，`killed_documents`，`killed_rate`，`ram_chunk`，`ram_chunk_segments_count`，`disk_chunks`，`mem_limit`，`mem_limit_rate`，`ram_bytes_retired`，`optimizing`，`locked`，`tid`，`tid_saved`，`query_time_1min`，`query_time_5min`，`query_time_15min`，`query_time_total`，`exact_query_time_1min`，`exact_query_time_5min`，`exact_query_time_15min`，`exact_query_time_total`，`found_rows_1min`，`found_rows_5min`，`found_rows_15min`，`found_rows_total`
 
-Here is the meaning of these values:
+这些值的含义如下：
 
-* `index_type`: currently one of `disk`, `rt`, `percolate`, `template`, and `distributed`.
-* `indexed_documents`: number of indexed documents.
-* `indexed_bytes`: overall size of indexed text. Notice, this value is not strict, since in full-text index that is impossible to strictly recover back stored text to measure it.
-* `stored_queries`: number of percolate queries, stored in the table.
-* `field_tokens_XXX`: optional, total per-field lengths (in tokens) across the entire table (used internally for `BM25A` and `BM25F` ranking functions). Only available for tables built with `index_field_lengths=1`.
-* `total_tokens`: optional, overall sum of all `field_tokens_XXX`.
-* `ram_bytes`: total RAM occupied by table.
-* `disk_bytes`: total disk space, occupied by table.
-* `disk_mapped`: total size of file mappings.
-* `disk_mapped_cached`: total size of file mappings actually cached in RAM.
-* `disk_mapped_doclists` and `disk_mapped_cached_doclists`: portion of total and cached mappings belonging to document lists.
-* `disk_mapped_hitlists` and `disk_mapped_cached_hitlists`: portion of total and cached mappings belonging to hit lists. Doclists and hitlists values are shown separately since they're typically large (e.g., about 90% of the whole table's size).
-* `killed_documents` and `killed_rate`: the first indicates the number of deleted documents and the rate of deleted/indexed. Technically, deleting a document means suppressing it in search output, but it still physically exists in the table and will only be purged after merging/optimizing the table.
-* `ram_chunk`: size of the RAM chunk of real-time or percolate table.
-* `ram_chunk_segments_count`: RAM chunk is internally composed of segments, typically no more than 32. This line shows the current count.
-* `disk_chunks`: number of disk chunks in the real-time table.
-* `mem_limit`: actual value of `rt_mem_limit` for the table.
-* `mem_limit_rate`: the rate at which the RAM chunk will be flushed as a disk chunk, e.g., if `rt_mem_limit` is 128M and the rate is 50%, a new disk chunk will be saved when the RAM chunk exceeds 64M.
-* `ram_bytes_retired`: represents the size of garbage in RAM chunks (e.g., deleted or replaced documents not yet permanently removed).
-* `optimizing`: a value greater than 0 indicates that the table is currently performing optimization (i.e. it is merging some disk chunks right now).
-* `locked`: a value greater than 0 indicates that the table is currently locked by [FREEZE](../../Securing_and_compacting_a_table/Freezing_a_table.md#Freezing-a-table). The number represents how many times the table has been frozen. For instance, a table might be frozen by `manticore-backup` and then frozen again by replication. It should only be completely unfrozen when no other process requires it to be frozen.
-* `max_stack_need`: stack space we need to calculate most complex from the stored percolate queries. That is dynamic value, depends on build details as compiler, optimization, hardware, etc.
-* `average_stack_base`: stack space which is usually occupied on start of calculation of percolate query.
-* `desired_thread_stack`: sum of above values, rounded up to 128 bytes edge. If this value is greater than `thread_stack`, you may not execute `call pq` over this table, as some stored queries will fail. Default `thread_stack` value is 1M (which is 1048576); other values should be configured.
-* `tid` and `tid_saved`: represent the state of saving the table. `tid` increases with each change (transaction). `tid_saved` shows the max `tid` of the state saved in a RAM chunk in `<table>.ram` file. When the numbers differ, some changes exist only in RAM and are also backed by binlog (if enabled). Performing `FLUSH TABLE` or scheduling periodic flushing saves these changes. After flushing, the binlog is cleared, and `tid_saved` represents the new actual state.
-* `query_time_*`, `exact_query_time_*`: query execution time statistics for the last 1 minute, 5 minutes, 15 minutes, and total since server start; data is encapsulated as a JSON object, including the number of queries and min, max, avg, 95, and 99 percentile values.
-* `found_rows_*`: statistics of rows found by queries; provided for the last 1 minute, 5 minutes, 15 minutes, and total since server start; data is encapsulated as a JSON object, including the number of queries and min, max, avg, 95, and 99 percentile values.
+- `index_type`: 当前索引类型之一，如 `disk`，`rt`，`percolate`，`template` 和 `distributed`
+- `indexed_documents`: 已索引的文档数量
+- `indexed_bytes`: 已索引文本的总大小
+- `stored_queries`: 表中存储的过滤查询数量
+- `field_tokens_XXX`: 可选，每个字段的总词元数量，用于`BM25A` 和 `BM25F` 排名函数
+- `total_tokens`: 可选，所有`field_tokens_XXX`的总和
+- `ram_bytes`: 表占用的总内存
+- `disk_bytes`: 表占用的总磁盘空间
+- `disk_mapped`: 文件映射的总大小
+- `disk_mapped_cached`: 实际缓存到内存中的文件映射总大小
+- `disk_mapped_doclists` 和 `disk_mapped_cached_doclists`: 属于文档列表的总映射和缓存映射部分
+- `disk_mapped_hitlists` 和 `disk_mapped_cached_hitlists`: 属于命中列表的总映射和缓存映射部分
+- `killed_documents` 和 `killed_rate`: 被删除的文档数量及其删除率
+- `ram_chunk`: 实时或过滤表的内存块大小
+- `ram_chunk_segments_count`: 内存块内部由多个段组成，通常不超过32段
+- `disk_chunks`: 实时表中的磁盘块数量
+- `mem_limit`: 实时表的`rt_mem_limit`值
+- `mem_limit_rate`: 内存块被刷新为磁盘块的比率
+- `ram_bytes_retired`: 内存块中的垃圾大小
+- `optimizing`: 大于0表示表当前正在进行优化
+- `locked`: 大于0表示表当前被锁定
+- `max_stack_need`: 计算最复杂的过滤查询所需的栈空间
+- `average_stack_base`: 计算过滤查询时通常占用的栈空间
+- `desired_thread_stack`: 所需的线程栈大小
+- `tid` 和 `tid_saved`: 表保存状态的标识
+- `query_time_*` 和 `exact_query_time_*`: 查询执行时间统计数据
+- `found_rows_*`: 查询找到的行数统计数据
 
 <!-- intro -->
 ##### SQL:

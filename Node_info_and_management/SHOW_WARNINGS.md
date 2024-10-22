@@ -1,6 +1,6 @@
 # SHOW WARNINGS
 
-`SHOW WARNINGS` statement can be used to retrieve the warning produced by the latest query. The error message will be returned along with the query itself:
+`SHOW WARNINGS` 语句可以用于检索由最新查询生成的警告。错误消息将与查询一起返回：
 
 ```sql
 mysql> SELECT * FROM test1 WHERE MATCH('@@title hello') \G

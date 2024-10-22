@@ -2,15 +2,15 @@
 
 <!-- example SHOW TABLE SETTINGS -->
 
-`SHOW TABLE SETTINGS` is an SQL statement that displays per-table settings in a format compatible with the config file.
+`SHOW TABLE SETTINGS` 是一个 SQL 语句，用于以配置文件兼容的格式显示每个表的设置。
 
-The syntax is:
+语法如下：
 
 ```sql
 SHOW TABLE index_name[.N | CHUNK N] SETTINGS
 ```
 
-The output resembles the [--dumpconfig](../../Miscellaneous_tools.md#indextool) option of the [indextool](../../Miscellaneous_tools.md#indextool) utility. The report provides a breakdown of all table settings, including tokenizer and dictionary options.
+输出类似于 [--dumpconfig](../../Miscellaneous_tools.md#indextool) 选项中的 [indextool](../../Miscellaneous_tools.md#indextool) 实用程序。报告提供了所有表设置的详细说明，包括分词器和词典选项。
 
 <!-- intro -->
 ##### SQL:
@@ -35,9 +35,10 @@ charset_table = 0..9, A..Z->a..z, _, -, a..z, U+410..U+42F->U+430..U+44F, U+430.
 
 <!-- example SHOW TABLE SETTINGS N -->
 
-You can also specify a particular chunk number to view the settings of a specific chunk in an RT table. The numbering is 0-based.
+你也可以指定特定的块号以查看实时表中某个特定块的设置。编号从0开始。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 

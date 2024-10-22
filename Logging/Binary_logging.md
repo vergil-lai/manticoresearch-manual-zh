@@ -1,16 +1,15 @@
-# Binary logging
+# 二进制日志
 
-Binary logging serves as a recovery mechanism for [real-time](../Creating_a_table/Local_tables/Real-time_table.md) table data. When binary logs are enabled, `searchd` records each transaction to the binlog file and utilizes it for recovery following an unclean shutdown. During a clean shutdown, RAM chunks are saved to disk, and all binlog files are subsequently deleted.
+二进制日志作为[实时](../Creating_a_table/Local_tables/Real-time_table.md)表数据的恢复机制。当启用二进制日志时，`searchd` 会将每个事务记录到 binlog 文件中，并在非正常关闭后利用它进行恢复。在正常关闭期间，RAM 块会保存到磁盘，所有 binlog 文件随后都会被删除。
 
-## Enabling and disabling binary logging
+## 启用和禁用二进制日志
 
-By default, binary logging is enabled to safeguard data integrity. On Linux systems, the default location for `binlog.*` files in [Plain mode](../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-%28Plain-mode%29) is `/var/lib/manticore/data/`. In [RT mode](../Creating_a_table/Local_tables.md#Online-schema-management-%28RT-mode%29), binary logs are stored in the `<data_dir>/binlog/` folder, unless specified otherwise.
+默认情况下，为了保障数据完整性，二进制日志是启用的。在 Linux 系统中，`binlog.*` 文件的默认位置在[Plain 模式](../Creating_a_table/Local_tables.md#Defining-table-schema-in-config-(Plain-mode))下为 `/var/lib/manticore/data/`，在[RT 模式](../Creating_a_table/Local_tables.md#Online-schema-management-(RT-mode))下，二进制日志存储在 `<data_dir>/binlog/` 文件夹中，除非另有指定。
 
-### Global binary logging configuration
+### 全局二进制日志配置
 
 <!-- example binlog_path -->
-To disable binary logging globally, set `binlog_path` to an empty value in the `searchd` configuration.
-Disabling binary logging requires a restart of the daemon and puts data at risk if the system shuts down unexpectedly.
+要全局禁用二进制日志，可以在 `searchd` 配置中将 `binlog_path` 设置为空值。禁用二进制日志需要重新启动守护进程，并且在系统意外关闭时会使数据面临风险。
 
 <!-- request Example -->
 ```ini
@@ -22,7 +21,7 @@ searchd {
 <!-- end -->
 
 <!-- example binlog_path2 -->
-You can use the following directive to set a custom path:
+您可以使用以下指令设置自定义路径：
 
 <!-- request Example -->
 ```ini
@@ -33,10 +32,10 @@ searchd {
 ```
 <!-- end -->
 
-### Per-table binary logging configuration
+### 按表级别的二进制日志配置
 
 <!-- Example binlog0 -->
-For more granular control, binary logging can be disabled at the table level for real-time tables by setting the `binlog` table parameter to `0`. This option is not available for percolate tables.
+为了更细粒度的控制，您可以通过将 `binlog` 表参数设置为 `0`，禁用实时表的二进制日志记录。此选项不适用于渗透表。
 
 <!-- request Example -->
 ```sql
@@ -45,7 +44,7 @@ create table a (id bigint, s string attribute) binlog='0';
 <!-- end -->
 
 <!-- Example binlog_alter -->
-For existing RT tables, binary logging can also be disabled by modifying the `binlog` parameter.
+对于现有的 RT 表，您也可以通过修改 `binlog` 参数禁用二进制日志。
 
 <!-- request Example -->
 ```sql
@@ -54,7 +53,7 @@ alter table FOO binlog='0';
 <!-- end -->
 
 <!-- Example binlog_alter2 -->
-If binary logging was previously disabled, it can be re-enabled by setting the `binlog` parameter back to `1`:
+如果之前已禁用二进制日志，您可以通过将 `binlog` 参数设置为 `1` 来重新启用它：
 
 <!-- request Example -->
 ```sql
@@ -62,18 +61,19 @@ alter table FOO binlog='1';
 ```
 <!-- end -->
 
-#### Important considerations:
-* **Dependency on global settings**: per-table binary logging settings only take effect if binary logging is globally enabled in the searchd configuration (`binlog_path` must not be empty).
-* **Binary logging status and transaction ID insights**: Modifying the binary logging status of a table forces an immediate [flush of the table](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_disk.md#FLUSH-TABLE). If you turn off binary logging for a table, its transaction ID (TID) changes to `-1`. This indicates that binary logging is not active, and no changes are being tracked. Conversely, if you start binary logging for a table, its transaction ID becomes a non-negative number (zero or higher). This indicates that the table's changes are now being recorded. You can check the transaction ID by using the command: `SHOW TABLE <name> STATUS`. The transaction ID reflects whether changes to the table are being recorded (non-negative number) or not (`-1`).
+#### 重要注意事项：
 
-## Operations
+- **依赖全局设置**：按表级别的二进制日志设置仅在全局启用二进制日志时生效（`binlog_path` 必须不为空）。
+- **二进制日志状态和事务 ID 洞察**：修改表的二进制日志状态会强制立即[刷新表](../Securing_and_compacting_a_table/Flushing_RAM_chunk_to_disk.md#FLUSH-TABLE)。如果为表关闭了二进制日志，其事务 ID (TID) 会变为 `-1`，表示没有活动的二进制日志记录；如果重新启用了二进制日志，则事务 ID 将变为非负数（零或更大），表示正在记录表的更改。您可以使用 `SHOW TABLE <name> STATUS` 命令检查事务 ID。
 
-When binary logging is turned on, every change made to an RT table is saved to a log file. If the system shuts down unexpectedly, these logs are used automatically when the system starts again to bring back all the changes that were logged.
+## 操作
 
-### Log size
+启用二进制日志时，对 RT 表的每次更改都会保存到日志文件中。如果系统意外关闭，这些日志将在系统重新启动时自动重放，以恢复所有已记录的更改。
+
+### 日志大小
 
 <!-- Example binlog_max_log_size -->
-During normal operations, when the amount of data logged reaches a certain limit (set by `binlog_max_log_size`), a new log file starts. Old log files are kept until all changes in them are completely processed and saved to disk as a disk chunk. If this limit is set to `0`, the log files are kept until the system is properly shut down. By default, there's no limit to how large these files can grow.
+在正常操作期间，当记录的数据达到某个限制（通过 `binlog_max_log_size` 设置）时，将开始一个新的日志文件。旧的日志文件会一直保留，直到其中的所有更改都完全处理并保存到磁盘为止。如果该限制设置为 `0`，日志文件将保留到系统正常关闭为止。默认情况下，这些文件的大小没有限制。
 
 <!-- request Example -->
 
@@ -86,13 +86,13 @@ searchd {
 
 <!-- end -->
 
-### Log files
+### 日志文件
 
 <!-- example binlog_filename_digits -->
 
-Each binlog file is named with a zero-padded number, like `binlog.0000`, `binlog.0001`, etc., typically showing four digits. You can change how many digits the number has with the setting `binlog_filename_digits`. If you have more binlog files than the number of digits can accommodate, the number of digits will be automatically increased to fit all files.
+每个 binlog 文件的命名格式为零填充的数字，如 `binlog.0000`，`binlog.0001` 等，通常显示四位数。您可以通过 `binlog_filename_digits` 设置更改数字的位数。如果 binlog 文件数量超过位数能够表示的范围，位数将自动增加以容纳所有文件。
 
-**Important**: To change the number of digits, you must first save all table data and properly shut down the system. Then, delete the old log files and restart the system.
+**重要**：要更改位数，必须首先保存所有表数据并正确关闭系统。然后删除旧日志文件并重新启动系统。
 
 <!-- request Example -->
 ```ini
@@ -103,12 +103,14 @@ searchd {
 ```
 <!-- end -->
 
-### Binary logging strategies
+### 二进制日志管理策略
 
 <!-- Example binlog_common -->
-You can choose between two ways to manage binary log files, which can be set with the `binlog_common` directive:
-* Separate file for each table (default, `0`): Each table saves its changes in its own log file. This setup is good if you have many tables that get updated at different times. It allows tables to be updated without waiting for others. Also, if there is a problem with one table's log file, it does not affect the others.
-* Single file for all tables (`1`): All tables use the same binary log file. This method makes it easier to handle files because there are fewer of them. However, this could keep files longer than needed if one table still needs to save its updates. This setting might also slow things down if many tables need to update at the same time because all changes have to wait to be written to one file.
+
+您可以通过 `binlog_common` 指令选择两种管理二进制日志文件的方式：
+
+- 每个表单独保存日志文件（默认，`0`）：每个表将更改保存到其各自的日志文件中。如果表的更新频率不同，这种设置非常适合，因为它允许表之间独立更新，不会相互等待。如果某个表的日志文件出现问题，不会影响其他表。
+- 所有表使用一个日志文件（`1`）：所有表将更改记录到同一个二进制日志文件中。这种方法有助于减少日志文件数量，但可能会因为一个表的更新而延长文件的保留时间。此设置也可能在多个表同时更新时导致速度变慢，因为所有更改都需要写入一个文件。
 
 <!-- request binlog_common -->
 
@@ -120,17 +122,18 @@ searchd {
 ```
 <!-- end -->
 
-### Binary flushing strategies
+### 二进制日志刷新策略
 
 <!-- Example binlog_flush -->
-There are four different binlog flushing strategies, controlled by the `binlog_flush` directive:
 
-* `0` - Data is written to disk (flushed) every second, and Manticore initiates making it secure on the disk ([syncing](https://linux.die.net/man/8/sync)) right after flushing. This method is the fastest, but if the server or computer crashes suddenly, some recently written data that hasn't been secured may be lost.
-* `1` - Data is written to the binlog and synced immediately after each transaction. This method is the safest as it ensures that each change is immediately preserved, but it slows down writing.
-* `2` - Data is written after each transaction, and a sync is initiated every second. This approach offers a balance, writing data regularly and quickly. However, if the computer fails, some of the data that was being secured might not finish saving. Also, syncing may take longer than one second depending on the disk.
-* `3` - Similar to `2`, but it also ensures the binlog file is synced before it is closed due to exceeding `binlog_max_log_size`.
+二进制日志有四种不同的刷新策略，可以通过 `binlog_flush` 指令控制：
 
-The default mode is `2`, which writes data after each transaction and starts syncing it every second, balancing speed and safety.
+- `0` - 数据每秒写入磁盘（刷新），Manticore 立即启动安全保存操作（[同步](https://linux.die.net/man/8/sync)）后刷新。这是最快的方式，但如果服务器或计算机突然崩溃，某些未安全保存的最近写入数据可能会丢失。
+- `1` - 每次事务后立即将数据写入 binlog 并同步。这是最安全的方法，确保每次更改立即保存，但会减慢写入速度。
+- `2` - 每次事务后写入数据，并且每秒启动一次同步。这种方法提供了速度和安全性的平衡，但如果计算机故障，某些数据可能尚未完成保存。同步时间可能会超过一秒，具体取决于磁盘性能。
+- `3` - 类似于 `2`，但在超过 `binlog_max_log_size` 关闭 binlog 文件前，确保其已同步。
+
+默认模式是 `2`，它在每次事务后写入数据，并每秒同步，平衡了速度和安全性。
 
 <!-- request Example -->
 ```ini
@@ -142,16 +145,17 @@ searchd {
 ```
 <!-- end -->
 
-### Recovery
+### 恢复
 
-During recovery after an unclean shutdown, binlogs are replayed, and all logged transactions since the last good on-disk state are restored. Transactions are checksummed, so in case of binlog file corruption, garbage data will **not** be replayed; such a broken transaction will be detected and will stop the replay.
+在非正常关闭后恢复期间，binlog 会被重放，所有从上一次已保存的磁盘状态起记录的事务将被恢复。事务有校验和，因此如果 binlog 文件损坏，垃圾数据将**不会**被重放；损坏的事务将被检测到，并会停止重放。
 
-### Flushing RT RAM chunks
+### 刷新 RT RAM 块
 
 <!-- Example rt_flush_period -->
-Intensive updates to a small RT table that fully fits into a RAM chunk can result in an ever-growing binlog that can never be unlinked until a clean shutdown. Binlogs essentially serve as append-only deltas against the last known good saved state on disk, and they cannot be unlinked unless the RAM chunk is saved. An ever-growing binlog is not ideal for disk usage and crash recovery time. To address this issue, you can configure `searchd` to perform periodic RAM chunk flushes using the `rt_flush_period` directive. With periodic flushes enabled, `searchd` will maintain a separate thread that checks whether RT table RAM chunks need to be written back to disk. Once this occurs, the respective binlogs can be (and are) safely unlinked.
 
-The default RT flush period is set to 10 hours.
+对完全适合 RAM 块的小 RT 表进行密集更新可能导致不断增长的 binlog，直到干净关闭前无法取消链接。Binlog 本质上充当最后一次已保存磁盘状态的附加增量，除非 RAM 块被保存，否则不能取消链接。不断增长的 binlog 对磁盘使用和崩溃恢复时间不利。为了解决这个问题，您可以通过 `rt_flush_period` 指令配置 `searchd` 定期刷新 RAM 块。启用定期刷新后，`searchd` 将维护一个单独的线程，检查是否需要将 RT 表 RAM 块写回磁盘。一旦完成，相应的 binlog 文件可以安全取消链接。
+
+默认的 RT 刷新周期设置为 10 小时。
 
 <!-- request Example -->
 ```ini
@@ -163,6 +167,6 @@ searchd {
 ```
 <!-- end -->
 
-It's important to note that `rt_flush_period` only controls the frequency at which checks occur. There are no guarantees that a specific RAM chunk will be saved. For example, it doesn't make sense to regularly re-save a large RAM chunk that only receives a few rows worth of updates. Manticore automatically determines whether to perform the flush using a few heuristics.
+需要注意的是，`rt_flush_period` 仅控制检查发生的频率，不能保证特定的 RAM 块会被保存。例如，频繁重新保存仅收到几行更新的大型 RAM 块没有意义。Manticore 会根据一些启发式方法自动确定是否执行刷新。
 
 <!-- proofread -->

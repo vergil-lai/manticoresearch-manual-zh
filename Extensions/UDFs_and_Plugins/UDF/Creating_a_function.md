@@ -6,7 +6,7 @@ CREATE FUNCTION udf_name
     SONAME 'udf_lib_file'
 ```
 
-`CREATE FUNCTION` statement installs a user-defined function [UDF](../../../Extensions/UDFs_and_Plugins/UDF.md) with the specified name and type from the provided library file. The library file must be located in a trusted [plugin_dir](../../../Server_settings/Common.md#plugin_dir) directory. Upon successful installation, the function becomes available for use in all subsequent queries received by the server. Example:
+`CREATE FUNCTION` 语句用于从指定的库文件中安装具有指定名称和类型的用户定义函数（UDF）。库文件必须位于受信任的 [plugin_dir](../../../Server_settings/Common.md#plugin_dir) 目录中。安装成功后，该函数可用于服务器接收到的所有后续查询中。示例：
 
 ```sql
 mysql> CREATE FUNCTION avgmva RETURNS INTEGER SONAME 'udfexample.dll';

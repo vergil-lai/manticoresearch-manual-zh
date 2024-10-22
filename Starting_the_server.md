@@ -1,5 +1,5 @@
-# Starting the server
+# 启动服务器
 
-Manticore Search server can be started using different methods, depending on the installation type.
+Manticore Search 服务器可以根据安装类型使用不同的方法启动。
 
 <!-- proofread -->

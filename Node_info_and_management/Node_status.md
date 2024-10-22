@@ -1,19 +1,21 @@
-# Node status
+# 节点状态
 
 ## STATUS
 
 <!-- example status -->
-The easiest way to view high-level information about your Manticore node is by running `status` in the MySQL client. It will display information about various aspects, such as:
-* Current version
-* Whether SSL is in effect or not
-* Current TCP port/Unix socket
-* Uptime
-* Number of [threads](../Server_settings/Searchd.md#threads)
-* Number of [jobs in queue](../Server_settings/Searchd.md#jobs_queue_size)
-* Number of connections (`clients`)
-* Number of tasks being processed currently
-* Number of queries executed since the start
-* Number of jobs in queue and number of tasks, normalized by the number of threads
+
+查看 Manticore 节点高层次信息的最简单方法是通过 MySQL 客户端运行 `status` 命令。它将显示关于以下方面的信息：
+
+- 当前版本
+- 是否启用了 SSL
+- 当前 TCP 端口/Unix 套接字
+- 运行时间（Uptime）
+- [线程](../Server_settings/Searchd.md#threads) 数量
+- [队列中的作业](../Server_settings/Searchd.md#jobs_queue_size) 数量
+- 连接数（`clients`）
+- 当前正在处理的任务数
+- 启动以来执行的查询数
+- 队列中的作业数和任务数，按线程数进行归一化显示
 
 <!-- request SQL -->
 ```sql
@@ -58,9 +60,10 @@ SHOW STATUS [ LIKE pattern ]
 
 <!-- example show status -->
 
-`SHOW STATUS` is an SQL statement that presents various helpful performance counters. IO and CPU counters will only be available if `searchd` was started with the `--iostats` and `--cpustats` switches, respectively (or if they were enabled via `SET GLOBAL iostats/cpustats=1`).
+`SHOW STATUS` 是一个 SQL 语句，用于显示各种有用的性能计数器。IO 和 CPU 计数器仅在 `searchd` 以 `--iostats` 和 `--cpustats` 参数启动时可用（或通过 `SET GLOBAL iostats/cpustats=1` 启用）。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -155,7 +158,7 @@ SHOW STATUS;
 
 <!-- example show status like -->
 
-An optional `LIKE` clause is supported, allowing you to select only the variables that match a specific pattern. The pattern syntax follows standard SQL wildcards, where `%` represents any number of any characters, and `_` represents a single character.
+`SHOW STATUS` 语句支持可选的 `LIKE` 子句，允许您仅选择符合特定模式的变量。模式语法遵循标准的 SQL 通配符规则，其中 `%` 表示任意数量的任意字符，`_` 表示任意单个字符。
 
 <!-- request qcache -->
 
@@ -208,24 +211,25 @@ SHOW STATUS LIKE '%stats_ms%';
 
 <!-- end -->
 
-### Query Time Statistics
+### 查询时间统计
 
 <!-- example show status like stats_ms -->
 
-The `SHOW STATUS` command gives a detailed report on various performance metrics in Manticore, including query time statistics for insert/replace, search, and update queries. These stats are calculated over sliding windows of 1, 5, and 15 minutes, showing average, minimum, maximum, and 95th/99th percentile values for query times.
+`SHOW STATUS` 命令提供了 Manticore 各种性能指标的详细报告，包括插入/替换、搜索和更新查询的查询时间统计数据。这些统计数据是通过滑动窗口计算的，时间段为最近的 1 分钟、5 分钟和 15 分钟，显示了查询时间的平均值、最小值、最大值，以及 95 百分位和 99 百分位的值。
 
-These metrics help track performance over specific time intervals, making it easier to spot trends in query response times and find possible bottlenecks.
+这些指标有助于跟踪特定时间间隔内的性能，使得更容易发现查询响应时间的趋势并找到可能的瓶颈。
 
-The following metrics are part of the `SHOW STATUS` output:
-- `*_avg`: The average query time for each type of query over the last 1, 5, and 15 minutes.
-- `*_min`: The shortest query time recorded for each query type.
-- `*_max`: The longest query time recorded for each query type.
-- `*_pct95`: The time under which 95% of queries are completed.
-- `*_pct99`: The time under which 99% of queries are completed.
+以下指标是 `SHOW STATUS` 输出的一部分：
 
-These statistics are provided separately for insert/replace (`insert_replace_stats_*`), search (`search_stats_*`), and update (`update_stats_*`) queries, offering detailed insights into the performance of different operations.
+- `*_avg`: 每种查询类型在过去 1 分钟、5 分钟和 15 分钟内的平均查询时间。
+- `*_min`: 每种查询类型记录的最短查询时间。
+- `*_max`: 每种查询类型记录的最长查询时间。
+- `*_pct95`: 95% 的查询在此时间内完成。
+- `*_pct99`: 99% 的查询在此时间内完成。
 
-If no queries are executed during the monitored interval, the system will display `N/A`.
+这些统计数据分别针对插入/替换（`insert_replace_stats_*`）、搜索（`search_stats_*`）和更新（`update_stats_*`）查询，提供了不同操作的详细性能分析。
+
+如果在监控时间间隔内没有执行任何查询，系统将显示 `N/A`。
 
 <!-- request perf_stats -->
 
@@ -262,11 +266,12 @@ SHOW STATUS LIKE '%stats_ms%';
 
 <!-- example show settings -->
 
-`SHOW SETTINGS` is an SQL statement that displays the current settings from your configuration file. The setting names are represented in the following format: `'config_section_name'.'setting_name'`
+`SHOW SETTINGS` 是一个 SQL 语句，用于显示当前配置文件中的设置。设置名称以以下格式表示：`'config_section_name'.'setting_name'
 
-The result also includes two additional values:
-- `configuration_file` - The path to the configuration file
-- `worker_pid` - The process ID of the running `searchd` instance
+结果中还包含两个额外的值：
+
+- `configuration_file` - 配置文件的路径
+- `worker_pid` - 运行中的 `searchd` 实例的进程 ID
 
 <!-- intro -->
 ##### SQL:
@@ -307,9 +312,10 @@ SHOW AGENT ['agent_or_index'] STATUS [ LIKE pattern ]
 
 <!-- example SHOW AGENT STATUS -->
 
-`SHOW AGENT STATUS` displays the statistics of [remote agents](../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#agent) or a distributed table. It includes values such as the age of the last request, last answer, the number of various types of errors and successes, and so on. Statistics are displayed for every agent for the last 1, 5, and 15 intervals, each consisting of [ha_period_karma](../Server_settings/Searchd.md#ha_period_karma) seconds.
+`SHOW AGENT STATUS` 显示[远程代理](../Creating_a_table/Creating_a_distributed_table/Remote_tables.md#agent)或分布式表的统计信息。它包括诸如最后一次请求的时间、最后一次响应、各种类型的错误和成功的次数等值。统计数据显示每个代理在最近 1 分钟、5 分钟和 15 分钟内的情况，每个时间间隔由 [ha_period_karma](../Server_settings/Searchd.md#ha_period_karma) 秒组成。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -885,9 +891,10 @@ res := apiClient.UtilsAPI.Sql(context.Background()).Body("SHOW AGENT STATUS").Ex
 
 <!-- example SHOW AGENT LIKE -->
 
-An optional `LIKE` clause is supported, with the syntax being the same as in `SHOW STATUS`.
+支持可选的 `LIKE` 子句，其语法与 `SHOW STATUS` 中的语法相同。
 
 <!-- intro -->
+
 ##### SQL:
 <!-- request SQL -->
 
@@ -1084,7 +1091,7 @@ apiClient.UtilsAPI.Sql(context.Background()).Body("SHOW AGENT STATUS LIKE \"%5pe
 
 <!-- example show specific agent -->
 
-You can specify a particular agent by its address. In this case, only that agent's data will be displayed. Additionally, the `agent_` prefix will be used instead of `ag_N_`:
+您可以通过其地址指定特定的代理。在这种情况下，将只显示该代理的数据。此外，`agent_` 前缀将用于代替 `ag_N_`：
 
 <!-- intro -->
 ##### SQL:
@@ -1340,7 +1347,7 @@ apiClient.UtilsAPI.Sql(context.Background()).Body("SHOW AGENT \"192.168.0.202:67
 <!-- end -->
 <!-- example show agent table status -->
 
-Finally, you can check the status of the agents in a specific distributed table using the `SHOW AGENT index_name STATUS` statement. This statement displays the table's HA status (i.e., whether or not it uses agent mirrors at all) and provides information on the mirrors, including: address, blackhole and persistent flags, and the mirror selection probability used when one of the [weighted probability strategies](../Creating_a_cluster/Remote_nodes/Load_balancing.md) is in effect.
+最后，您可以使用 `SHOW AGENT index_name STATUS` 语句检查特定分布式表中代理的状态。该语句会显示表的 HA 状态（即是否使用代理镜像），并提供有关镜像的信息，包括：地址、blackhole 和 persistent 标志，以及当使用其中一种[加权概率策略](../Creating_a_cluster/Remote_nodes/Load_balancing.md) 时的镜像选择概率。
 
 <!-- intro -->
 ##### SQL:

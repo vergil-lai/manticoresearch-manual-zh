@@ -1,10 +1,10 @@
-# Rotating query and server logs 
+# 轮换查询和服务器日志
 
-Manticore Search accepts the USR1 signal for reopening server and query log files.
+Manticore Search 支持通过发送 USR1 信号重新打开服务器和查询日志文件。
 
-The official [DEB and RPM packages](https://manticoresearch.com/install/) install a Logrotate configuration file for all files in the default log folder.
+官方的 [DEB 和 RPM 包](https://manticoresearch.com/install/) 会为默认日志文件夹中的所有日志文件安装一个 Logrotate 配置文件。
 
-A simple logrotate configuration for log files looks like:
+一个简单的 Logrotate 配置文件示例如下：
 
 ```ini
 /var/log/manticore/*.log {
@@ -25,5 +25,5 @@ mysql> FLUSH LOGS;
 Query OK, 0 rows affected (0.01 sec)
 ```
 
-Additionally, the `FLUSH LOGS` SQL command is available, which works the same way as the USR1 system signal. It initiates the reopening of searchd log and query log files, allowing you to implement log file rotation. The command is non-blocking (i.e., it returns immediately).
+此外，还可以使用 `FLUSH LOGS` SQL 命令，其作用与 USR1 系统信号相同。该命令会重新打开 `searchd` 日志和查询日志文件，允许您实现日志文件轮换。此命令是非阻塞的（即，它会立即返回）。
 <!-- proofread -->
