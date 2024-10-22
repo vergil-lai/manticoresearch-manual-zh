@@ -197,7 +197,7 @@
             * [• 启用和禁用 Buddy 插件](Extensions/UDFs_and_Plugins/Plugins/Enabling_and_disabling_buddy_plugins.md)
             * [• 重新加载插件](Extensions/UDFs_and_Plugins/Plugins/Reloading_plugins.md)
             * [• 排名插件](Extensions/UDFs_and_Plugins/Plugins/Ranker_plugins.md)
-            * [• 令牌过滤器插件](Extensions/UDFs_and_Plugins/Plugins/Token_filter_plugins.md)
+            * [• Token 过滤器插件](Extensions/UDFs_and_Plugins/Plugins/Token_filter_plugins.md)
 * [• 杂项工具](Miscellaneous_tools.md)
 * [• OpenAPI 规范](Openapi.md)
 * [• 远程监控](Telemetry.md)

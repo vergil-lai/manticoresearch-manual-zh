@@ -1,55 +1,56 @@
-# Token filter plugins
+# Token 过滤器插件
 
-Token filter plugins allow you to implement a custom tokenizer that creates tokens according to custom rules. There are two types:
+Token 过滤器插件允许您根据自定义规则实现自定义的分词器。分为两种类型：
 
-* Index-time tokenizer declared by [index_token_filter](../../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#index_token_filter) in table settings
-* Query-time tokenizer declared by [token_filter](../../../Searching/Options.md#token_filter) OPTION directive
+- 索引时分词器，由表设置中的 [index_token_filter](../../../Creating_a_table/NLP_and_tokenization/Low-level_tokenization.md#index_token_filter) 声明
+- 查询时分词器，由 [token_filter](../../../Searching/Options.md#token_filter) OPTION 指令声明
 
-In the text processing pipeline, token filters will run after the base tokenizer processing occurs (which processes the text from fields or queries and creates tokens out of them).
+在文本处理流程中，token 过滤器将在基础分词器处理之后运行（基础分词器处理字段或查询的文本，并将其转换为 token）。
 
-## Index-time tokenizer
+## 索引时分词器
 
-Index-time tokenizer is created by `indexer` when indexing source data into a table or by an RT table when processing `INSERT` or `REPLACE` statements.
+索引时分词器由 `indexer` 在将源数据索引到表中时创建，或由 RT 表在处理 `INSERT` 或 `REPLACE` 语句时创建。
 
-Plugin is declared as `library name:plugin name:optional string of settings`. The init functions of the plugin can accept arbitrary settings that can be passed as a string in the format `option1=value1;option2=value2;..`.
+插件的声明格式为 `库名:插件名:可选的设置字符串`。插件的初始化函数可以接受任意的设置，这些设置可以通过 `option1=value1;option2=value2;..` 格式的字符串传递。
 
-Example:
+示例：
 
 ```ini
 index_token_filter = my_lib.so:email_process:field=email;split=.io
 ```
 
-The call workflow for index-time token filter is as follows:
+索引时 token 过滤器的调用流程如下：
 
-1.  `XXX_init()` gets called right after `indexer` creates token filter with an empty fields list and then after indexer gets the table schema with the actual fields list. It must return zero for successful initialization or an error description otherwise.
-2.  `XXX_begin_document` gets called only for RT table `INSERT`/`REPLACE` for every document. It must return zero for a successful call or an error description otherwise. Using OPTION `token_filter_options`, additional parameters/settings can be passed to the function.
+1.  `XXX_init()` 在 `indexer` 创建 token 过滤器后立即被调用，此时字段列表为空；之后，当 indexer 获取表架构并包含实际字段列表时再次调用。如果初始化成功则返回零，否则返回错误描述。
+2.  `XXX_begin_document` 仅在 RT 表的 `INSERT`/`REPLACE` 操作时为每个文档调用一次。如果调用成功则返回零，否则返回错误描述。可以通过 OPTION `token_filter_options` 传递额外的参数/设置给函数。
+    
     ```sql
     INSERT INTO rt (id, title) VALUES (1, 'some text corp@space.io') OPTION token_filter_options='.io'
     ```
-3.  `XXX_begin_field` gets called once for each field prior to processing the field with the base tokenizer, with the field number as its parameter.
-4.  `XXX_push_token` gets called once for each new token produced by the base tokenizer, with the source token as its parameter. It must return the token, count of extra tokens made by the token filter, and delta position for the token.
-5.  `XXX_get_extra_token` gets called multiple times in case `XXX_push_token` reports extra tokens. It must return the token and delta position for that extra token.
-6.  `XXX_end_field` gets called once right after the source tokens from the current field are processed.
-7.  `XXX_deinit` gets called at the very end of indexing.
+3.  `XXX_begin_field` 在处理每个字段之前调用一次，传递字段编号作为参数。
+4.  `XXX_push_token` 在基础分词器生成每个新 token 时调用一次，将源 token 作为参数传递。它必须返回 token、由 token 过滤器生成的额外 token 数量，以及 token 的位置增量。
+5.  如果 `XXX_push_token` 报告了额外 token，则会多次调用 `XXX_get_extra_token`。它必须返回额外 token 及其位置增量。
+6.  在当前字段的源 token 处理完成后，`XXX_end_field` 会被调用一次。
+7.  在索引结束时，`XXX_deinit` 会被调用。
 
-The following functions are mandatory to be defined: `XXX_begin_document`, `XXX_push_token`, and `XXX_get_extra_token`.
+以下函数必须定义：`XXX_begin_document`、`XXX_push_token` 和 `XXX_get_extra_token`。
 
-## query-time token filter
+## 查询时分词器
 
-Query-time tokenizer gets created on search each time full-text is invoked by every table involved.
+查询时分词器在每次搜索时为每个涉及的表创建，并在每次调用全文搜索时执行。
 
-The call workflow for query-time token filter is as follows:
+查询时 token 过滤器的调用流程如下：
 
-1.  `XXX_init()` gets called once per table prior to parsing the query with parameters - max token length and a string set by the `token_filter` option
+1.  在解析查询之前，每个表会调用一次 `XXX_init()`，并传递最大 token 长度和由 `token_filter` 选项设置的字符串作为参数。
     ```sql
     SELECT * FROM index WHERE MATCH ('test') OPTION token_filter='my_lib.so:query_email_process:io'
     ```
-    It must return zero for successful initialization or error description otherwise.
-2.  `XXX_push_token()` gets called once for each new token produced by the base tokenizer with parameters: token produced by the base tokenizer, pointer to raw token at source query string, and raw token length. It must return the token and delta position for the token.
-3.  `XXX_pre_morph()` gets called once for the token right before it gets passed to the morphology processor with a reference to the token and stopword flag. It might set the stopword flag to mark the token as a stopword.
-4.  `XXX_post_morph()` gets called once for the token after it is processed by the morphology processor with a reference to the token and stopword flag. It might set the stopword flag to mark the token as a stopword. It must return a flag, the non-zero value of which means to use the token prior to morphology processing.
-5.  `XXX_deinit()` gets called at the very end of query processing.
+    如果初始化成功则返回零，否则返回错误描述。
+2.  基础分词器生成每个新 token 时，`XXX_push_token()` 被调用一次，参数包括：基础分词器生成的 token、源查询字符串中的原始 token 指针，以及原始 token 长度。它必须返回 token 和 token 的位置增量。
+3.  在 token 传递给形态学处理器之前，`XXX_pre_morph()` 会被调用一次，并传递 token 和停用词标志的引用。可以设置停用词标志，将该 token 标记为停用词。
+4.  在 token 经过形态学处理器处理之后，`XXX_post_morph()` 会被调用一次，并传递 token 和停用词标志的引用。可以设置停用词标志，将该 token 标记为停用词。它必须返回一个标志，非零值表示使用形态学处理之前的 token。
+5.  在查询处理结束时，`XXX_deinit()` 会被调用。
 
-Absence of the functions is tolerated.
+函数的缺失是允许的。
 
 <!-- proofread -->

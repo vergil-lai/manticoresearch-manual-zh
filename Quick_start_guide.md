@@ -67,7 +67,7 @@ brew services start manticoresearch
 docker pull manticoresearch/manticore
 docker run -e EXTRA=1 --name manticore -p9306:9306 -p9308:9308 -p9312:9312 -d manticoresearch/manticore
 ```
-For persisting your data directory, read [how to use Manticore docker in production](Starting_the_server/Docker.md#Production-use)
+要持久化您的数据目录，请阅读[如何在生产环境中使用 Manticore Docker](Starting_the_server/Docker.md#Production-use)。
 <!-- end -->
 
 <!-- example connect -->

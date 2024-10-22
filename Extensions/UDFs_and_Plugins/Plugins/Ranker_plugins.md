@@ -1,16 +1,16 @@
-# Ranker plugins 
+# Ranker 插件
 
-Ranker plugins let you implement a custom ranker that receives all the occurrences of the keywords matched in the document, and computes a  `WEIGHT()` value. They can be called as follows:
+Ranker 插件允许您实现自定义的排序器，该排序器会接收在文档中匹配到的所有关键字出现次数，并计算出 `WEIGHT()` 值。可以通过以下方式调用：
 
 ```sql
 SELECT id, attr1 FROM test WHERE match('hello') OPTION ranker=myranker('option1=1');
 ```
-The call workflow proceeds as follows:
+调用流程如下：
 
-1. `XXX_init()` is invoked once per query per table, at the very beginning. Several query-wide options are passed to it via a `SPH_RANKER_INIT` structure, including the user options strings (for instance, "option1=1" in the example above).
-2. `XXX_update()` is called multiple times for each matched document, with every matched keyword occurrence provided as its parameter, a `SPH_RANKER_HIT` structure. The occurrences within each document are guaranteed to be passed in ascending order of `hit->hit_pos` values.
-3. `XXX_finalize()` is called once for each matched document when there are no more keyword occurrences. It must return the `WEIGHT()` value. This function is the only mandatory one.
-4. `XXX_deinit()` is invoked once per query, at the very end.
+1. 在每次查询的每个表开始时，会调用 `XXX_init()`，并通过 `SPH_RANKER_INIT` 结构传递多个查询级别的选项，包括用户的选项字符串（例如上述例子中的 "option1=1"）。
+2. 对于每个匹配的文档，`XXX_update()` 会被多次调用，并以 `SPH_RANKER_HIT` 结构的形式传递每个匹配的关键字出现。保证每个文档内的出现按 `hit->hit_pos` 值的升序传递。
+3. 当文档中没有更多的关键字出现时，会调用 `XXX_finalize()`，它必须返回 `WEIGHT()` 值。此函数是唯一必须实现的函数。
+4. 在查询结束时，会调用 `XXX_deinit()`。
 
 
 <!-- proofread -->

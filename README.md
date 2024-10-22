@@ -231,7 +231,7 @@ Manticore Search 提供了比 Elasticsearch 更优的替代方案。将 Manticor
     * [FEDERATED](Extensions/FEDERATED.md)
     * [⪢ UDFs 和插件](Extensions/UDFs_and_Plugins/UDFs_and_Plugins.md)
         * [列出插件](Extensions/UDFs_and_Plugins/Listing_plugins.md)
-        * [⪢ UDF](Extensions/UDFs_and_Plugins/UDF.md)
+        * [⪢ 用户自定义函数 (UDF)](Extensions/UDFs_and_Plugins/UDF.md)
             * [创建函数](Extensions/UDFs_and_Plugins/UDF/Creating_a_function.md)
             * [删除函数](Extensions/UDFs_and_Plugins/UDF/Deleting_a_function.md)
         * [⪢ 插件]

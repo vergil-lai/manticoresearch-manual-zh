@@ -1,8 +1,8 @@
-# Enabling and disabling Buddy plugins
+# 启用和禁用 Buddy 插件
 
-To simplify the control of Buddy plugins, especially when developing a new one or modifying an existing one, the enable and disable Buddy plugin commands are provided. These commands act temporarily during runtime and will reset to their defaults after restarting the daemon or performing a Buddy reset. To permanently disable a plugin, it must be removed.
+为了简化 Buddy 插件的控制，特别是在开发新插件或修改现有插件时，提供了启用和禁用 Buddy 插件的命令。这些命令仅在运行时临时生效，重启守护进程或执行 Buddy 重置后将恢复默认设置。如果需要永久禁用插件，必须将其删除。
 
-You need the fully qualified package name of the plugin to enable or disable it. To find it, you can run the `SHOW BUDDY PLUGINS` query and look for the full qualified name in the `package` field. For example, the `SHOW` plugin has the fully qualified name `manticoresoftware/buddy-plugin-show`.
+要启用或禁用插件，您需要插件的完整包名称。可以通过运行 `SHOW BUDDY PLUGINS` 查询，在 `package` 字段中找到插件的完整名称。例如，`SHOW` 插件的完整包名称为 `manticoresoftware/buddy-plugin-show`。
 
 <!-- example enable_buddy_plugin -->
 ## ENABLE BUDDY PLUGIN
@@ -11,12 +11,12 @@ You need the fully qualified package name of the plugin to enable or disable it.
 ENABLE BUDDY PLUGIN <username/package name on https://packagist.org/>
 ```
 
-> NOTE: `ENABLE BUDDY PLUGIN` requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意: `ENABLE BUDDY PLUGIN` 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果命令无法运行，请确认 Buddy 已安装。
 
-This command reactivates a previously disabled Buddy plugin, allowing it to process your requests again.
+此命令可以重新激活先前已禁用的 Buddy 插件，使其能够再次处理请求。
 
 <!-- intro -->
-### Example
+### 示例
 
 <!-- request SQL -->
 ```sql
@@ -31,15 +31,15 @@ ENABLE BUDDY PLUGIN manticoresoftware/buddy-plugin-show
 DISABLE BUDDY PLUGIN <username/package name on https://packagist.org/>
 ```
 
-This command deactivates an active Buddy plugin, preventing it from processing any further requests.
+此命令可以停用一个处于活动状态的 Buddy 插件，防止其继续处理请求。
 
 <!-- intro -->
-### Example
+### 示例
 
 <!-- request SQL -->
 ```sql
 DISABLE BUDDY PLUGIN manticoresoftware/buddy-plugin-show
 ```
 
-After disabling, if you try the `SHOW QUERIES` command, you'll encounter an error because the plugin is disabled.
+禁用后，如果您尝试执行 `SHOW QUERIES` 命令，将会遇到错误提示，因为该插件已被禁用。
 <!-- end -->

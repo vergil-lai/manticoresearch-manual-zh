@@ -4,17 +4,18 @@
 RELOAD PLUGINS FROM SONAME 'plugin_library'
 ```
 
-Reloads all plugins (UDFs, rankers, etc.) from a given library. In a sense, the reload process is transactional, ensuring that:
-1. all plugins are successfully updated to their new versions;
-2. the update is atomic, meaning all plugins are replaced simultaneously. This atomicity ensures that queries using multiple functions from a reloaded library will never mix old and new versions.
+此命令会重新加载指定库中的所有插件（包括 UDF、ranker 等）。重新加载过程具有以下特点：
 
-During the `RELOAD`, the set of plugins is guaranteed to be consistent; they will either be all old or all new.
+1. 确保所有插件都成功更新为它们的新版本；
+2. 更新是原子性的，这意味着所有插件会同时被替换，确保在查询中使用来自重新加载库的多个函数时，绝不会混合使用旧版本和新版本。
 
-The reload process is also seamless, as some version of a reloaded plugin will always be available for concurrent queries, without any temporary disruptions. This is an improvement over using a pair of `DROP` and `CREATE` statements for reloading. With those, there is a brief window between the `DROP` and the subsequent `CREATE` during which queries technically refer to an unknown plugin and will therefore fail.
+在 `RELOAD` 过程中，插件集是保证一致的；要么全部是旧版本，要么全部是新版本。
 
-If there's any failure, `RELOAD PLUGINS` does nothing, retains the old plugins, and reports an error.
+此外，重新加载过程是无缝的，因为在插件重新加载期间，总有某个版本的插件可供并发查询使用，不会出现暂时的中断。这比使用一对 `DROP` 和 `CREATE` 语句来重新加载插件要好，后者在 `DROP` 和随后的 `CREATE` 之间会有一个短暂的时间窗口，期间查询引用的插件会不可用，因此会导致查询失败。
 
-On Windows, overwriting or deleting a DLL library currently in use can be problematic. However, you can still rename it, place a new version under the old name, and then `RELOAD` will work. After a successful reload, you'll also be able to delete the renamed old library.
+如果重新加载失败，`RELOAD PLUGINS` 不会做任何更改，保留旧插件并报告错误。
+
+在 Windows 上，覆盖或删除当前正在使用的 DLL 库可能会有问题。不过，您仍然可以重命名它，然后将新版本放到原来的名称下，之后 `RELOAD` 命令将会生效。成功重新加载后，您还可以删除重命名的旧库。
 
 ```sql
 mysql> RELOAD PLUGINS FROM SONAME 'udfexample.dll';

@@ -1,4 +1,4 @@
-# Listing plugins
+# 列出插件
 
 ## SHOW PLUGINS
 <!-- example Example -->
@@ -7,11 +7,11 @@
 SHOW PLUGINS
 ```
 
-Displays all the loaded plugins (except for Buddy plugins, see below) and UDFs. The "Type" column should be one of the `udf`, `ranker`, `index_token_filter`, or `query_token_filter`. The "Users" column is the number of thread that are currently using that plugin in a query. The "Extra" column is intended for various additional plugin-type specific information; currently, it shows the return type for the UDFs and is empty for all the other plugin types.
+显示所有已加载的插件（Buddy 插件除外，见下文）和用户定义函数（UDFs）。“Type”列应为以下之一：`udf`、`ranker`、`index_token_filter` 或 `query_token_filter`。“Users”列表示当前在查询中使用该插件的线程数量。“Extra”列用于显示各种插件类型的额外信息；当前，它显示 UDFs 的返回类型，对于其他插件类型则为空。
 
 
 <!-- intro -->
-##### Example:
+##### 示例：
 
 <!-- request Example -->
 
@@ -40,10 +40,9 @@ SHOW PLUGINS;
 SHOW BUDDY PLUGINS
 ```
 
-> NOTE: `SHOW BUDDY PLUGINS` requires [Manticore Buddy](../Installation/Manticore_Buddy.md). If it doesn't work, make sure Buddy is installed.
+> 注意：`SHOW BUDDY PLUGINS` 需要 [Manticore Buddy](../Installation/Manticore_Buddy.md)。如果无法使用该命令，请确保已经安装了 Buddy。
 
-This will display all available plugins, including core and local ones.
-To remove a plugin, make sure to use the name listed in the Package column.
+该命令将显示所有可用的插件，包括核心插件和本地插件。 要移除插件，请确保使用显示在“Package”列中的名称。
 
 <!-- request Example -->
 
