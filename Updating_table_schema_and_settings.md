@@ -131,7 +131,7 @@ mysql> desc rt;
 
 <!-- end -->
 
-## 在实时模式下更新表的全文设置
+## 在实时模式下更新表的全文搜索设置
 
 <!-- example ALTER FT -->
 
@@ -248,7 +248,7 @@ Query OK, 0 rows affected (0.00 sec)
 
 <!-- end -->
 
-## 更新表的全文设置（普通模式）
+## 更新普通表的全文搜索设置
 
 <!-- example ALTER RECONFIGURE -->
 ```sql
