@@ -329,4 +329,4 @@ Manticore Search 是从 [Sphinx 2.3.2](https://github.com/sphinxsearch/sphinx) �
 - [• 更新日志](Changelog.md)
 - [🐞 报告BUG](Reporting_bugs.md)
 - [📖 参考文献](References.md)
-  - [• 先前版本](References.md#旧版本 Manticore 的文档)
+  - [• 先前版本](References.md#旧版本Manticore的文档)
